@@ -1,0 +1,156 @@
+//
+//  ZCFileHelper.m
+//  ChannelResignTool
+//
+//  Created by 赵隆杰 on 2023/12/22.
+//
+
+#import "ZCFileHelper.h"
+#import "ZCProvisioningProfile.h"
+#import "ZCRunLoop.h"
+
+static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisioning Profiles";
+
+@implementation ZCFileHelper {
+    NSFileManager *manager;//全局文件管理
+    NSArray *provisionExtensions;//配置文件扩展名
+}
+
++ (instancetype)sharedInstance {
+    static ZCFileHelper *sharedInstance = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sharedInstance = [[ZCFileHelper alloc] init];
+    });
+    return sharedInstance;
+}
+
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        manager = [NSFileManager defaultManager];
+        provisionExtensions = @[@"mobileprovision", @"provisionprofile"];
+    }
+    return self;
+}
+
+- (NSArray *)lackSupportUtility {
+    NSMutableArray *result = @[].mutableCopy;
+    
+    if (![manager fileExistsAtPath:@"/usr/bin/zip"]) {
+        [result addObject:@"/usr/bin/zip"];
+    }
+    if (![manager fileExistsAtPath:@"/usr/bin/unzip"]) {
+        [result addObject:@"/usr/bin/unzip"];
+    }
+    if (![manager fileExistsAtPath:@"/usr/bin/codesign"]) {
+        [result addObject:@"/usr/bin/codesign"];
+    }
+    
+    return result.copy;
+}
+
+- (void)getCertificatesSuccess:(void (^)(NSArray * _Nonnull))successBlock error:(void (^)(NSString * _Nonnull))errorBlock {
+    NSTask *certTask = [[NSTask alloc] init];
+    [certTask setLaunchPath:@"/usr/bin/security"];
+    [certTask setArguments:[NSArray arrayWithObjects:@"find-identity", @"-v", @"-p", @"codesigning", nil]];
+    
+    NSPipe *pipe = [NSPipe pipe];
+    [certTask setStandardOutput:pipe];
+    [certTask setStandardError:pipe];
+    NSFileHandle *handle = [pipe fileHandleForReading];
+
+    [certTask launch];
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        //检查KeyChain中是否有证书，然后把证书保存到certificatesArray
+        NSString *securityResult = [[NSString alloc] initWithData:[handle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
+        NSLog(@"签名证书列表：%@", securityResult);
+        if (securityResult == nil || securityResult.length < 1) return;
+        NSArray *rawResult = [securityResult componentsSeparatedByString:@"\""];
+        NSMutableArray *tempGetCertsResult = [NSMutableArray arrayWithCapacity:20];
+        for (int i = 0; i <= [rawResult count] - 2; i += 2) {
+            if (!(rawResult.count - 1 < i + 1)) {
+                [tempGetCertsResult addObject:[rawResult objectAtIndex:i+1]];
+            }
+        }
+        
+        __block NSMutableArray *certificatesArray = [NSMutableArray arrayWithArray:tempGetCertsResult];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (certificatesArray.count > 0) {
+                if (successBlock != nil) {
+                    successBlock(certificatesArray.copy);
+                }
+            } else {
+                if (errorBlock != nil) {
+                    errorBlock(@"没有找到签名证书");
+                }
+            }
+        });
+    });
+}
+
+- (NSArray *)getProvisioningProfiles {
+    NSArray *provisioningProfiles = [manager contentsOfDirectoryAtPath:[NSString stringWithFormat:@"%@/%@", NSHomeDirectory(), kMobileprovisionDirName] error:nil];
+    provisioningProfiles = [provisioningProfiles filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"pathExtension IN %@", provisionExtensions]];
+    
+    NSMutableArray *provisioningArray = @[].mutableCopy;
+    [provisioningProfiles enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString *path = (NSString *)obj;
+        BOOL isDirectory;
+        NSString *fullPath = [NSString stringWithFormat:@"%@/%@/%@", NSHomeDirectory(), kMobileprovisionDirName, path];
+        if ([self->manager fileExistsAtPath:fullPath isDirectory:&isDirectory]) {
+            ZCProvisioningProfile *profile = [[ZCProvisioningProfile alloc] initWithPath:fullPath];
+            [provisioningArray addObject:profile];
+        }
+    }];
+    
+    provisioningArray = [[provisioningArray sortedArrayUsingComparator:^NSComparisonResult(id  _Nonnull obj1, id  _Nonnull obj2) {
+        return [((ZCProvisioningProfile *)obj1).name compare:((ZCProvisioningProfile *)obj2).name];
+    }] mutableCopy];
+    
+    return provisioningArray.copy;
+}
+
+#pragma mark - unzip
+- (void)copyFiles:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL))completeBlock {
+    if (![manager fileExistsAtPath:sourcePath]) {
+        completeBlock(NO);
+    }
+    
+    BOOL copySuccess = [manager copyItemAtPath:sourcePath toPath:targetPath error:nil];
+    if (copySuccess) {
+        completeBlock(YES);
+    } else {
+        completeBlock(NO);
+    }
+    
+    
+}
+- (void)unzip:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL))completeBlock {
+    if (![manager fileExistsAtPath:sourcePath]) {
+        completeBlock(NO);
+    }
+    
+    NSTask *unzipTask = [[NSTask alloc] init];
+    [unzipTask setLaunchPath:@"/usr/bin/unzip"];
+    [unzipTask setArguments:[NSArray arrayWithObjects:sourcePath, @"-d", targetPath, nil]];
+    [unzipTask launch];
+    
+    ZCRunLoop *runloop = [[ZCRunLoop alloc] init];
+    [runloop run:^{
+        if ([unzipTask isRunning] == 0) {
+            [runloop stop:^{
+                if (unzipTask.terminationStatus == 0) {
+                    if ([self->manager fileExistsAtPath:targetPath]) {
+                        completeBlock(YES);
+                    }
+                } else {
+                    completeBlock(NO);
+                }
+            }];
+        }
+    }];
+}
+
+@end

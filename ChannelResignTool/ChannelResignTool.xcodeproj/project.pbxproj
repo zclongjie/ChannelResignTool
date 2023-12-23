@@ -1,0 +1,411 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A8629D392B367360008AD376 /* ZCDateFormatterUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D382B367360008AD376 /* ZCDateFormatterUtil.m */; };
+		A8629D3D2B36A8AA008AD376 /* ZCAppPackageHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D3C2B36A8AA008AD376 /* ZCAppPackageHandler.m */; };
+		A8629D402B36BA76008AD376 /* ZCRunLoop.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D3F2B36BA76008AD376 /* ZCRunLoop.m */; };
+		A8629D432B36E137008AD376 /* ZCManuaQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D422B36E137008AD376 /* ZCManuaQueue.m */; };
+		A87F65D62B3147C900CF380B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65D52B3147C900CF380B /* AppDelegate.m */; };
+		A87F65D92B3147C900CF380B /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65D82B3147C900CF380B /* ViewController.m */; };
+		A87F65DB2B3147CA00CF380B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A87F65DA2B3147CA00CF380B /* Assets.xcassets */; };
+		A87F65DE2B3147CA00CF380B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A87F65DC2B3147CA00CF380B /* Main.storyboard */; };
+		A87F65E02B3147CA00CF380B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65DF2B3147CA00CF380B /* main.m */; };
+		A87F65F22B356DB900CF380B /* ZCFileHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65F12B356DB900CF380B /* ZCFileHelper.m */; };
+		A87F65F82B357F9500CF380B /* ZCProvisioningProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A8629D372B367360008AD376 /* ZCDateFormatterUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCDateFormatterUtil.h; sourceTree = "<group>"; };
+		A8629D382B367360008AD376 /* ZCDateFormatterUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCDateFormatterUtil.m; sourceTree = "<group>"; };
+		A8629D3B2B36A8AA008AD376 /* ZCAppPackageHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCAppPackageHandler.h; sourceTree = "<group>"; };
+		A8629D3C2B36A8AA008AD376 /* ZCAppPackageHandler.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCAppPackageHandler.m; sourceTree = "<group>"; };
+		A8629D3E2B36BA76008AD376 /* ZCRunLoop.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCRunLoop.h; sourceTree = "<group>"; };
+		A8629D3F2B36BA76008AD376 /* ZCRunLoop.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCRunLoop.m; sourceTree = "<group>"; };
+		A8629D412B36E137008AD376 /* ZCManuaQueue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCManuaQueue.h; sourceTree = "<group>"; };
+		A8629D422B36E137008AD376 /* ZCManuaQueue.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCManuaQueue.m; sourceTree = "<group>"; };
+		A87F65D12B3147C900CF380B /* ChannelResignTool.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChannelResignTool.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A87F65D42B3147C900CF380B /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		A87F65D52B3147C900CF380B /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		A87F65D72B3147C900CF380B /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		A87F65D82B3147C900CF380B /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		A87F65DA2B3147CA00CF380B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A87F65DD2B3147CA00CF380B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		A87F65DF2B3147CA00CF380B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		A87F65E12B3147CA00CF380B /* ChannelResignTool.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ChannelResignTool.entitlements; sourceTree = "<group>"; };
+		A87F65F02B356DB900CF380B /* ZCFileHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCFileHelper.h; sourceTree = "<group>"; };
+		A87F65F12B356DB900CF380B /* ZCFileHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCFileHelper.m; sourceTree = "<group>"; };
+		A87F65F62B357F9500CF380B /* ZCProvisioningProfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCProvisioningProfile.h; sourceTree = "<group>"; };
+		A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCProvisioningProfile.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A87F65CE2B3147C900CF380B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A8629D3A2B36A87B008AD376 /* Factory */ = {
+			isa = PBXGroup;
+			children = (
+				A8629D3B2B36A8AA008AD376 /* ZCAppPackageHandler.h */,
+				A8629D3C2B36A8AA008AD376 /* ZCAppPackageHandler.m */,
+			);
+			path = Factory;
+			sourceTree = "<group>";
+		};
+		A87F65C82B3147C900CF380B = {
+			isa = PBXGroup;
+			children = (
+				A87F65D32B3147C900CF380B /* ChannelResignTool */,
+				A87F65D22B3147C900CF380B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A87F65D22B3147C900CF380B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A87F65D12B3147C900CF380B /* ChannelResignTool.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A87F65D32B3147C900CF380B /* ChannelResignTool */ = {
+			isa = PBXGroup;
+			children = (
+				A8629D3A2B36A87B008AD376 /* Factory */,
+				A87F65F42B357F4D00CF380B /* Entity */,
+				A87F65EF2B356D8300CF380B /* Util */,
+				A87F65D42B3147C900CF380B /* AppDelegate.h */,
+				A87F65D52B3147C900CF380B /* AppDelegate.m */,
+				A87F65D72B3147C900CF380B /* ViewController.h */,
+				A87F65D82B3147C900CF380B /* ViewController.m */,
+				A87F65DA2B3147CA00CF380B /* Assets.xcassets */,
+				A87F65DC2B3147CA00CF380B /* Main.storyboard */,
+				A87F65DF2B3147CA00CF380B /* main.m */,
+				A87F65E12B3147CA00CF380B /* ChannelResignTool.entitlements */,
+			);
+			path = ChannelResignTool;
+			sourceTree = "<group>";
+		};
+		A87F65EF2B356D8300CF380B /* Util */ = {
+			isa = PBXGroup;
+			children = (
+				A87F65F02B356DB900CF380B /* ZCFileHelper.h */,
+				A87F65F12B356DB900CF380B /* ZCFileHelper.m */,
+				A8629D372B367360008AD376 /* ZCDateFormatterUtil.h */,
+				A8629D382B367360008AD376 /* ZCDateFormatterUtil.m */,
+				A8629D3E2B36BA76008AD376 /* ZCRunLoop.h */,
+				A8629D3F2B36BA76008AD376 /* ZCRunLoop.m */,
+				A8629D412B36E137008AD376 /* ZCManuaQueue.h */,
+				A8629D422B36E137008AD376 /* ZCManuaQueue.m */,
+			);
+			path = Util;
+			sourceTree = "<group>";
+		};
+		A87F65F42B357F4D00CF380B /* Entity */ = {
+			isa = PBXGroup;
+			children = (
+				A87F65F62B357F9500CF380B /* ZCProvisioningProfile.h */,
+				A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */,
+			);
+			path = Entity;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A87F65D02B3147C900CF380B /* ChannelResignTool */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A87F65E42B3147CA00CF380B /* Build configuration list for PBXNativeTarget "ChannelResignTool" */;
+			buildPhases = (
+				A87F65CD2B3147C900CF380B /* Sources */,
+				A87F65CE2B3147C900CF380B /* Frameworks */,
+				A87F65CF2B3147C900CF380B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ChannelResignTool;
+			productName = ChannelResignTool;
+			productReference = A87F65D12B3147C900CF380B /* ChannelResignTool.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A87F65C92B3147C900CF380B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1400;
+				TargetAttributes = {
+					A87F65D02B3147C900CF380B = {
+						CreatedOnToolsVersion = 14.0.1;
+					};
+				};
+			};
+			buildConfigurationList = A87F65CC2B3147C900CF380B /* Build configuration list for PBXProject "ChannelResignTool" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A87F65C82B3147C900CF380B;
+			productRefGroup = A87F65D22B3147C900CF380B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A87F65D02B3147C900CF380B /* ChannelResignTool */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A87F65CF2B3147C900CF380B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A87F65DB2B3147CA00CF380B /* Assets.xcassets in Resources */,
+				A87F65DE2B3147CA00CF380B /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A87F65CD2B3147C900CF380B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A8629D432B36E137008AD376 /* ZCManuaQueue.m in Sources */,
+				A87F65F82B357F9500CF380B /* ZCProvisioningProfile.m in Sources */,
+				A87F65D92B3147C900CF380B /* ViewController.m in Sources */,
+				A8629D402B36BA76008AD376 /* ZCRunLoop.m in Sources */,
+				A87F65E02B3147CA00CF380B /* main.m in Sources */,
+				A8629D392B367360008AD376 /* ZCDateFormatterUtil.m in Sources */,
+				A87F65F22B356DB900CF380B /* ZCFileHelper.m in Sources */,
+				A87F65D62B3147C900CF380B /* AppDelegate.m in Sources */,
+				A8629D3D2B36A8AA008AD376 /* ZCAppPackageHandler.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		A87F65DC2B3147CA00CF380B /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A87F65DD2B3147CA00CF380B /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		A87F65E22B3147CA00CF380B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.3;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		A87F65E32B3147CA00CF380B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		A87F65E52B3147CA00CF380B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ChannelResignTool/ChannelResignTool.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zc.ChannelResignTool;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		A87F65E62B3147CA00CF380B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ChannelResignTool/ChannelResignTool.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.zc.ChannelResignTool;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A87F65CC2B3147C900CF380B /* Build configuration list for PBXProject "ChannelResignTool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A87F65E22B3147CA00CF380B /* Debug */,
+				A87F65E32B3147CA00CF380B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A87F65E42B3147CA00CF380B /* Build configuration list for PBXNativeTarget "ChannelResignTool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A87F65E52B3147CA00CF380B /* Debug */,
+				A87F65E62B3147CA00CF380B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A87F65C92B3147C900CF380B /* Project object */;
+}
