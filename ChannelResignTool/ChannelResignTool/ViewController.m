@@ -10,8 +10,9 @@
 #import "ZCDateFormatterUtil.h"
 #import "ZCProvisioningProfile.h"
 #import "ZCAppPackageHandler.h"
+#import "PlatformRowView.h"
 
-@interface ViewController ()<NSComboBoxDataSource, NSComboBoxDelegate> {
+@interface ViewController ()<NSComboBoxDataSource, NSComboBoxDelegate, NSTableViewDataSource, NSTableViewDelegate, PlatformRowViewDelegate> {
     BOOL useMobileprovisionBundleID;
 }
 
@@ -27,6 +28,10 @@
 @property (weak) IBOutlet NSButton *resignButton;
 @property (unsafe_unretained) IBOutlet NSTextView *logField;
 
+@property (weak) IBOutlet NSTableView *platformTableView;
+@property (unsafe_unretained) IBOutlet NSTextView *showSelectedPlatformField;
+
+
 @property (nonatomic, strong) ZCAppPackageHandler *package;
 
 
@@ -37,12 +42,27 @@
     NSArray *provisioningArray;
     
     NSFileManager *manager;
+    
+    NSMutableArray *selectPlatformArray;
+    
+    NSMutableArray *tempPlatformArray;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
     manager = [NSFileManager defaultManager];
+
+    NSNib *nib = [[NSNib alloc] initWithNibNamed:@"PlatformRowView" bundle:nil];
+    [self.platformTableView registerNib:nib forIdentifier:@"PlatformRowView"];
+    selectPlatformArray = @[].mutableCopy;
+    tempPlatformArray = @[].mutableCopy;
+    for (NSInteger i = 0; i < 50; i++) {
+        PlatformRowViewModel *model = [[PlatformRowViewModel alloc] init];
+        model.name = [NSString stringWithFormat:@"%ld", i];
+        model.platformId = [NSString stringWithFormat:@"%ld", i];
+        [tempPlatformArray addObject:model];
+    }
+
     NSArray *lackSupportUtility = [[ZCFileHelper sharedInstance] lackSupportUtility];
     if (lackSupportUtility.count == 0) {
         //获取本机证书
@@ -210,6 +230,39 @@
     return item;
 }
 
+#pragma mark - NSTableViewDataSource, NSTableViewDelegate
+- (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
+    NSInteger count = tempPlatformArray.count;
+    
+    return count;
+}
+
+- (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
+    PlatformRowView *rowView = [tableView makeViewWithIdentifier:@"PlatformRowView" owner:self];
+    if (!rowView) {
+        rowView = [[PlatformRowView alloc] init];
+        rowView.identifier = @"PlatformRowView";
+    }
+    PlatformRowViewModel *model = tempPlatformArray[row];
+    
+    rowView.model = model;
+    rowView.delegate = self;
+    return rowView;
+}
+- (void)platformRowViewButtonClick:(NSString *)platformId {
+    if ([selectPlatformArray containsObject:platformId]) {
+        [selectPlatformArray removeObject:platformId];
+    } else {
+        [selectPlatformArray addObject:platformId];
+    }
+    if (selectPlatformArray.count) {
+        NSString *platforms = [selectPlatformArray componentsJoinedByString:@"、"];
+        [self showSelectedPlatform:[NSString stringWithFormat:@"已选择 %ld 个渠道：\n%@", selectPlatformArray.count, platforms]];
+    } else {
+        [self showSelectedPlatform:@""];
+    }
+}
+
 #pragma mark -
 - (void)getCertificates {
     [[ZCFileHelper sharedInstance] getCertificatesSuccess:^(NSArray * _Nonnull certificateNames) {
@@ -238,6 +291,15 @@
         [[self.logField textStorage] appendAttributedString:dateAttributedString];
         [[self.logField textStorage] appendAttributedString:logAttributedString];
         [self.logField scrollRangeToVisible:NSMakeRange([self.logField string].length, 0)];
+        
+    });
+}
+#pragma mark - showSelectedPlatformField
+- (void)showSelectedPlatform:(NSString *)platforms {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSAttributedString *logAttributedString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@\n", platforms] attributes:@{NSForegroundColorAttributeName:[NSColor textColor]}];
+        [[self.showSelectedPlatformField textStorage] setAttributedString:logAttributedString];
+        [self.showSelectedPlatformField scrollRangeToVisible:NSMakeRange([self.showSelectedPlatformField string].length, 0)];
         
     });
 }
