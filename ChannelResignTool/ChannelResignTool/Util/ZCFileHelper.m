@@ -112,7 +112,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     return provisioningArray.copy;
 }
 
-#pragma mark - unzip
+#pragma mark - unzip zip
 - (void)copyFiles:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL))completeBlock {
     if (![manager fileExistsAtPath:sourcePath]) {
         completeBlock(NO);
@@ -144,6 +144,35 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
                 if (unzipTask.terminationStatus == 0) {
                     if ([self->manager fileExistsAtPath:targetPath]) {
                         completeBlock(YES);
+                    }
+                } else {
+                    completeBlock(NO);
+                }
+            }];
+        }
+    }];
+}
+
+- (void)zip:(NSString *)sourcepath toPath:(NSString *)targetPath complete:(void (^)(BOOL))completeBlock {
+    if (![manager fileExistsAtPath:sourcepath]) {
+        completeBlock(NO);
+    }
+    
+    NSTask *task = [[NSTask alloc] init];
+    [task setLaunchPath:@"/usr/bin/zip"];
+    [task setArguments:@[@"-qry", targetPath, @"."]];
+    [task setCurrentDirectoryPath:sourcepath];
+    [task launch];
+    
+    ZCRunLoop *runloop = [[ZCRunLoop alloc] init];
+    [runloop run:^{
+        if ([task isRunning] == 0) {
+            [runloop stop:^{
+                if (task.terminationStatus == 0) {
+                    if ([self->manager fileExistsAtPath:targetPath]) {
+                        completeBlock(YES);
+                    } else {
+                        completeBlock(NO);
                     }
                 } else {
                     completeBlock(NO);

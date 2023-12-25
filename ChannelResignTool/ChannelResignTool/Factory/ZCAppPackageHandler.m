@@ -9,10 +9,13 @@
 #import "ZCFileHelper.h"
 #import "ZCDateFormatterUtil.h"
 #import "ZCRunLoop.h"
+#import "ZCManuaQueue.h"
 
 @implementation ZCAppPackageHandler {
     NSFileManager *manager;//全局文件管理
     NSString *entitlementsResult;//创建entitlementss任务的结果
+    NSString *codesigningResult;//签名任务的结果
+    NSString *verificationResult;//验证签名任务的结果
     
     LogBlock logResignBlock;
     ErrorBlock errorResignBlock;
@@ -145,7 +148,7 @@
     }
 }
 
-#pragma mark - resign
+#pragma mark - Resign
 - (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock  error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     logResignBlock = [logBlock copy];
@@ -156,7 +159,7 @@
      1.创建新的entitlements
      2.修改info.plist
      3.修改Embedded Provision
-     4.开始签名
+     4.开始签名并验证
      5.压缩文件
      */
     
@@ -236,6 +239,7 @@
     }];
 }
 
+#pragma mark - Entitlements
 - (void)createEntitlementsWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     logLocalBlock = [logBlock copy];
@@ -313,6 +317,7 @@
     }
 }
 
+#pragma mark - Info.plist
 - (void)editInfoPlistWithIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     logLocalBlock = [logBlock copy];
@@ -323,34 +328,234 @@
         logLocalBlock(@"修改info.plist……");
     }
     
-    
+    NSString *infoPlistPath = [self.appPath stringByAppendingPathComponent:kInfoPlistFileName];
+    if ([manager fileExistsAtPath:infoPlistPath]) {
+        NSMutableDictionary *plist = [[NSMutableDictionary alloc] initWithContentsOfFile:infoPlistPath];
+        [plist setObject:bundleIdentifier forKey:kCFBundleIdentifier];
+        [plist setObject:displayName forKey:kCFBundleDisplayName];
+        
+        NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:plist format:NSPropertyListXMLFormat_v1_0 options:kCFPropertyListImmutable error:nil];
+        if ([xmlData writeToFile:infoPlistPath atomically:YES]) {
+            if (successLocalBlock) {
+                successLocalBlock(@"Info.plist修改完成");
+            }
+        } else {
+            if (errorLocalBlock) {
+                errorLocalBlock(@"Info.plist写入失败");
+            }
+        }
+    } else {
+        if (errorLocalBlock) {
+            errorLocalBlock(@"Info.plist未找到");
+        }
+    }
 }
 
+#pragma mark - EnbeddedProvision
 - (void)editEmbeddedProvision:(ZCProvisioningProfile *)provisoiningProfile  log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     logLocalBlock = [logBlock copy];
     errorLocalBlock = [errorBlock copy];
     successLocalBlock = [successBlock copy];
     
+    if (logLocalBlock) {
+        logLocalBlock(@"生成Embedded.mobileprovision...");
+    }
     
+    NSString *payloadPtah = [self.workPath stringByAppendingPathComponent:kPayloadDirName];
+    NSArray *payloadContents = [manager contentsOfDirectoryAtPath:payloadPtah error:nil];
+    //删除 embedded privisioning
+    for (NSString *file in payloadContents) {
+        if ([[[file pathExtension] lowercaseString] isEqualToString:@"app"]) {
+            NSString *provisioningPath = [self getEmbeddedProvisioningProfilePath];
+            if (provisioningPath) {
+                [manager removeItemAtPath:provisioningPath error:nil];
+            }
+            break;
+        }
+    }
+    
+    NSString *targetPath = [[self.appPath stringByAppendingPathComponent:kEmbeddedProvisioningFileName] stringByAppendingPathExtension:@"mobileprovision"];
+    if ([manager copyItemAtPath:provisoiningProfile.path toPath:targetPath error:nil]) {
+        if (successLocalBlock) {
+            successLocalBlock(@"Embedded.mobileprovision创建成功");
+        }
+    } else {
+        if (errorLocalBlock) {
+            errorLocalBlock(@"创建一个新的Embedded.mobileprovision失败");
+        }
+    }
+}
+- (NSString *)getEmbeddedProvisioningProfilePath {
+    NSString *provisioningPtah = nil;
+    NSArray *provisioningProfiles = [manager contentsOfDirectoryAtPath:self.appPath error:nil];
+    provisioningProfiles = [provisioningProfiles filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"pathExtension IN %@", @[@"mobileprovision", @"provisionprofile"]]];
+    for (NSString *path in provisioningProfiles) {
+        BOOL isDirectory;
+        if ([manager fileExistsAtPath:[NSString stringWithFormat:@"%@/%@", self.appPath, path] isDirectory:&isDirectory]) {
+            provisioningPtah = [NSString stringWithFormat:@"%@/%@", self.appPath, path];
+        }
+    }
+    return provisioningPtah;
 }
 
+#pragma mark - Codesign
 - (void)doCodesignCertificateName:(NSString *)certificateName log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     logLocalBlock = [logBlock copy];
     errorLocalBlock = [errorBlock copy];
     successLocalBlock = [successBlock copy];
     
+    if (logLocalBlock) {
+        logLocalBlock(@"签名中...");
+    }
+    
+    if ([manager fileExistsAtPath:self.appPath]) {
+        NSMutableArray *waitSignPathArray = @[].mutableCopy;
+        NSArray *subpaths = [manager subpathsOfDirectoryAtPath:self.appPath error:nil];
+        for (NSString *subpath in subpaths) {
+            NSString *extension = [[subpath pathExtension] lowercaseString];
+            if ([extension isEqualTo:@"framework"] || [extension isEqualTo:@"dylib"]) {
+                [waitSignPathArray addObject:[self.appPath stringByAppendingPathComponent:subpath]];
+            }
+        }
+        
+        //最后对appPath也要签名
+        [waitSignPathArray addObject:self.appPath];
+        
+        ZCManuaQueue *queue = [[ZCManuaQueue alloc] init];
+        __block NSString *failurePath;
+        for (NSString *signPath in waitSignPathArray) {
+            NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
+                NSString *entitlementspath = [self.workPath stringByAppendingPathComponent:kEntitlementsPlistFileName];
+                
+                NSTask *task = [[NSTask alloc] init];
+                [task setLaunchPath:@"/usr/bin/codesign"];
+                [task setArguments:@[@"-vvv", @"-fs", certificateName, signPath, [NSString stringWithFormat:@"--entitlements=%@", entitlementspath]]];
+                
+                NSPipe *pipe = [NSPipe pipe];
+                [task setStandardOutput:pipe];
+                [task setStandardError:pipe];
+                NSFileHandle *handle = [pipe fileHandleForReading];
+                [task launch];
+                [NSThread detachNewThreadSelector:@selector(watchCodesigning:) toTarget:self withObject:handle];
+                
+                if (self->logLocalBlock) {
+                    self->logLocalBlock([NSString stringWithFormat:@"开始签名文件：%@", [signPath lastPathComponent]]);
+                }
+                
+                ZCRunLoop *runloop = [[ZCRunLoop alloc] init];
+                [runloop run:^{
+                    if ([task isRunning] == 0) {
+                        [runloop stop:^{
+                            //签名
+                            [self verifySignature:signPath complete:^(NSString *error) {
+                                if (error) {
+                                    if (self->errorLocalBlock) {
+                                        failurePath = signPath;
+                                        self->errorLocalBlock([NSString stringWithFormat:@"签名失败 %@", error]);
+                                    }
+                                    [queue cancelAll];
+                                } else {
+                                    if (self->successLocalBlock) {
+                                        self->successLocalBlock([NSString stringWithFormat:@"文件%@ 签名完成", [signPath lastPathComponent]]);
+                                    }
+                                    [queue next];
+                                }
+                            }];
+                        }];
+                    }
+                }];
+            }];
+            [queue addOperation:operation];
+        }
+        [queue next];
+        queue.noOperationBlock = ^{
+            if (self->successLocalBlock && failurePath == nil) {
+                self->successLocalBlock(@"签名验证完成");
+            }
+        };
+    } else {
+        if (errorLocalBlock) {
+            errorLocalBlock([NSString stringWithFormat:@"没有找到文件夹 %@", self.appPath]);
+        }
+    }
+    
     
 }
+//签名验证
+- (void)verifySignature:(NSString *)filePath complete:(void(^)(NSString *error))complete {
+    if (self.appPath) {
+        if (logLocalBlock) {
+            logLocalBlock([NSString stringWithFormat:@"验证文件:%@", [filePath lastPathComponent]]);
+        }
+        
+        //验证
+        NSTask *task = [[NSTask alloc] init];
+        [task setLaunchPath:@"/usr/bin/codesign"];
+        [task setArguments:@[@"-v", filePath]];
+        NSPipe *pipe = [NSPipe pipe];
+        [task setStandardOutput:pipe];
+        [task setStandardError:pipe];
+        NSFileHandle *handle = [pipe fileHandleForReading];
+        [task launch];
+        [NSThread detachNewThreadSelector:@selector(watchVerificationProcess:) toTarget:self withObject:handle];
+        
+        ZCRunLoop *runloop = [[ZCRunLoop alloc] init];
+        [runloop run:^{
+            if ([task isRunning] == 0) {
+                [runloop stop:^{
+                    if (complete) {
+                        if ([self->verificationResult length] == 0) {
+                            complete(nil);
+                        } else {
+                            NSString *error = [[self->codesigningResult stringByAppendingFormat:@"\n\n"] stringByAppendingFormat:@"%@", self->verificationResult];
+                            complete(error);
+                        }
+                    }
+                    
+                }];
+            }
+        }];
+    }
+}
+- (void)watchCodesigning:(NSFileHandle *)handle {
+    @autoreleasepool {
+        codesigningResult = [[NSString alloc] initWithData:[handle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
+    }
+}
+- (void)watchVerificationProcess:(NSFileHandle *)handle {
+    @autoreleasepool {
+        verificationResult = [[NSString alloc] initWithData:[handle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
+    }
+}
 
+#pragma mark - ZipPackage
 - (void)zipPackageToDirPath:(NSString *)zipDirPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     logLocalBlock = [logBlock copy];
     errorLocalBlock = [errorBlock copy];
     successLocalBlock = [successBlock copy];
     
+    NSString *zipIpaPath = [[zipDirPath stringByAppendingPathComponent:self.bundleDisplayName] stringByAppendingPathExtension:@"ipa"];
     
+    if (logLocalBlock) {
+        logLocalBlock([NSString stringWithFormat:@"%@ 开始压缩", zipIpaPath]);
+    }
+    
+    [manager createDirectoryAtPath:zipDirPath withIntermediateDirectories:YES attributes:nil error:nil];
+    
+    [[ZCFileHelper sharedInstance] zip:self.workPath toPath:zipIpaPath complete:^(BOOL result) {
+        if (result) {
+            if (self->successLocalBlock) {
+                self->successLocalBlock(@"文件压缩成功\n完成签名");
+            }
+        } else {
+            if (self->errorLocalBlock) {
+                self->errorLocalBlock(@"文件压缩失败");
+            }
+        }
+    }];
 }
 
 @end

@@ -11,7 +11,9 @@
 #import "ZCProvisioningProfile.h"
 #import "ZCAppPackageHandler.h"
 
-@interface ViewController ()<NSComboBoxDataSource, NSComboBoxDelegate>
+@interface ViewController ()<NSComboBoxDataSource, NSComboBoxDelegate> {
+    BOOL useMobileprovisionBundleID;
+}
 
 @property (weak) IBOutlet NSTextField *ipaPathField;
 @property (weak) IBOutlet NSButton *browseIpaPathButton;
@@ -49,7 +51,7 @@
         [self getProvisioningProfiles];
     } else {
         for (NSString *path in lackSupportUtility) {
-            [self addLog:[NSString stringWithFormat:@"此命名缺少%@的支持", path] withColor:[NSColor redColor]];
+            [self addLog:[NSString stringWithFormat:@"此命名缺少%@的支持", path] withColor:[NSColor systemRedColor]];
         }
     }
 }
@@ -83,7 +85,7 @@
     if ([openPanel runModal] == NSModalResponseOK) {
         NSString *fileNameOpened = [[[openPanel URLs] objectAtIndex:0] path];
         self.ipaPathField.stringValue = fileNameOpened;
-        [self addLog:[NSString stringWithFormat:@"原始包文件:%@", fileNameOpened] withColor:[NSColor whiteColor]];
+        [self addLog:[NSString stringWithFormat:@"原始包文件:%@", fileNameOpened] withColor:[NSColor labelColor]];
         
         //移除之前包的解压文件
         if (self.package.workPath) {
@@ -107,18 +109,16 @@
     if ([openPanel runModal] == NSModalResponseOK) {
         NSString *fileNameOpened = [[[openPanel URLs] objectAtIndex:0] path];
         self.ipaSavePathField.stringValue = fileNameOpened;
-        [self addLog:[NSString stringWithFormat:@"生成包目录:%@", fileNameOpened] withColor:[NSColor whiteColor]];
-        
-        
-        
+        [self addLog:[NSString stringWithFormat:@"选择签名保存包目录:%@", fileNameOpened] withColor:[NSColor labelColor]];
     }
 }
 - (IBAction)radioButtonAction:(NSButton *)sender {
-    NSInteger tag = sender.tag;
-    if (tag == 1) {
-        NSLog(@"使用pro证书中的BundleID");
-    } else {
+    if (sender.tag == 100 && sender.state == NSControlStateValueOn) {
         NSLog(@"修改BundleID, 默认使用App中BundleID");
+        useMobileprovisionBundleID = NO;
+    } else if (sender.tag == 101 && sender.state == NSControlStateValueOn) {
+        NSLog(@"使用mobileprovision中的BundleID");
+        useMobileprovisionBundleID = YES;
     }
 }
 - (IBAction)cleanButton:(id)sender {
@@ -129,49 +129,63 @@
     NSLog(@"开始签名");
     
     if (![manager fileExistsAtPath:self.ipaPathField.stringValue]) {
-        [self addLog:[NSString stringWithFormat:@"未指定ipa或app文件"] withColor:[NSColor redColor]];
+        [self addLog:[NSString stringWithFormat:@"未指定ipa或app文件"] withColor:[NSColor systemRedColor]];
         return;
     }
     if ([self.certificateComboBox indexOfSelectedItem] == -1) {
-        [self addLog:[NSString stringWithFormat:@"未选择签名证书"] withColor:[NSColor redColor]];
+        [self addLog:[NSString stringWithFormat:@"未选择签名证书"] withColor:[NSColor systemRedColor]];
         return;
     }
     if ([self.provisioningComboBox indexOfSelectedItem] == -1) {
-        [self addLog:[NSString stringWithFormat:@"未选择描述文件"] withColor:[NSColor redColor]];
+        [self addLog:[NSString stringWithFormat:@"未选择描述文件"] withColor:[NSColor systemRedColor]];
         return;
     }
     if (![manager fileExistsAtPath:self.ipaSavePathField.stringValue]) {
-        [self addLog:[NSString stringWithFormat:@"未指定ipa文件生成目录"] withColor:[NSColor redColor]];
+        [self addLog:[NSString stringWithFormat:@"未指定ipa文件生成目录"] withColor:[NSColor systemRedColor]];
         return;
     }
+    
+    NSString *bundleIdentifier = @"";
+    if (useMobileprovisionBundleID) {
+        ZCProvisioningProfile *file = provisioningArray[self.provisioningComboBox.indexOfSelectedItem];
+        bundleIdentifier = file.bundleIdentifier;
+    } else {
+        if ([self.bundleIdField.stringValue length] == 0) {
+            [self addLog:[NSString stringWithFormat:@"此App没有找到bundleID"] withColor:[NSColor systemRedColor]];
+            return;
+        } else {
+            bundleIdentifier = self.bundleIdField.stringValue;
+        }
+    }
+    
     [self disenableControls];
     [self.package removeCodeSignatureDirectory];
     
     ZCProvisioningProfile *provisioningProfile = [provisioningArray objectAtIndex:self.provisioningComboBox.indexOfSelectedItem];
     //开始签名
     [self.package resignWithProvisioningProfile:provisioningProfile certiticateName:[certificatesArray objectAtIndex:self.certificateComboBox.indexOfSelectedItem] bundleIdentifier:provisioningProfile.bundleIdentifier displayName:self.appNameField.stringValue targetPath:self.ipaSavePathField.stringValue log:^(NSString * _Nonnull logString) {
-        [self addLog:logString withColor:[NSColor whiteColor]];
+        [self addLog:logString withColor:[NSColor labelColor]];
     } error:^(NSString * _Nonnull errorString) {
         [self enableControls];
-        [self addLog:errorString withColor:[NSColor redColor]];
+        [self addLog:errorString withColor:[NSColor systemRedColor]];
     } success:^(id  _Nonnull message) {
         [self enableControls];
-        [self addLog:[NSString stringWithFormat:@"签名成功,文件保存在%@", self.ipaSavePathField.stringValue] withColor:[NSColor greenColor]];
+        [self addLog:message withColor:[NSColor systemGreenColor]];
     }];
 }
 
 #pragma mark - 解压ipa
 - (void)unzipIpa {
-    [self addLog:[NSString stringWithFormat:@"文件提取到:%@", self.package.workPath] withColor:[NSColor whiteColor]];
+    [self addLog:[NSString stringWithFormat:@"文件提取到:%@", self.package.workPath] withColor:[NSColor labelColor]];
     [self disenableControls];
     
     [self.package unzipIpa:^{
-        [self addLog:[NSString stringWithFormat:@"文件提取完成"] withColor:[NSColor whiteColor]];
+        [self addLog:[NSString stringWithFormat:@"文件提取完成"] withColor:[NSColor labelColor]];
         [self showIpaInfo];
         [self enableControls];
     } error:^(NSString * _Nonnull error) {
         [self enableControls];
-        [self addLog:error withColor:[NSColor redColor]];
+        [self addLog:error withColor:[NSColor systemRedColor]];
     }];
 }
 
@@ -202,7 +216,7 @@
         self->certificatesArray = certificateNames;
         [self.certificateComboBox reloadData];
     } error:^(NSString * _Nonnull error) {
-        [self addLog:error withColor:[NSColor redColor]];
+        [self addLog:error withColor:[NSColor systemRedColor]];
     }];
 }
 
@@ -217,7 +231,7 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         //添加时间
         NSString *dateString = [[ZCDateFormatterUtil sharedFormatter] MMddHHmmsssSSSForDate:[NSDate date]];
-        NSAttributedString *dateAttributedString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"[%@]", dateString] attributes:@{NSForegroundColorAttributeName:[NSColor grayColor]}];
+        NSAttributedString *dateAttributedString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"[%@]", dateString] attributes:@{NSForegroundColorAttributeName:[NSColor systemGrayColor]}];
         //添加log
         NSAttributedString *logAttributedString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@\n", log] attributes:@{NSForegroundColorAttributeName:color}];
         

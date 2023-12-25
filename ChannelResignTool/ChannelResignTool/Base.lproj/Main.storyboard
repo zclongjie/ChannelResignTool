@@ -685,7 +685,7 @@
         <scene sceneID="R2V-B0-nI4">
             <objects>
                 <windowController id="B8D-0N-5wS" sceneMemberID="viewController">
-                    <window key="window" title="渠道签名工具" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA">
+                    <window key="window" title="渠道出包工具" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="196" y="240" width="480" height="270"/>
@@ -778,7 +778,7 @@
                                     <action selector="browseIpaSavePathButtonAction:" target="XfG-lQ-9wD" id="ArA-su-ZCr"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="owW-dH-peN">
+                            <button verticalHuggingPriority="750" tag="100" translatesAutoresizingMaskIntoConstraints="NO" id="owW-dH-peN">
                                 <rect key="frame" x="20" y="147" width="18" height="18"/>
                                 <buttonCell key="cell" type="radio" bezelStyle="regularSquare" imagePosition="left" alignment="center" state="on" inset="2" id="tsK-ME-5Ds">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -796,7 +796,7 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
-                            <button verticalHuggingPriority="750" tag="1" translatesAutoresizingMaskIntoConstraints="NO" id="AQM-Lo-zp8">
+                            <button verticalHuggingPriority="750" tag="101" translatesAutoresizingMaskIntoConstraints="NO" id="AQM-Lo-zp8">
                                 <rect key="frame" x="328" y="147" width="186" height="18"/>
                                 <buttonCell key="cell" type="radio" title="使用pro证书中的BundleID" bezelStyle="regularSquare" imagePosition="left" inset="2" id="1LN-f1-pI2">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
@@ -808,22 +808,22 @@
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="sJZ-Zz-bwa">
                                 <rect key="frame" x="453" y="101" width="68" height="32"/>
-                                <buttonCell key="cell" type="push" title="清  除" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="hh4-0S-gXT">
+                                <buttonCell key="cell" type="push" title="签  名" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="hh4-0S-gXT">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
-                                    <action selector="cleanButton:" target="XfG-lQ-9wD" id="I8o-iQ-Pdd"/>
+                                    <action selector="resignButton:" target="XfG-lQ-9wD" id="QSD-Wx-WkF"/>
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bTQ-Nr-8pu">
                                 <rect key="frame" x="379" y="101" width="68" height="32"/>
-                                <buttonCell key="cell" type="push" title="签  名" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="f7v-0m-oSP">
+                                <buttonCell key="cell" type="push" title="清  除" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="f7v-0m-oSP">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
-                                    <action selector="resignButton:" target="XfG-lQ-9wD" id="tW5-cH-gaM"/>
+                                    <action selector="cleanButton:" target="XfG-lQ-9wD" id="3IR-yL-R4c"/>
                                 </connections>
                             </button>
                             <scrollView borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kYr-xC-zEU">
@@ -908,12 +908,12 @@
                         <outlet property="browseIpaSavePathButton" destination="ydx-ST-v8Q" id="rrl-iD-PgL"/>
                         <outlet property="bundleIdField" destination="LHY-Zj-aZm" id="kFX-KL-QkB"/>
                         <outlet property="certificateComboBox" destination="lCV-6n-ZWj" id="k84-Tm-Ovh"/>
-                        <outlet property="cleanButton" destination="sJZ-Zz-bwa" id="wif-R2-ipD"/>
+                        <outlet property="cleanButton" destination="bTQ-Nr-8pu" id="lzD-7G-VBd"/>
                         <outlet property="ipaPathField" destination="47I-aM-xde" id="P3k-fG-HVy"/>
                         <outlet property="ipaSavePathField" destination="b2h-MA-91h" id="WE8-ho-whH"/>
                         <outlet property="logField" destination="xIO-Oh-umY" id="luw-e9-MRp"/>
                         <outlet property="provisioningComboBox" destination="Pwm-kW-d3K" id="1zl-zZ-YA4"/>
-                        <outlet property="resignButton" destination="bTQ-Nr-8pu" id="cNR-Yb-o05"/>
+                        <outlet property="resignButton" destination="sJZ-Zz-bwa" id="OiY-6N-f4T"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>

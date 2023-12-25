@@ -27,6 +27,9 @@ NS_ASSUME_NONNULL_BEGIN
 ///解压
 - (void)unzip:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
 
+///压缩
+- (void)zip:(NSString *)sourcepath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
+
 @end
 
 NS_ASSUME_NONNULL_END

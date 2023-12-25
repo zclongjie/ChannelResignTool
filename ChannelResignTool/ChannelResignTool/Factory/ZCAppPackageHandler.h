@@ -16,6 +16,7 @@ static NSString *kCFBundleDisplayName = @"CFBundleDisplayName";
 static NSString *kCFBundleIdentifier = @"CFBundleIdentifier";
 static NSString *kCodeSignatureDirectory = @"_CodeSignature";
 static NSString *kEntitlementsPlistFileName = @"Entitlements.plist";
+static NSString *kEmbeddedProvisioningFileName  = @"embedded";
 
 typedef void(^SuccessBlock)(id message);
 typedef void(^ErrorBlock)(NSString *errorString);
