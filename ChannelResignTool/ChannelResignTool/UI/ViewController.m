@@ -196,7 +196,7 @@
     
     ZCProvisioningProfile *provisioningProfile = [provisioningArray objectAtIndex:self.provisioningComboBox.indexOfSelectedItem];
     //开始签名
-    [self.package resignWithProvisioningProfile:provisioningProfile certiticateName:[certificatesArray objectAtIndex:self.certificateComboBox.indexOfSelectedItem] bundleIdentifier:provisioningProfile.bundleIdentifier displayName:self.appNameField.stringValue targetPath:self.ipaSavePathField.stringValue log:^(NSString * _Nonnull logString) {
+    [self.package platformbuildresignWithProvisioningProfile:provisioningProfile certiticateName:[certificatesArray objectAtIndex:self.certificateComboBox.indexOfSelectedItem] bundleIdentifier:provisioningProfile.bundleIdentifier displayName:self.appNameField.stringValue targetPath:self.ipaSavePathField.stringValue log:^(NSString * _Nonnull logString) {
         [self addLog:logString withColor:[NSColor labelColor]];
     } error:^(NSString * _Nonnull errorString) {
         [self enableControls];

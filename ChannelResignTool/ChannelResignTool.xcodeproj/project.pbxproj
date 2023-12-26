@@ -13,6 +13,7 @@
 		A8629D432B36E137008AD376 /* ZCManuaQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D422B36E137008AD376 /* ZCManuaQueue.m */; };
 		A8629D462B39A4B5008AD376 /* PlatformRowView.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D452B39A4B5008AD376 /* PlatformRowView.m */; };
 		A8629D482B39A7BE008AD376 /* PlatformRowView.xib in Resources */ = {isa = PBXBuildFile; fileRef = A8629D472B39A7BE008AD376 /* PlatformRowView.xib */; };
+		A8629D4D2B3A86B1008AD376 /* ZCDataUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D4C2B3A86B1008AD376 /* ZCDataUtil.m */; };
 		A87F65D62B3147C900CF380B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65D52B3147C900CF380B /* AppDelegate.m */; };
 		A87F65D92B3147C900CF380B /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65D82B3147C900CF380B /* ViewController.m */; };
 		A87F65DB2B3147CA00CF380B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A87F65DA2B3147CA00CF380B /* Assets.xcassets */; };
@@ -34,6 +35,8 @@
 		A8629D442B39A4B5008AD376 /* PlatformRowView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlatformRowView.h; sourceTree = "<group>"; };
 		A8629D452B39A4B5008AD376 /* PlatformRowView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PlatformRowView.m; sourceTree = "<group>"; };
 		A8629D472B39A7BE008AD376 /* PlatformRowView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PlatformRowView.xib; sourceTree = "<group>"; };
+		A8629D4B2B3A86B1008AD376 /* ZCDataUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCDataUtil.h; sourceTree = "<group>"; };
+		A8629D4C2B3A86B1008AD376 /* ZCDataUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCDataUtil.m; sourceTree = "<group>"; };
 		A87F65D12B3147C900CF380B /* ChannelResignTool.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChannelResignTool.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A87F65D42B3147C900CF380B /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		A87F65D52B3147C900CF380B /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -125,6 +128,8 @@
 				A8629D3F2B36BA76008AD376 /* ZCRunLoop.m */,
 				A8629D412B36E137008AD376 /* ZCManuaQueue.h */,
 				A8629D422B36E137008AD376 /* ZCManuaQueue.m */,
+				A8629D4B2B3A86B1008AD376 /* ZCDataUtil.h */,
+				A8629D4C2B3A86B1008AD376 /* ZCDataUtil.m */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -210,6 +215,7 @@
 			files = (
 				A8629D432B36E137008AD376 /* ZCManuaQueue.m in Sources */,
 				A87F65F82B357F9500CF380B /* ZCProvisioningProfile.m in Sources */,
+				A8629D4D2B3A86B1008AD376 /* ZCDataUtil.m in Sources */,
 				A87F65D92B3147C900CF380B /* ViewController.m in Sources */,
 				A8629D402B36BA76008AD376 /* ZCRunLoop.m in Sources */,
 				A8629D462B39A4B5008AD376 /* PlatformRowView.m in Sources */,

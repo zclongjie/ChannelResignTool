@@ -22,6 +22,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSArray *)getProvisioningProfiles;
 
 ///复制文件
+- (void)copyFile:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
+///复制多个文件
 - (void)copyFiles:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
 
 ///解压

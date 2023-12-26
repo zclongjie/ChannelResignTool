@@ -8,6 +8,7 @@
 #import "ZCFileHelper.h"
 #import "ZCProvisioningProfile.h"
 #import "ZCRunLoop.h"
+#import "ZCManuaQueue.h"
 
 static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisioning Profiles";
 
@@ -113,19 +114,52 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
 }
 
 #pragma mark - unzip zip
-- (void)copyFiles:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL))completeBlock {
+- (void)copyFile:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL))completeBlock {
     if (![manager fileExistsAtPath:sourcePath]) {
         completeBlock(NO);
     }
-    
+    if ([manager fileExistsAtPath:targetPath]) {
+        [manager removeItemAtPath:targetPath error:nil];
+    }
     BOOL copySuccess = [manager copyItemAtPath:sourcePath toPath:targetPath error:nil];
     if (copySuccess) {
         completeBlock(YES);
     } else {
         completeBlock(NO);
     }
-    
-    
+}
+- (void)copyFiles:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL))completeBlock {
+    NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:sourcePath error:nil];
+    ZCManuaQueue *queue = [[ZCManuaQueue alloc] init];
+    __block NSString *failureCopyFile;
+    for (NSString *file in sourceContents) {
+        NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
+            NSString *sourcefilePath = [sourcePath stringByAppendingPathComponent:file];
+            NSString *targetfilePath = [targetPath stringByAppendingPathComponent:file];
+            ZCRunLoop *runloop = [[ZCRunLoop alloc] init];
+            [runloop run:^{
+                [self copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
+                    [runloop stop:^{
+                        if (result) {
+                            [queue next];
+                        } else {
+                            failureCopyFile = sourcefilePath;
+                            [queue cancelAll];
+                        }
+                    }];
+                }];
+            }];
+        }];
+        [queue addOperation:operation];
+    }
+    [queue next];
+    queue.noOperationBlock = ^{
+        if (completeBlock && failureCopyFile == nil) {
+            completeBlock(YES);
+        } else {
+            completeBlock(NO);
+        }
+    };
 }
 - (void)unzip:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL))completeBlock {
     if (![manager fileExistsAtPath:sourcePath]) {
