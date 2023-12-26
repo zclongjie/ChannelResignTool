@@ -29,10 +29,12 @@
 - (void)setModel:(PlatformRowViewModel *)model {
     _model = model;
     self.platformButton.title = model.name;
+    self.platformButton.state = model.isSelect;
 }
 - (IBAction)platformButtonClick:(NSButton *)sender {
+    _model.isSelect = !_model.isSelect;
     if (self.delegate && [self.delegate respondsToSelector:@selector(platformRowViewButtonClick:)]) {
-        [self.delegate platformRowViewButtonClick:_model.platformId];
+        [self.delegate platformRowViewButtonClick:_model];
     }
 }
 

@@ -69,6 +69,19 @@
 			path = Factory;
 			sourceTree = "<group>";
 		};
+		A8629D4A2B3A6A65008AD376 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				A87F65DC2B3147CA00CF380B /* Main.storyboard */,
+				A87F65D72B3147C900CF380B /* ViewController.h */,
+				A87F65D82B3147C900CF380B /* ViewController.m */,
+				A8629D442B39A4B5008AD376 /* PlatformRowView.h */,
+				A8629D452B39A4B5008AD376 /* PlatformRowView.m */,
+				A8629D472B39A7BE008AD376 /* PlatformRowView.xib */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
 		A87F65C82B3147C900CF380B = {
 			isa = PBXGroup;
 			children = (
@@ -88,20 +101,15 @@
 		A87F65D32B3147C900CF380B /* ChannelResignTool */ = {
 			isa = PBXGroup;
 			children = (
+				A8629D4A2B3A6A65008AD376 /* UI */,
 				A8629D3A2B36A87B008AD376 /* Factory */,
 				A87F65F42B357F4D00CF380B /* Entity */,
 				A87F65EF2B356D8300CF380B /* Util */,
 				A87F65D42B3147C900CF380B /* AppDelegate.h */,
 				A87F65D52B3147C900CF380B /* AppDelegate.m */,
-				A87F65D72B3147C900CF380B /* ViewController.h */,
-				A87F65D82B3147C900CF380B /* ViewController.m */,
 				A87F65DA2B3147CA00CF380B /* Assets.xcassets */,
-				A87F65DC2B3147CA00CF380B /* Main.storyboard */,
 				A87F65DF2B3147CA00CF380B /* main.m */,
 				A87F65E12B3147CA00CF380B /* ChannelResignTool.entitlements */,
-				A8629D442B39A4B5008AD376 /* PlatformRowView.h */,
-				A8629D452B39A4B5008AD376 /* PlatformRowView.m */,
-				A8629D472B39A7BE008AD376 /* PlatformRowView.xib */,
 			);
 			path = ChannelResignTool;
 			sourceTree = "<group>";

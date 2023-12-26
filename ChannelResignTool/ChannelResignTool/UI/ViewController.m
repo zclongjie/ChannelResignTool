@@ -43,7 +43,7 @@
     
     NSFileManager *manager;
     
-    NSMutableArray *selectPlatformArray;
+//    NSMutableArray *selectPlatformArray;
     
     NSMutableArray *tempPlatformArray;
 }
@@ -54,12 +54,13 @@
 
     NSNib *nib = [[NSNib alloc] initWithNibNamed:@"PlatformRowView" bundle:nil];
     [self.platformTableView registerNib:nib forIdentifier:@"PlatformRowView"];
-    selectPlatformArray = @[].mutableCopy;
+//    selectPlatformArray = @[].mutableCopy;
     tempPlatformArray = @[].mutableCopy;
     for (NSInteger i = 0; i < 50; i++) {
         PlatformRowViewModel *model = [[PlatformRowViewModel alloc] init];
         model.name = [NSString stringWithFormat:@"%ld", i];
         model.platformId = [NSString stringWithFormat:@"%ld", i];
+        model.isSelect = NO;
         [tempPlatformArray addObject:model];
     }
 
@@ -74,6 +75,8 @@
             [self addLog:[NSString stringWithFormat:@"此命名缺少%@的支持", path] withColor:[NSColor systemRedColor]];
         }
     }
+    
+    [self.ipaPathField becomeFirstResponder];//让ipaPath为第一响应
 }
 
 - (void)viewDidDisappear {
@@ -141,9 +144,19 @@
         useMobileprovisionBundleID = YES;
     }
 }
-- (IBAction)cleanButton:(id)sender {
-    NSLog(@"清除已选项");
-    [self clearall];
+- (IBAction)cleanButton:(NSButton *)sender {
+    if (sender.tag == 200) {
+        NSLog(@"清除已选渠道");
+        [tempPlatformArray enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+            PlatformRowViewModel *model = (PlatformRowViewModel *)obj;
+            model.isSelect = NO;
+        }];
+        [self.platformTableView reloadData];
+        [self showSelectPlatformView:@[].mutableCopy];
+    } else if (sender.tag == 201) {
+        NSLog(@"清除全部");
+        [self clearall];
+    }
 }
 - (IBAction)resignButton:(id)sender {
     NSLog(@"开始签名");
@@ -243,21 +256,25 @@
         rowView = [[PlatformRowView alloc] init];
         rowView.identifier = @"PlatformRowView";
     }
-    PlatformRowViewModel *model = tempPlatformArray[row];
-    
-    rowView.model = model;
     rowView.delegate = self;
+    PlatformRowViewModel *model = tempPlatformArray[row];
+    rowView.model = model;
     return rowView;
 }
-- (void)platformRowViewButtonClick:(NSString *)platformId {
-    if ([selectPlatformArray containsObject:platformId]) {
-        [selectPlatformArray removeObject:platformId];
-    } else {
-        [selectPlatformArray addObject:platformId];
-    }
-    if (selectPlatformArray.count) {
-        NSString *platforms = [selectPlatformArray componentsJoinedByString:@"、"];
-        [self showSelectedPlatform:[NSString stringWithFormat:@"已选择 %ld 个渠道：\n%@", selectPlatformArray.count, platforms]];
+- (void)platformRowViewButtonClick:(PlatformRowViewModel *)selectModel {
+    NSMutableArray *selectPlatformNameArray = @[].mutableCopy;
+    [tempPlatformArray enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        PlatformRowViewModel *model = (PlatformRowViewModel *)obj;
+        if (model.isSelect) {
+            [selectPlatformNameArray addObject:model.name];
+        }
+    }];
+    [self showSelectPlatformView:selectPlatformNameArray];
+}
+- (void)showSelectPlatformView:(NSMutableArray *)selectPlatformNameArray {
+    if (selectPlatformNameArray.count) {
+        NSString *platforms = [selectPlatformNameArray componentsJoinedByString:@"、"];
+        [self showSelectedPlatform:[NSString stringWithFormat:@"已选择 %ld 个渠道：\n%@", selectPlatformNameArray.count, platforms]];
     } else {
         [self showSelectedPlatform:@""];
     }
@@ -268,6 +285,7 @@
     [[ZCFileHelper sharedInstance] getCertificatesSuccess:^(NSArray * _Nonnull certificateNames) {
         self->certificatesArray = certificateNames;
         [self.certificateComboBox reloadData];
+        [self.certificateComboBox selectItemAtIndex:0];//默认选择第一个
     } error:^(NSString * _Nonnull error) {
         [self addLog:error withColor:[NSColor systemRedColor]];
     }];
@@ -277,6 +295,7 @@
 - (void)getProvisioningProfiles {
     provisioningArray = [[ZCFileHelper sharedInstance] getProvisioningProfiles];
     [self.provisioningComboBox reloadData];
+    [self.provisioningComboBox selectItemAtIndex:0];//默认选择第一个
 }
 
 #pragma mark - LogField
@@ -297,7 +316,7 @@
 #pragma mark - showSelectedPlatformField
 - (void)showSelectedPlatform:(NSString *)platforms {
     dispatch_async(dispatch_get_main_queue(), ^{
-        NSAttributedString *logAttributedString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@\n", platforms] attributes:@{NSForegroundColorAttributeName:[NSColor textColor]}];
+        NSAttributedString *logAttributedString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@\n", platforms] attributes:@{NSForegroundColorAttributeName:[NSColor textColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
         [[self.showSelectedPlatformField textStorage] setAttributedString:logAttributedString];
         [self.showSelectedPlatformField scrollRangeToVisible:NSMakeRange([self.showSelectedPlatformField string].length, 0)];
         
@@ -341,6 +360,9 @@
     
     [manager removeItemAtPath:TEMP_PATH error:nil];
     self.package = nil;
+    
+    NSButton *btn = [self.view viewWithTag:200];
+    [self cleanButton:btn];
 }
 
 - (void)showIpaInfo {
