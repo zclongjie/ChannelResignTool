@@ -17,6 +17,11 @@ static NSString *kCFBundleIdentifier = @"CFBundleIdentifier";
 static NSString *kCodeSignatureDirectory = @"_CodeSignature";
 static NSString *kEntitlementsPlistFileName = @"Entitlements.plist";
 static NSString *kEmbeddedProvisioningFileName  = @"embedded";
+static NSString *kUILaunchImageFile  = @"UILaunchImageFile";
+static NSString *kUILaunchImages  = @"UILaunchImages";
+static NSString *kUILaunchStoryboardName  = @"UILaunchStoryboardName";
+static NSString *kUILaunchStoryboardNameipad  = @"UILaunchStoryboardName~ipad";
+static NSString *kUILaunchStoryboardNameiphone  = @"UILaunchStoryboardName~iphone";
 
 typedef void(^SuccessBlock)(id message);
 typedef void(^ErrorBlock)(NSString *errorString);

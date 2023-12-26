@@ -363,7 +363,8 @@
     }
     
     //todo：这里写死测试，后续网络获取
-    bundleIdentifier = @"com.swyxios.mly";
+    NSString *isLan = @"0";//是否横屏
+//    bundleIdentifier = @"com.swyxios.mly";
     displayName = @"圣物英雄";
     
     NSString *infoPlistPath = [self.appPath stringByAppendingPathComponent:kInfoPlistFileName];
@@ -371,6 +372,19 @@
         NSMutableDictionary *plist = [[NSMutableDictionary alloc] initWithContentsOfFile:infoPlistPath];
         [plist setObject:bundleIdentifier forKey:kCFBundleIdentifier];
         [plist setObject:displayName forKey:kCFBundleDisplayName];
+        
+        [plist setObject:@"LaunchImage" forKey:kUILaunchImageFile];
+        [plist setObject:displayName forKey:kUILaunchImages];
+        if ([isLan isEqualToString:@"0"]) {
+            [plist setObject:@"LaunchPortrait" forKey:kUILaunchStoryboardName];
+            [plist setObject:@"LaunchPortrait" forKey:kUILaunchStoryboardNameipad];
+            [plist setObject:@"LaunchPortrait" forKey:kUILaunchStoryboardNameiphone];
+        } else {
+            [plist setObject:@"LaunchLandscape" forKey:kUILaunchStoryboardName];
+            [plist setObject:@"LaunchLandscape" forKey:kUILaunchStoryboardNameipad];
+            [plist setObject:@"LaunchLandscape" forKey:kUILaunchStoryboardNameiphone];
+        }
+        
         
         //添加渠道info.plist信息
         //1.获取渠道json文件（实际为网络下载）
@@ -435,10 +449,13 @@
         logLocalBlock(@"复制渠道文件……");
     }
     
-    //todo：这里写死测试，后续网络获取
-    NSString *appID = @"14881";
-    NSString *gameID = @"15521";
+    //todo：这里写死测试，真实需要网络获取
     NSString *isLan = @"0";//是否横屏
+    NSDictionary *_256Dict = @{
+        @"WANCMS_GAMEID": @"15521",
+        @"WANCMS_APPID": @"14881",
+        @"WANCMS_AGENT": @"cps001"
+    }.copy;
     
     //1.获取渠道文件（实际为网络下载）
     NSString *platformJsonPath = @"/Users/zclongjie/Desktop/tools/1897圣物英雄0.1（米粒游专服）/platformFiles/miliyou_3.4.zip";
@@ -454,6 +471,39 @@
             
             //渠道文件复制
             NSString *resourcePath = [miliyouPath stringByAppendingPathComponent:@"resource"];
+            
+            //写入渠道参数
+            NSString *platformJsonTargetPath = [[self.workPath stringByAppendingPathComponent:@"256"] stringByAppendingPathExtension:@"json"];
+            NSMutableDictionary *platformJsonPlist = [[ZCDataUtil shareInstance] readJsonFile:platformJsonTargetPath];
+            NSString *plat_plist = platformJsonPlist[@"plat_plist"];
+            NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:resourcePath error:nil];
+            NSString *plat_plistPath;
+            for (NSString *file in sourceContents) {
+                if ([file isEqualToString:plat_plist]) {
+                    plat_plistPath = [resourcePath stringByAppendingPathComponent:file];
+                    break;
+                }
+            }
+            if (plat_plistPath) {
+                NSMutableDictionary *plat_plistDict = [[NSMutableDictionary alloc] initWithContentsOfFile:plat_plistPath];
+                for (NSString *key in _256Dict.allKeys) {
+                    if ([plat_plistDict.allKeys containsObject:key]) {
+                        [plat_plistDict setObject:_256Dict[key] forKey:key];
+                    }
+                }
+                NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:plat_plistDict format:NSPropertyListXMLFormat_v1_0 options:kCFPropertyListImmutable error:nil];
+                if ([xmlData writeToFile:plat_plistPath atomically:YES]) {
+                    if (self->logLocalBlock) {
+                        self->logLocalBlock(@"plat_plist修改完成");
+                    }
+                } else {
+                    if (self->logLocalBlock) {
+                        self->logLocalBlock(@"plat_plist写入失败");
+                    }
+                }
+            }
+            
+            
             [[ZCFileHelper sharedInstance] copyFiles:resourcePath toPath:self.appPath complete:^(BOOL result) {
                 if (result) {
                     self->logLocalBlock([NSString stringWithFormat:@"文件夹%@内的文件复制成功", @"resource"]);
@@ -516,7 +566,9 @@
         }
     }];
     
-    
+    if (successLocalBlock) {
+        successLocalBlock(@"渠道文件修改完成");
+    }
 }
 
 
@@ -786,53 +838,53 @@
                     self->successResignBlock(message);
                 }
                 
-                
+                //3.修改Embedded Provision
+                [self editEmbeddedProvision:provisioningProfile log:^(NSString * _Nonnull logString) {
+                    if (self->logResignBlock) {
+                        self->logResignBlock(logString);
+                    }
+                } error:^(NSString * _Nonnull errorString) {
+                    if (self->errorResignBlock) {
+                        self->errorResignBlock(errorString);
+                    }
+                } success:^(id  _Nonnull message) {
+                    if (self->successResignBlock) {
+                        self->successResignBlock(message);
+                    }
+    
+                    //4.开始签名
+                    [self doCodesignCertificateName:certificateName log:^(NSString * _Nonnull logString) {
+                        if (self->logResignBlock) {
+                            self->logResignBlock(logString);
+                        }
+                    } error:^(NSString * _Nonnull errorString) {
+                        if (self->errorResignBlock) {
+                            self->errorResignBlock(errorString);
+                        }
+                    } success:^(id  _Nonnull message) {
+                        if (self->successResignBlock) {
+                            self->successResignBlock(message);
+                        }
+    
+                        //5.压缩文件
+                        [self zipPackageToDirPath:targetPath log:^(NSString * _Nonnull logString) {
+                            if (self->logResignBlock) {
+                                self->logResignBlock(logString);
+                            }
+                        } error:^(NSString * _Nonnull errorString) {
+                            if (self->errorResignBlock) {
+                                self->errorResignBlock(errorString);
+                            }
+                        } success:^(id  _Nonnull message) {
+                            if (self->successResignBlock) {
+                                self->successResignBlock(message);
+                            }
+                        }];
+                    }];
+                }];
             }];
             
-//            //3.修改Embedded Provision
-//            [self editEmbeddedProvision:provisioningProfile log:^(NSString * _Nonnull logString) {
-//                if (self->logResignBlock) {
-//                    self->logResignBlock(logString);
-//                }
-//            } error:^(NSString * _Nonnull errorString) {
-//                if (self->errorResignBlock) {
-//                    self->errorResignBlock(errorString);
-//                }
-//            } success:^(id  _Nonnull message) {
-//                if (self->successResignBlock) {
-//                    self->successResignBlock(message);
-//                }
-//
-//                //4.开始签名
-//                [self doCodesignCertificateName:certificateName log:^(NSString * _Nonnull logString) {
-//                    if (self->logResignBlock) {
-//                        self->logResignBlock(logString);
-//                    }
-//                } error:^(NSString * _Nonnull errorString) {
-//                    if (self->errorResignBlock) {
-//                        self->errorResignBlock(errorString);
-//                    }
-//                } success:^(id  _Nonnull message) {
-//                    if (self->successResignBlock) {
-//                        self->successResignBlock(message);
-//                    }
-//
-//                    //5.压缩文件
-//                    [self zipPackageToDirPath:targetPath log:^(NSString * _Nonnull logString) {
-//                        if (self->logResignBlock) {
-//                            self->logResignBlock(logString);
-//                        }
-//                    } error:^(NSString * _Nonnull errorString) {
-//                        if (self->errorResignBlock) {
-//                            self->errorResignBlock(errorString);
-//                        }
-//                    } success:^(id  _Nonnull message) {
-//                        if (self->successResignBlock) {
-//                            self->successResignBlock(message);
-//                        }
-//                    }];
-//                }];
-//            }];
+
         }];
     }];
 }
