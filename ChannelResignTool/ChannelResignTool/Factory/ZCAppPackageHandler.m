@@ -35,11 +35,11 @@
         self.packagePath = path;
         
         //生成临时解压路径（此时目录还未创建）
-        NSString *tempPath = TEMP_PATH;
+        NSString *tempPath = CHANNELRESIGNTOOL_PATH;
         NSString *unzipPath = [tempPath stringByAppendingPathComponent:@"unzip"];
         NSString *ipaPathName = [[self.packagePath lastPathComponent] stringByDeletingPathExtension];//从文件的最后一部分删除扩展名
         NSString *ipaPathNamePath = [unzipPath stringByAppendingPathComponent:ipaPathName];
-        NSString *dateString = [[ZCDateFormatterUtil sharedFormatter] timestampForDate:[NSDate date]];
+        NSString *dateString = [[ZCDateFormatterUtil sharedFormatter] yyyyMMddHHmmssSSSForDate:[NSDate date]];
         self.workPath = [ipaPathNamePath stringByAppendingPathComponent:dateString];
         
     }
@@ -57,11 +57,11 @@
 }
 
 #pragma mark - unzip
-- (void)unzipIpa:(void (^)(void))successBlock error:(void (^)(NSString * _Nonnull))errorBlock {
+- (void)unzipIpaLog:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     if ([self.packagePath.pathExtension.lowercaseString isEqualToString:@"ipa"]) {
         
         //移除之前的解压路径
-        [manager removeItemAtPath:self.workPath error:nil];
+//        [manager removeItemAtPath:self.workPath error:nil];
         //创建新目录
         [manager createDirectoryAtPath:self.workPath withIntermediateDirectories:YES attributes:nil error:nil];
         
@@ -70,19 +70,17 @@
             if (result) {
                 [self setAppPath];
                 if (successBlock) {
-                    successBlock();
-                } else {
-                    errorBlock(@"解压失败");
+                    successBlock(BlockType_Unzip, @"文件解压完成");
                 }
             } else {
-                errorBlock(@"解压失败");
+                errorBlock(BlockType_Unzip, @"文件解压失败");
             }
         }];
         
     } else if ([self.packagePath.pathExtension.lowercaseString isEqualToString:@"app"]) {
         
         //移除之前的解压路径
-        [manager removeItemAtPath:self.workPath error:nil];
+//        [manager removeItemAtPath:self.workPath error:nil];
         //创建新目录
         NSString *payloadPath = [self.workPath stringByAppendingPathComponent:kPayloadDirName];
         [manager createDirectoryAtPath:payloadPath withIntermediateDirectories:YES attributes:nil error:nil];
@@ -92,18 +90,16 @@
             if (result) {
                 [self setAppPath];
                 if (successBlock) {
-                    successBlock();
-                } else {
-                    errorBlock(@"文件复制失败");
+                    successBlock(BlockType_Unzip, @"文件复制完成");
                 }
             } else {
-                errorBlock(@"文件复制失败");
+                errorBlock(BlockType_Unzip, @"文件复制失败");
             }
         }];
         
     } else {
         if (errorBlock) {
-            errorBlock([NSString stringWithFormat:@"文件扩展名不是ipa或app"]);
+            errorBlock(BlockType_Unzip, [NSString stringWithFormat:@"文件扩展名不是ipa或app"]);
         }
     }
 }
@@ -150,7 +146,7 @@
 }
 
 #pragma mark - Resign
-- (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock  error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+- (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     logResignBlock = [logBlock copy];
     errorResignBlock = [errorBlock copy];
@@ -165,75 +161,74 @@
      */
     
     //1.创建新的entitlements
-    [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(NSString * _Nonnull logString) {
+    [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
         if (self->logResignBlock) {
-            self->logResignBlock(logString);
+            self->logResignBlock(BlockType_Entitlements, logString);
         }
-    } error:^(NSString * _Nonnull errorString) {
+    } error:^(BlockType type, NSString * _Nonnull errorString) {
         if (self->errorResignBlock) {
-            self->errorResignBlock(errorString);
+            self->errorResignBlock(BlockType_Entitlements, errorString);
         }
-    } success:^(id  _Nonnull message) {
+    } success:^(BlockType type, id  _Nonnull message) {
         if (self->successResignBlock) {
-            self->successResignBlock(message);
+            self->successResignBlock(BlockType_Entitlements, message);
         }
         
         //2.修改info.plist
-        [self editInfoPlistWithIdentifier:bundleIdentifier displayName:displayName log:^(NSString * _Nonnull logString) {
+        [self editInfoPlistWithIdentifier:bundleIdentifier displayName:displayName log:^(BlockType type, NSString * _Nonnull logString) {
             if (self->logResignBlock) {
-                self->logResignBlock(logString);
+                self->logResignBlock(BlockType_InfoPlist, logString);
             }
-        } error:^(NSString * _Nonnull errorString) {
+        } error:^(BlockType type, NSString * _Nonnull errorString) {
             if (self->errorResignBlock) {
-                self->errorResignBlock(errorString);
+                self->errorResignBlock(BlockType_InfoPlist, errorString);
             }
-        } success:^(id  _Nonnull message) {
+        } success:^(BlockType type, id  _Nonnull message) {
             if (self->successResignBlock) {
-                self->successResignBlock(message);
+                self->successResignBlock(BlockType_InfoPlist, message);
             }
             
             //3.修改Embedded Provision
-            [self editEmbeddedProvision:provisioningProfile log:^(NSString * _Nonnull logString) {
+            [self editEmbeddedProvision:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
                 if (self->logResignBlock) {
-                    self->logResignBlock(logString);
+                    self->logResignBlock(BlockType_EmbeddedProvision, logString);
                 }
-            } error:^(NSString * _Nonnull errorString) {
+            } error:^(BlockType type, NSString * _Nonnull errorString) {
                 if (self->errorResignBlock) {
-                    self->errorResignBlock(errorString);
+                    self->errorResignBlock(BlockType_EmbeddedProvision, errorString);
                 }
-            } success:^(id  _Nonnull message) {
+            } success:^(BlockType type, id  _Nonnull message) {
                 if (self->successResignBlock) {
-                    self->successResignBlock(message);
+                    self->successResignBlock(BlockType_EmbeddedProvision, message);
                 }
                 
                 //4.开始签名
-                [self doCodesignCertificateName:certificateName log:^(NSString * _Nonnull logString) {
+                [self doCodesignCertificateName:certificateName log:^(BlockType type, NSString * _Nonnull logString) {
                     if (self->logResignBlock) {
-                        self->logResignBlock(logString);
+                        self->logResignBlock(BlockType_DoCodesign, logString);
                     }
-                } error:^(NSString * _Nonnull errorString) {
+                } error:^(BlockType type, NSString * _Nonnull errorString) {
                     if (self->errorResignBlock) {
-                        self->errorResignBlock(errorString);
+                        self->errorResignBlock(BlockType_DoCodesign, errorString);
                     }
-                } success:^(id  _Nonnull message) {
+                } success:^(BlockType type, id  _Nonnull message) {
                     if (self->successResignBlock) {
-                        self->successResignBlock(message);
+                        self->successResignBlock(BlockType_DoCodesign, message);
                     }
                     
                     //5.压缩文件
-                    [self zipPackageToDirPath:targetPath log:^(NSString * _Nonnull logString) {
-                        if (self->logResignBlock) {
-                            self->logResignBlock(logString);
-                        }
-                    } error:^(NSString * _Nonnull errorString) {
+                    [self zipPackageToDirPath:targetPath log:^(BlockType type, NSString * _Nonnull logString) {
+                        
+                    } error:^(BlockType type, NSString * _Nonnull errorString) {
                         if (self->errorResignBlock) {
-                            self->errorResignBlock(errorString);
+                            self->errorResignBlock(BlockType_ZipPackage, errorString);
                         }
-                    } success:^(id  _Nonnull message) {
+                    } success:^(BlockType type, id  _Nonnull message) {
                         if (self->successResignBlock) {
-                            self->successResignBlock(message);
+                            self->successResignBlock(BlockType_ZipPackage, message);
                         }
                     }];
+                    
                 }];
             }];
         }];
@@ -248,7 +243,7 @@
     successLocalBlock = [successBlock copy];
     
     if (logLocalBlock) {
-        logLocalBlock(@"创建Entitlements……");
+        logLocalBlock(BlockType_Entitlements, @"创建Entitlements……");
     }
     
     //先检查是否存在entitlements，存在先删掉
@@ -256,7 +251,7 @@
     if (entitlementsPath && [manager fileExistsAtPath:entitlementsPath]) {
         if (![manager removeItemAtPath:entitlementsPath error:nil]) {
             if (errorLocalBlock) {
-                errorLocalBlock(@"错误：删除旧Entitlements失败");
+                errorLocalBlock(BlockType_Entitlements, @"错误：删除旧Entitlements失败");
             }
             return;
         }
@@ -290,16 +285,16 @@
                         NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:entitlementsDict format:NSPropertyListXMLFormat_v1_0 options:kCFPropertyListImmutable error:nil];
                         if ([xmlData writeToFile:filePath atomically:YES]) {
                             if (self->successLocalBlock) {
-                                self->successLocalBlock(@"Entitlements.plist创建成功");
+                                self->successLocalBlock(BlockType_Entitlements, @"Entitlements.plist创建成功");
                             }
                         } else {
                             if (self->errorLocalBlock) {
-                                self->errorLocalBlock(@"Entitlements.plist写入数据失败");
+                                self->errorLocalBlock(BlockType_Entitlements, @"Entitlements.plist写入数据失败");
                             }
                         }
                     } else {
                         if (self->errorLocalBlock) {
-                            self->errorLocalBlock(@"创建Entitlements失败");
+                            self->errorLocalBlock(BlockType_Entitlements, @"创建Entitlements失败");
                         }
                     }
                 }];
@@ -308,7 +303,7 @@
         [NSThread detachNewThreadSelector:@selector(watchEntitlements:) toTarget:self withObject:handle];
     } else {
         if (self->errorLocalBlock) {
-            self->errorLocalBlock(@"选择的provisioning profile不存在");
+            self->errorLocalBlock(BlockType_Entitlements, @"选择的provisioning profile不存在");
         }
     }
 }
@@ -326,7 +321,7 @@
     successLocalBlock = [successBlock copy];
     
     if (logLocalBlock) {
-        logLocalBlock(@"修改info.plist……");
+        logLocalBlock(BlockType_InfoPlist, @"修改info.plist……");
     }
     
     NSString *infoPlistPath = [self.appPath stringByAppendingPathComponent:kInfoPlistFileName];
@@ -338,16 +333,16 @@
         NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:plist format:NSPropertyListXMLFormat_v1_0 options:kCFPropertyListImmutable error:nil];
         if ([xmlData writeToFile:infoPlistPath atomically:YES]) {
             if (successLocalBlock) {
-                successLocalBlock(@"Info.plist修改完成");
+                successLocalBlock(BlockType_InfoPlist, @"Info.plist修改完成");
             }
         } else {
             if (errorLocalBlock) {
-                errorLocalBlock(@"Info.plist写入失败");
+                errorLocalBlock(BlockType_InfoPlist, @"Info.plist写入失败");
             }
         }
     } else {
         if (errorLocalBlock) {
-            errorLocalBlock(@"Info.plist未找到");
+            errorLocalBlock(BlockType_InfoPlist, @"Info.plist未找到");
         }
     }
 }
@@ -359,12 +354,12 @@
     successLocalBlock = [successBlock copy];
     
     if (logLocalBlock) {
-        logLocalBlock(@"修改info.plist……");
+        logLocalBlock(BlockType_InfoPlist, @"修改info.plist……");
     }
     
     //todo：这里写死测试，后续网络获取
     NSString *isLan = @"0";//是否横屏
-//    bundleIdentifier = @"com.swyxios.mly";
+    bundleIdentifier = @"com.swyxios.mly";
     displayName = @"圣物英雄";
     
     NSString *infoPlistPath = [self.appPath stringByAppendingPathComponent:kInfoPlistFileName];
@@ -417,7 +412,7 @@
                 }
             } else {
                 if (self->errorLocalBlock) {
-                    self->errorLocalBlock(@"复制渠道json文件失败");
+                    self->errorLocalBlock(BlockType_InfoPlist, @"复制渠道json文件失败");
                 }
             }
         }];
@@ -425,28 +420,28 @@
         NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:plist format:NSPropertyListXMLFormat_v1_0 options:kCFPropertyListImmutable error:nil];
         if ([xmlData writeToFile:infoPlistPath atomically:YES]) {
             if (successLocalBlock) {
-                successLocalBlock(@"Info.plist修改完成");
+                successLocalBlock(BlockType_InfoPlist, @"Info.plist修改完成");
             }
         } else {
             if (errorLocalBlock) {
-                errorLocalBlock(@"Info.plist写入失败");
+                errorLocalBlock(BlockType_InfoPlist, @"Info.plist写入失败");
             }
         }
     } else {
         if (errorLocalBlock) {
-            errorLocalBlock(@"Info.plist未找到");
+            errorLocalBlock(BlockType_InfoPlist, @"Info.plist未找到");
         }
     }
 }
 
-- (void)platformeditFileslog:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+- (void)platformEditFileslog:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     logLocalBlock = [logBlock copy];
     errorLocalBlock = [errorBlock copy];
     successLocalBlock = [successBlock copy];
     
     if (logLocalBlock) {
-        logLocalBlock(@"复制渠道文件……");
+        logLocalBlock(BlockType_PlatformEditFiles, @"复制渠道文件……");
     }
     
     //todo：这里写死测试，真实需要网络获取
@@ -494,11 +489,11 @@
                 NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:plat_plistDict format:NSPropertyListXMLFormat_v1_0 options:kCFPropertyListImmutable error:nil];
                 if ([xmlData writeToFile:plat_plistPath atomically:YES]) {
                     if (self->logLocalBlock) {
-                        self->logLocalBlock(@"plat_plist修改完成");
+                        self->logLocalBlock(BlockType_PlatformEditFiles, @"plat_plist修改完成");
                     }
                 } else {
                     if (self->logLocalBlock) {
-                        self->logLocalBlock(@"plat_plist写入失败");
+                        self->logLocalBlock(BlockType_PlatformEditFiles, @"plat_plist写入失败");
                     }
                 }
             }
@@ -506,35 +501,35 @@
             
             [[ZCFileHelper sharedInstance] copyFiles:resourcePath toPath:self.appPath complete:^(BOOL result) {
                 if (result) {
-                    self->logLocalBlock([NSString stringWithFormat:@"文件夹%@内的文件复制成功", @"resource"]);
+                    self->logLocalBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"文件夹%@内的文件复制成功", @"resource"]);
                 } else {
-                    self->errorLocalBlock([NSString stringWithFormat:@"文件夹%@内的文件复制失败", @"resource"]);
+                    self->errorLocalBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"文件夹%@内的文件复制失败", @"resource"]);
                 }
             }];
             NSString *dylibs = [miliyouPath stringByAppendingPathComponent:@"dylibs"];
             [[ZCFileHelper sharedInstance] copyFiles:dylibs toPath:[self.appPath stringByAppendingPathComponent:@"Frameworks"] complete:^(BOOL result) {
                 if (result) {
-                    self->logLocalBlock([NSString stringWithFormat:@"文件夹%@内的文件复制成功", @"dylibs"]);
+                    self->logLocalBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"文件夹%@内的文件复制成功", @"dylibs"]);
                 } else {
-                    self->errorLocalBlock([NSString stringWithFormat:@"文件夹%@内的文件复制失败", @"dylibs"]);
+                    self->errorLocalBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"文件夹%@内的文件复制失败", @"dylibs"]);
                 }
             }];
             if ([isLan isEqualToString:@"0"]) {
                 NSString *launchimage_portrait = [miliyouPath stringByAppendingPathComponent:@"launchimage-portrait"];
                 [[ZCFileHelper sharedInstance] copyFiles:launchimage_portrait toPath:self.appPath complete:^(BOOL result) {
                     if (result) {
-                        self->logLocalBlock([NSString stringWithFormat:@"文件夹%@内的文件复制成功", @"launchimage-portrait"]);
+                        self->logLocalBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"文件夹%@内的文件复制成功", @"launchimage-portrait"]);
                     } else {
-                        self->errorLocalBlock([NSString stringWithFormat:@"文件夹%@内的文件复制失败", @"launchimage-portrait"]);
+                        self->errorLocalBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"文件夹%@内的文件复制失败", @"launchimage-portrait"]);
                     }
                 }];
             } else {
                 NSString *launchimage_landscape = [miliyouPath stringByAppendingPathComponent:@"launchimage-landscape"];
                 [[ZCFileHelper sharedInstance] copyFiles:launchimage_landscape toPath:self.appPath complete:^(BOOL result) {
                     if (result) {
-                        self->logLocalBlock([NSString stringWithFormat:@"文件夹%@内的文件复制成功", @"launchimage-landscape"]);
+                        self->logLocalBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"文件夹%@内的文件复制成功", @"launchimage-landscape"]);
                     } else {
-                        self->errorLocalBlock([NSString stringWithFormat:@"文件夹%@内的文件复制失败", @"launchimage-landscape"]);
+                        self->errorLocalBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"文件夹%@内的文件复制失败", @"launchimage-landscape"]);
                     }
                 }];
             }
@@ -554,20 +549,20 @@
             if (QPJHLightSDKPath && targetQPJHLightSDKPath) {
                 [[ZCFileHelper sharedInstance] copyFile:QPJHLightSDKPath toPath:targetQPJHLightSDKPath complete:^(BOOL result) {
                     if (result) {
-                        self->logLocalBlock([NSString stringWithFormat:@"文件%@复制成功", @"QPJHLightSDK"]);
+                        self->logLocalBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"文件%@复制成功", @"QPJHLightSDK"]);
                     } else {
-                        self->errorLocalBlock([NSString stringWithFormat:@"文件%@复制失败", @"QPJHLightSDK"]);
+                        self->errorLocalBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"文件%@复制失败", @"QPJHLightSDK"]);
                     }
                 }];
             }
             
         } else {
-            errorBlock(@"解压失败");
+            errorBlock(BlockType_PlatformEditFiles, @"解压失败");
         }
     }];
     
     if (successLocalBlock) {
-        successLocalBlock(@"渠道文件修改完成");
+        successLocalBlock(BlockType_PlatformEditFiles, @"渠道文件修改完成");
     }
 }
 
@@ -580,7 +575,7 @@
     successLocalBlock = [successBlock copy];
     
     if (logLocalBlock) {
-        logLocalBlock(@"生成Embedded.mobileprovision...");
+        logLocalBlock(BlockType_EmbeddedProvision, @"生成Embedded.mobileprovision...");
     }
     
     NSString *payloadPtah = [self.workPath stringByAppendingPathComponent:kPayloadDirName];
@@ -600,11 +595,11 @@
     [[ZCFileHelper sharedInstance] copyFile:provisoiningProfile.path toPath:targetPath complete:^(BOOL result) {
         if (result) {
             if (self->successLocalBlock) {
-                self->successLocalBlock(@"Embedded.mobileprovision创建成功");
+                self->successLocalBlock(BlockType_EmbeddedProvision, @"Embedded.mobileprovision创建成功");
             }
         } else {
             if (self->errorLocalBlock) {
-                self->errorLocalBlock(@"创建一个新的Embedded.mobileprovision失败");
+                self->errorLocalBlock(BlockType_EmbeddedProvision, @"创建一个新的Embedded.mobileprovision失败");
             }
         }
     }];
@@ -630,7 +625,7 @@
     successLocalBlock = [successBlock copy];
     
     if (logLocalBlock) {
-        logLocalBlock(@"签名中...");
+        logLocalBlock(BlockType_DoCodesign, @"签名中...");
     }
     
     if ([manager fileExistsAtPath:self.appPath]) {
@@ -664,7 +659,7 @@
                 [NSThread detachNewThreadSelector:@selector(watchCodesigning:) toTarget:self withObject:handle];
                 
                 if (self->logLocalBlock) {
-                    self->logLocalBlock([NSString stringWithFormat:@"开始签名文件：%@", [signPath lastPathComponent]]);
+                    self->logLocalBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"开始签名文件：%@", [signPath lastPathComponent]]);
                 }
                 
                 ZCRunLoop *runloop = [[ZCRunLoop alloc] init];
@@ -676,12 +671,12 @@
                                 if (error) {
                                     if (self->errorLocalBlock) {
                                         failurePath = signPath;
-                                        self->errorLocalBlock([NSString stringWithFormat:@"签名失败 %@", error]);
+                                        self->errorLocalBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"签名失败 %@", error]);
                                     }
                                     [queue cancelAll];
                                 } else {
-                                    if (self->successLocalBlock) {
-                                        self->successLocalBlock([NSString stringWithFormat:@"文件%@ 签名完成", [signPath lastPathComponent]]);
+                                    if (self->logLocalBlock) {
+                                        self->logLocalBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"文件%@ 签名完成", [signPath lastPathComponent]]);
                                     }
                                     [queue next];
                                 }
@@ -695,12 +690,12 @@
         [queue next];
         queue.noOperationBlock = ^{
             if (self->successLocalBlock && failurePath == nil) {
-                self->successLocalBlock(@"签名验证完成");
+                self->successLocalBlock(BlockType_DoCodesign, @"签名验证完成");
             }
         };
     } else {
         if (errorLocalBlock) {
-            errorLocalBlock([NSString stringWithFormat:@"没有找到文件夹 %@", self.appPath]);
+            errorLocalBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"没有找到文件夹 %@", self.appPath]);
         }
     }
     
@@ -710,7 +705,7 @@
 - (void)verifySignature:(NSString *)filePath complete:(void(^)(NSString *error))complete {
     if (self.appPath) {
         if (logLocalBlock) {
-            logLocalBlock([NSString stringWithFormat:@"验证文件:%@", [filePath lastPathComponent]]);
+            logLocalBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"验证文件:%@", [filePath lastPathComponent]]);
         }
         
         //验证
@@ -763,7 +758,7 @@
     NSString *zipIpaPath = [[zipDirPath stringByAppendingPathComponent:self.bundleDisplayName] stringByAppendingPathExtension:@"ipa"];
     
     if (logLocalBlock) {
-        logLocalBlock([NSString stringWithFormat:@"%@ 开始压缩", zipIpaPath]);
+        logLocalBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@ 开始压缩", zipIpaPath]);
     }
     
     [manager createDirectoryAtPath:zipDirPath withIntermediateDirectories:YES attributes:nil error:nil];
@@ -771,18 +766,18 @@
     [[ZCFileHelper sharedInstance] zip:self.workPath toPath:zipIpaPath complete:^(BOOL result) {
         if (result) {
             if (self->successLocalBlock) {
-                self->successLocalBlock(@"文件压缩成功\n完成签名");
+                self->successLocalBlock(BlockType_ZipPackage, @"文件压缩成功");
             }
         } else {
             if (self->errorLocalBlock) {
-                self->errorLocalBlock(@"文件压缩失败");
+                self->errorLocalBlock(BlockType_ZipPackage, @"文件压缩失败");
             }
         }
     }];
 }
 
 #pragma mark - Xcode自动化出包
-- (void)platformbuildresignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock  error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+- (void)platformbuildresignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     logResignBlock = [logBlock copy];
     errorResignBlock = [errorBlock copy];
@@ -797,87 +792,87 @@
      */
     
     //1.创建新的entitlements
-    [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(NSString * _Nonnull logString) {
+    [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
         if (self->logResignBlock) {
-            self->logResignBlock(logString);
+            self->logResignBlock(BlockType_Entitlements, logString);
         }
-    } error:^(NSString * _Nonnull errorString) {
+    } error:^(BlockType type, NSString * _Nonnull errorString) {
         if (self->errorResignBlock) {
-            self->errorResignBlock(errorString);
+            self->errorResignBlock(BlockType_Entitlements, errorString);
         }
-    } success:^(id  _Nonnull message) {
+    } success:^(BlockType type, id  _Nonnull message) {
         if (self->successResignBlock) {
-            self->successResignBlock(message);
+            self->successResignBlock(BlockType_Entitlements, message);
         }
         
         //2.修改info.plist
-        [self platformeditInfoPlistWithIdentifier:bundleIdentifier displayName:displayName log:^(NSString * _Nonnull logString) {
+        [self platformeditInfoPlistWithIdentifier:bundleIdentifier displayName:displayName log:^(BlockType type, NSString * _Nonnull logString) {
             if (self->logResignBlock) {
-                self->logResignBlock(logString);
+                self->logResignBlock(BlockType_InfoPlist, logString);
             }
-        } error:^(NSString * _Nonnull errorString) {
+        } error:^(BlockType type, NSString * _Nonnull errorString) {
             if (self->errorResignBlock) {
-                self->errorResignBlock(errorString);
+                self->errorResignBlock(BlockType_InfoPlist, errorString);
             }
-        } success:^(id  _Nonnull message) {
+        } success:^(BlockType type, id  _Nonnull message) {
             if (self->successResignBlock) {
-                self->successResignBlock(message);
+                self->successResignBlock(BlockType_InfoPlist, message);
             }
             
             //
-            [self platformeditFileslog:^(NSString * _Nonnull logString) {
+            [self platformEditFileslog:^(BlockType type, NSString * _Nonnull logString) {
                 if (self->logResignBlock) {
-                    self->logResignBlock(logString);
+                    self->logResignBlock(BlockType_PlatformEditFiles, logString);
                 }
-            } error:^(NSString * _Nonnull errorString) {
+            } error:^(BlockType type, NSString * _Nonnull errorString) {
                 if (self->errorResignBlock) {
-                    self->errorResignBlock(errorString);
+                    self->errorResignBlock(BlockType_PlatformEditFiles, errorString);
                 }
-            } success:^(id  _Nonnull message) {
+            } success:^(BlockType type, id  _Nonnull message) {
                 if (self->successResignBlock) {
-                    self->successResignBlock(message);
+                    self->successResignBlock(BlockType_PlatformEditFiles, message);
                 }
                 
                 //3.修改Embedded Provision
-                [self editEmbeddedProvision:provisioningProfile log:^(NSString * _Nonnull logString) {
+                [self editEmbeddedProvision:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
                     if (self->logResignBlock) {
-                        self->logResignBlock(logString);
+                        self->logResignBlock(BlockType_EmbeddedProvision, logString);
                     }
-                } error:^(NSString * _Nonnull errorString) {
+                } error:^(BlockType type, NSString * _Nonnull errorString) {
                     if (self->errorResignBlock) {
-                        self->errorResignBlock(errorString);
+                        self->errorResignBlock(BlockType_EmbeddedProvision, errorString);
                     }
-                } success:^(id  _Nonnull message) {
+                } success:^(BlockType type, id  _Nonnull message) {
                     if (self->successResignBlock) {
-                        self->successResignBlock(message);
+                        self->successResignBlock(BlockType_EmbeddedProvision, message);
                     }
     
                     //4.开始签名
-                    [self doCodesignCertificateName:certificateName log:^(NSString * _Nonnull logString) {
+                    [self doCodesignCertificateName:certificateName log:^(BlockType type, NSString * _Nonnull logString) {
                         if (self->logResignBlock) {
-                            self->logResignBlock(logString);
+                            self->logResignBlock(BlockType_DoCodesign, logString);
                         }
-                    } error:^(NSString * _Nonnull errorString) {
+                    } error:^(BlockType type, NSString * _Nonnull errorString) {
                         if (self->errorResignBlock) {
-                            self->errorResignBlock(errorString);
+                            self->errorResignBlock(BlockType_DoCodesign, errorString);
                         }
-                    } success:^(id  _Nonnull message) {
+                    } success:^(BlockType type, id  _Nonnull message) {
                         if (self->successResignBlock) {
-                            self->successResignBlock(message);
+                            self->successResignBlock(BlockType_DoCodesign, message);
                         }
     
                         //5.压缩文件
-                        [self zipPackageToDirPath:targetPath log:^(NSString * _Nonnull logString) {
+                        [self zipPackageToDirPath:targetPath log:^(BlockType type, NSString * _Nonnull logString) {
                             if (self->logResignBlock) {
-                                self->logResignBlock(logString);
+                                self->logResignBlock(BlockType_ZipPackage, logString);
                             }
-                        } error:^(NSString * _Nonnull errorString) {
+                        } error:^(BlockType type, NSString * _Nonnull errorString) {
                             if (self->errorResignBlock) {
-                                self->errorResignBlock(errorString);
+                                self->errorResignBlock(BlockType_ZipPackage, errorString);
                             }
-                        } success:^(id  _Nonnull message) {
+                        } success:^(BlockType type, id  _Nonnull message) {
                             if (self->successResignBlock) {
-                                self->successResignBlock(message);
+                                self->successResignBlock(BlockType_ZipPackage, message);
                             }
                         }];
                     }];

@@ -9,7 +9,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-#define TEMP_PATH [NSTemporaryDirectory() stringByAppendingPathComponent:@"resign"]
+#define CHANNELRESIGNTOOL_PATH [NSHomeDirectory() stringByAppendingPathComponent:[[[NSBundle mainBundle] infoDictionary] objectForKey:(NSString *)kCFBundleExecutableKey]]
+
 
 @interface ZCFileHelper : NSObject
 
@@ -17,9 +18,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (NSArray *)lackSupportUtility;
 ///获取签名证书
-- (void)getCertificatesSuccess:(void (^)(NSArray *certificateNames))successBlock error:(void (^)(NSString *error))errorBlock;
+- (void)getCertificatesLog:(void (^)(NSString *log))logBlock error:(void (^)(NSString *error))errorBlock success:(void (^)(NSArray *certificateNames))successBlock;
 ///获取配置文件
 - (NSArray *)getProvisioningProfiles;
+
+///app文件空间
+- (void)appSpace;
 
 ///复制文件
 - (void)copyFile:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
@@ -28,7 +32,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 ///解压
 - (void)unzip:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
-
 ///压缩
 - (void)zip:(NSString *)sourcepath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
 

@@ -35,6 +35,16 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     return self;
 }
 
+- (void)appSpace {
+    
+//    NSString *executableFilePath = ;
+//    NSString *unzipPath = [tempPath stringByAppendingPathComponent:@"unzip"];
+//    NSString *ipaPathName = [[self.packagePath lastPathComponent] stringByDeletingPathExtension];//从文件的最后一部分删除扩展名
+//    NSString *ipaPathNamePath = [unzipPath stringByAppendingPathComponent:ipaPathName];
+//    NSString *dateString = [[ZCDateFormatterUtil sharedFormatter] timestampForDate:[NSDate date]];
+//    self.workPath = [ipaPathNamePath stringByAppendingPathComponent:dateString];
+}
+
 - (NSArray *)lackSupportUtility {
     NSMutableArray *result = @[].mutableCopy;
     
@@ -50,8 +60,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     
     return result.copy;
 }
-
-- (void)getCertificatesSuccess:(void (^)(NSArray * _Nonnull))successBlock error:(void (^)(NSString * _Nonnull))errorBlock {
+- (void)getCertificatesLog:(void (^)(NSString * _Nonnull))logBlock error:(void (^)(NSString * _Nonnull))errorBlock success:(void (^)(NSArray * _Nonnull))successBlock {
     NSTask *certTask = [[NSTask alloc] init];
     [certTask setLaunchPath:@"/usr/bin/security"];
     [certTask setArguments:[NSArray arrayWithObjects:@"find-identity", @"-v", @"-p", @"codesigning", nil]];
@@ -66,7 +75,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         //检查KeyChain中是否有证书，然后把证书保存到certificatesArray
         NSString *securityResult = [[NSString alloc] initWithData:[handle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
-        NSLog(@"签名证书列表：%@", securityResult);
+        logBlock([NSString stringWithFormat:@"签名证书列表：%@", securityResult]);
         if (securityResult == nil || securityResult.length < 1) return;
         NSArray *rawResult = [securityResult componentsSeparatedByString:@"\""];
         NSMutableArray *tempGetCertsResult = [NSMutableArray arrayWithCapacity:20];

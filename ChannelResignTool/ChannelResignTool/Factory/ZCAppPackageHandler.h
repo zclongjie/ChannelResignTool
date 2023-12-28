@@ -23,9 +23,20 @@ static NSString *kUILaunchStoryboardName  = @"UILaunchStoryboardName";
 static NSString *kUILaunchStoryboardNameipad  = @"UILaunchStoryboardName~ipad";
 static NSString *kUILaunchStoryboardNameiphone  = @"UILaunchStoryboardName~iphone";
 
-typedef void(^SuccessBlock)(id message);
-typedef void(^ErrorBlock)(NSString *errorString);
-typedef void(^LogBlock)(NSString *logString);
+typedef NS_ENUM(NSInteger, BlockType)
+{
+    BlockType_Unzip = 0,
+    BlockType_Entitlements,
+    BlockType_InfoPlist,
+    BlockType_EmbeddedProvision,
+    BlockType_DoCodesign,
+    BlockType_ZipPackage,
+    BlockType_PlatformEditFiles
+};
+
+typedef void(^SuccessBlock)(BlockType type, id message);
+typedef void(^ErrorBlock)(BlockType type, NSString *errorString);
+typedef void(^LogBlock)(BlockType type, NSString *logString);
 
 @interface ZCAppPackageHandler : NSObject
 
@@ -42,12 +53,12 @@ typedef void(^LogBlock)(NSString *logString);
 - (instancetype)initWithPackagePath:(NSString *)path;
 
 ///解压包
-- (void)unzipIpa:(void (^)(void))successBlock error:(void (^)(NSString *error))errorBlock;
+- (void)unzipIpaLog:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
 
 - (BOOL)removeCodeSignatureDirectory;
 
 ///签名
-- (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock  error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
+- (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
 
 ///xcode自动化出包
 - (void)platformbuildresignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock  error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;

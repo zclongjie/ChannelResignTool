@@ -15,8 +15,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (instancetype)sharedFormatter;
 
-- (NSString *)timestampForDate:(NSDate *)date;
-- (NSString *)MMddHHmmsssSSSForDate:(NSDate *)date;
+//- (NSString *)timestampForDate:(NSDate *)date;
+- (NSString *)yyyyMMddHHmmssSSSForDate:(NSDate *)date;
+- (NSString *)yyyyMMddHHmmssForDate:(NSDate *)date;
 
 @end
 

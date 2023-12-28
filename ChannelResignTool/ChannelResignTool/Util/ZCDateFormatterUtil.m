@@ -33,20 +33,27 @@ static ZCDateFormatterUtil *instance;
     _dateFormatter = nil;
 }
 
-- (NSString *)timestampForDate:(NSDate *)date {
-    if(!date) {
-        return nil;
-    }
-    [self.dateFormatter setDateStyle:NSDateFormatterMediumStyle];
-    [self.dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
-    return [self.dateFormatter stringFromDate:date];
-}
+//- (NSString *)timestampForDate:(NSDate *)date {
+//    if(!date) {
+//        return nil;
+//    }
+//    [self.dateFormatter setDateStyle:NSDateFormatterMediumStyle];
+//    [self.dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
+//    return [self.dateFormatter stringFromDate:date];
+//}
 
-- (NSString *)MMddHHmmsssSSSForDate:(NSDate *)date {
+- (NSString *)yyyyMMddHHmmssSSSForDate:(NSDate *)date {
     if (!date) {
         return nil;
     }
-    self.dateFormatter.dateFormat = @"MM/dd HH:mm:ss SSS";
+    self.dateFormatter.dateFormat = @"yyyy-MM-dd HH:mm:ss SSS";
+    return [self.dateFormatter stringFromDate:date];
+}
+- (NSString *)yyyyMMddHHmmssForDate:(NSDate *)date {
+    if (!date) {
+        return nil;
+    }
+    self.dateFormatter.dateFormat = @"yyyy-MM-dd HH:mm:ss";
     return [self.dateFormatter stringFromDate:date];
 }
 
