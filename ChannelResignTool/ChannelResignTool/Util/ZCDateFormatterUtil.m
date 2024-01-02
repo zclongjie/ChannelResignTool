@@ -57,4 +57,9 @@ static ZCDateFormatterUtil *instance;
     return [self.dateFormatter stringFromDate:date];
 }
 
+- (NSString *)nowForDateFormat:(NSString *)dateFormat {
+    self.dateFormatter.dateFormat = dateFormat;
+    return [self.dateFormatter stringFromDate:[NSDate date]];
+}
+
 @end

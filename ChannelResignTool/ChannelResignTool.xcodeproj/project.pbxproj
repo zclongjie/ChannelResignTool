@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -21,6 +21,7 @@
 		A87F65E02B3147CA00CF380B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65DF2B3147CA00CF380B /* main.m */; };
 		A87F65F22B356DB900CF380B /* ZCFileHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65F12B356DB900CF380B /* ZCFileHelper.m */; };
 		A87F65F82B357F9500CF380B /* ZCProvisioningProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */; };
+		A898F9F82B43E39B00942F69 /* ZCPlatformModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,8 @@
 		A87F65F12B356DB900CF380B /* ZCFileHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCFileHelper.m; sourceTree = "<group>"; };
 		A87F65F62B357F9500CF380B /* ZCProvisioningProfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCProvisioningProfile.h; sourceTree = "<group>"; };
 		A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCProvisioningProfile.m; sourceTree = "<group>"; };
+		A898F9F62B43E39B00942F69 /* ZCPlatformModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCPlatformModel.h; sourceTree = "<group>"; };
+		A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCPlatformModel.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,6 +142,8 @@
 			children = (
 				A87F65F62B357F9500CF380B /* ZCProvisioningProfile.h */,
 				A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */,
+				A898F9F62B43E39B00942F69 /* ZCPlatformModel.h */,
+				A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */,
 			);
 			path = Entity;
 			sourceTree = "<group>";
@@ -169,7 +174,6 @@
 		A87F65C92B3147C900CF380B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				BuildIndependentTargetsInParallel = 1;
 				LastUpgradeCheck = 1400;
 				TargetAttributes = {
 					A87F65D02B3147C900CF380B = {
@@ -219,6 +223,7 @@
 				A87F65D92B3147C900CF380B /* ViewController.m in Sources */,
 				A8629D402B36BA76008AD376 /* ZCRunLoop.m in Sources */,
 				A8629D462B39A4B5008AD376 /* PlatformRowView.m in Sources */,
+				A898F9F82B43E39B00942F69 /* ZCPlatformModel.m in Sources */,
 				A87F65E02B3147CA00CF380B /* main.m in Sources */,
 				A8629D392B367360008AD376 /* ZCDateFormatterUtil.m in Sources */,
 				A87F65F22B356DB900CF380B /* ZCFileHelper.m in Sources */,

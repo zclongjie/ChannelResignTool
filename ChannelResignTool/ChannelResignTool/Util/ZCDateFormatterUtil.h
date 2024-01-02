@@ -18,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 //- (NSString *)timestampForDate:(NSDate *)date;
 - (NSString *)yyyyMMddHHmmssSSSForDate:(NSDate *)date;
 - (NSString *)yyyyMMddHHmmssForDate:(NSDate *)date;
+- (NSString *)nowForDateFormat:(NSString *)dateFormat;
 
 @end
 

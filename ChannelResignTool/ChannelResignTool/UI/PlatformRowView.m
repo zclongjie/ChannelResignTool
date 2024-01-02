@@ -7,10 +7,6 @@
 
 #import "PlatformRowView.h"
 
-@implementation PlatformRowViewModel
-
-@end
-
 @interface PlatformRowView ()
 
 @property (weak) IBOutlet NSButton *platformButton;
@@ -26,9 +22,9 @@
     // Drawing code here.
 }
 
-- (void)setModel:(PlatformRowViewModel *)model {
+- (void)setModel:(ZCPlatformModel *)model {
     _model = model;
-    self.platformButton.title = model.name;
+    self.platformButton.title = [NSString stringWithFormat:@"%@[%@]", model.platformName, model.platformId];
     self.platformButton.state = model.isSelect;
 }
 - (IBAction)platformButtonClick:(NSButton *)sender {

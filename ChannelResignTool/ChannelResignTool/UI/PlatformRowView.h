@@ -6,26 +6,19 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "ZCPlatformModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface PlatformRowViewModel : NSObject
-
-@property (nonatomic, strong) NSString *name;
-@property (nonatomic, assign) NSString *platformId;
-@property (nonatomic, assign) BOOL isSelect;
-
-@end
-
 @protocol PlatformRowViewDelegate <NSObject>
 
-- (void)platformRowViewButtonClick:(PlatformRowViewModel *)selectModel;
+- (void)platformRowViewButtonClick:(ZCPlatformModel *)selectModel;
 
 @end
 
 @interface PlatformRowView : NSTableRowView
 
-@property (nonatomic, strong) PlatformRowViewModel *model;
+@property (nonatomic, strong) ZCPlatformModel *model;
 @property (nonatomic, weak) id<PlatformRowViewDelegate> delegate;
 
 @end

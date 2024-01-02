@@ -37,12 +37,35 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
 
 - (void)appSpace {
     
-//    NSString *executableFilePath = ;
-//    NSString *unzipPath = [tempPath stringByAppendingPathComponent:@"unzip"];
-//    NSString *ipaPathName = [[self.packagePath lastPathComponent] stringByDeletingPathExtension];//从文件的最后一部分删除扩展名
-//    NSString *ipaPathNamePath = [unzipPath stringByAppendingPathComponent:ipaPathName];
-//    NSString *dateString = [[ZCDateFormatterUtil sharedFormatter] timestampForDate:[NSDate date]];
-//    self.workPath = [ipaPathNamePath stringByAppendingPathComponent:dateString];
+    NSString *DownSdk = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"DownSdk"];
+    NSString *ChannelData = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"ChannelData"];
+    NSString *PlatformUnzip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformUnzip"];
+    NSString *GameUnzip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"GameUnzip"];
+    //创建新目录
+    if (![manager fileExistsAtPath:DownSdk]) {
+        [manager createDirectoryAtPath:DownSdk withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    if (![manager fileExistsAtPath:ChannelData]) {
+        [manager createDirectoryAtPath:ChannelData withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    if (![manager fileExistsAtPath:PlatformUnzip]) {
+        [manager createDirectoryAtPath:PlatformUnzip withIntermediateDirectories:YES attributes:nil error:nil];
+    } else {
+        NSArray *contents = [self->manager contentsOfDirectoryAtPath:PlatformUnzip error:nil];
+        for (NSString *file in contents) {
+            NSString *filePath = [PlatformUnzip stringByAppendingPathComponent:file];
+            [manager removeItemAtPath:filePath error:nil];
+        }
+    }
+    if (![manager fileExistsAtPath:GameUnzip]) {
+        [manager createDirectoryAtPath:GameUnzip withIntermediateDirectories:YES attributes:nil error:nil];
+    } else {
+        NSArray *contents = [self->manager contentsOfDirectoryAtPath:GameUnzip error:nil];
+        for (NSString *file in contents) {
+            NSString *filePath = [GameUnzip stringByAppendingPathComponent:file];
+            [manager removeItemAtPath:filePath error:nil];
+        }
+    }
 }
 
 - (NSArray *)lackSupportUtility {

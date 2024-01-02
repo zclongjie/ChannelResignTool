@@ -7,6 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import "ZCProvisioningProfile.h"
+#import "ZCPlatformModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -31,7 +32,8 @@ typedef NS_ENUM(NSInteger, BlockType)
     BlockType_EmbeddedProvision,
     BlockType_DoCodesign,
     BlockType_ZipPackage,
-    BlockType_PlatformEditFiles
+    BlockType_PlatformEditFiles,
+    BlockType_PlatformAllEnd
 };
 
 typedef void(^SuccessBlock)(BlockType type, id message);
@@ -60,8 +62,8 @@ typedef void(^LogBlock)(BlockType type, NSString *logString);
 ///签名
 - (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
 
-///xcode自动化出包
-- (void)platformbuildresignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock  error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
+///渠道出包
+- (void)platformbuildresignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName platformModels:(NSArray *)platformModels targetPath:(NSString *)targetPath log:(LogBlock)logBlock  error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
 
 @end
 
