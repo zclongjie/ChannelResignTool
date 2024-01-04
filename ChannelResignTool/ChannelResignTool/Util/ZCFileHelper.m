@@ -66,6 +66,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
             [manager removeItemAtPath:filePath error:nil];
         }
     }
+    
 }
 
 - (NSArray *)lackSupportUtility {
@@ -247,5 +248,66 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
         }
     }];
 }
+
+- (void)getAppIcon:(NSString *)appIconPath complete:(void (^)(BOOL result))completeBlock {
+    if (![manager fileExistsAtPath:appIconPath]) {
+        completeBlock(NO);
+    }
+    /*
+     CFBundleIcons
+     "AppIcon20x20",
+     "AppIcon29x29",
+     "AppIcon40x40",
+     "AppIcon57x57",
+     "AppIcon60x60"
+     
+     CFBundleIcons~ipad
+     "AppIcon20x20",
+     "AppIcon29x29",
+     "AppIcon40x40",
+     "AppIcon57x57",
+     "AppIcon60x60",
+     "AppIcon50x50",
+     "AppIcon72x72",
+     "AppIcon76x76",
+     "AppIcon83.5x83.5"
+     */
+    NSString *localData_plist = [[NSBundle mainBundle] pathForResource:@"ZCLocalData" ofType:@"plist"];
+    NSMutableDictionary *data = [[NSMutableDictionary alloc] initWithContentsOfFile:localData_plist];
+    NSMutableArray *iconnums = data[@"iconnums"];
+    
+    for (NSDictionary *dict in iconnums) {
+
+        NSTask *task = [[NSTask alloc] init];
+        [task setLaunchPath:@"/usr/bin/sips"];
+
+        NSString *AppIcons = [[CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"GameUnzip"] stringByAppendingPathComponent:@"AppIcons"];
+        if (![manager fileExistsAtPath:AppIcons]) {
+            [manager createDirectoryAtPath:AppIcons withIntermediateDirectories:YES attributes:nil error:nil];
+        }
+        [manager createDirectoryAtPath:AppIcons withIntermediateDirectories:YES attributes:nil error:nil];
+        NSString *targetPath_png = [[AppIcons stringByAppendingPathComponent:dict[@"name"]] stringByAppendingPathExtension:@"png"];
+        // 设置命令行参数
+        NSArray *arguments = @[@"-z", dict[@"resolution"], dict[@"resolution"], appIconPath, @"--out", targetPath_png];
+        [task setArguments:arguments];
+        // 启动任务
+        [task launch];
+        [task waitUntilExit];
+        // 获取任务的退出状态
+        int status = [task terminationStatus];
+        if (status == 0) {
+            NSLog(@"sips command executed successfully!");
+        } else {
+            NSLog(@"Error executing sips command. Exit code: %d", status);
+        }
+    }
+    
+    
+    
+    completeBlock(YES);
+}
+
+
+
 
 @end

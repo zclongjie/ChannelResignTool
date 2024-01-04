@@ -35,6 +35,9 @@ NS_ASSUME_NONNULL_BEGIN
 ///压缩
 - (void)zip:(NSString *)sourcepath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
 
+///生成AppIcon
+- (void)getAppIcon:(NSString *)appIconPath complete:(void (^)(BOOL result))completeBlock;
+
 @end
 
 NS_ASSUME_NONNULL_END

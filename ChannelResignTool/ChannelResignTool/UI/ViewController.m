@@ -68,6 +68,7 @@
     model.version = @"1.0.2";
     model.isLan = @"0";
     model.parameter = @{
+        @"package": @"com.jjsgios.punk",
         @"appID": @"11654",
         @"appKey": @"a7832bbb02c086a061c75b8cfcaec4e7",
         @"clientID": @"11597",
@@ -85,6 +86,7 @@
     model2.version = @"13.0.2";
     model2.isLan = @"0";
     model2.parameter = @{
+        @"package": @"com.jjsgios.zaoyx",
         @"appID": @"141132",
         @"appKey": @"4d483faa7a65ef69a9f847300541f6c5",
         @"clientID": @"21199",
@@ -109,6 +111,8 @@
     
     //app文件
     [[ZCFileHelper sharedInstance] appSpace];
+    
+    
 }
 
 - (void)viewDidDisappear {
@@ -127,7 +131,6 @@
 
 - (IBAction)browseIpaPathButtonAction:(id)sender {
     [self addLog:@"浏览ipa文件路径" withColor:[NSColor labelColor]];
-//    [self.view.window makeFirstResponder:nil];
     
     NSOpenPanel *openPanel = [NSOpenPanel openPanel];
     [openPanel setCanChooseFiles:YES];
@@ -155,7 +158,11 @@
         NSString *fileNameOpened = [[[openPanel URLs] objectAtIndex:0] path];
         self.appIconPathField.stringValue = fileNameOpened;
         [self addLog:[NSString stringWithFormat:@"appIcon文件:%@", fileNameOpened] withColor:[NSColor labelColor]];
+        
+        
     }
+    
+    
 }
 - (IBAction)browseLaunchImagepathButtonAction:(id)sender {
     [self addLog:@"浏览LaunchImage文件路径" withColor:[NSColor labelColor]];
@@ -267,13 +274,15 @@
         } success:^(BlockType type, id  _Nonnull message) {
             [self addLog:message withColor:[NSColor systemGreenColor]];
             
+            //生成AppIcon
+            
             [self addLog:@"开始渠道打包" withColor:[NSColor systemGreenColor]];
             
             [self.package removeCodeSignatureDirectory];
             
             ZCProvisioningProfile *provisioningProfile = [self->provisioningArray objectAtIndex:self.provisioningComboBox.indexOfSelectedItem];
             //开始签名
-            [self.package platformbuildresignWithProvisioningProfile:provisioningProfile certiticateName:[self->certificatesArray objectAtIndex:self.certificateComboBox.indexOfSelectedItem] platformModels:selectPlatforArray targetPath:self.ipaSavePathField.stringValue log:^(BlockType type, NSString * _Nonnull logString) {
+            [self.package platformbuildresignWithProvisioningProfile:provisioningProfile certiticateName:[self->certificatesArray objectAtIndex:self.certificateComboBox.indexOfSelectedItem] platformModels:selectPlatforArray appIconPath:self.appIconPathField.stringValue targetPath:self.ipaSavePathField.stringValue log:^(BlockType type, NSString * _Nonnull logString) {
                 [self addLog:logString withColor:[NSColor labelColor]];
                 if (type == BlockType_PlatformShow) {
                     [self showResigningPlatform:[NSString stringWithFormat:@"正在打包：%@", logString]];

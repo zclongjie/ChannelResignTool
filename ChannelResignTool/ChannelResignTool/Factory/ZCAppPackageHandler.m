@@ -341,6 +341,7 @@
         [plist setObject:platformModel.gameName forKey:kCFBundleDisplayName];
         
         [plist setObject:@"LaunchImage" forKey:kUILaunchImageFile];
+        
 //        [plist setObject:displayName forKey:kUILaunchImages];
         if ([platformModel.isLan isEqualToString:@"0"]) {
             [plist setObject:@"LaunchPortrait" forKey:kUILaunchStoryboardName];
@@ -352,11 +353,56 @@
             [plist setObject:@"LaunchLandscape" forKey:kUILaunchStoryboardNameiphone];
         }
         
+//        if ([plist.allKeys containsObject:@"CFBundleIcons~ipad"]) {
+//            [plist removeObjectForKey:@"CFBundleIcons~ipad"]
+//        }
+        
+        NSArray *AppIcons = [self->manager contentsOfDirectoryAtPath:[[CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"GameUnzip"] stringByAppendingPathComponent:@"AppIcons"] error:nil];
+        
+        NSMutableArray *CFBundleIconFiles_MacHuge = @[].mutableCopy;
+        NSMutableArray *CFBundleIconFiles_iPad = @[].mutableCopy;
+        NSMutableArray *CFBundleIconFiles_iPhone = @[].mutableCopy;
+        for (NSString *file in AppIcons) {
+            NSString *filename = [[file lastPathComponent] stringByDeletingPathExtension];
+            if ([filename hasSuffix:@"@2x"] || [filename hasSuffix:@"@3x"]) {
+                filename = [filename substringToIndex:filename.length-3];
+            }
+            if ([filename containsString:@"MacHuge"]) {
+                [CFBundleIconFiles_MacHuge addObject:filename];
+            }
+            if ([filename containsString:@"iPad"]) {
+                [CFBundleIconFiles_iPad addObject:filename];
+            }
+            if ([filename containsString:@"iPhone"]) {
+                [CFBundleIconFiles_iPhone addObject:filename];
+            }
+        }
+        if (CFBundleIconFiles_MacHuge.count) {
+            NSMutableDictionary *CFBundlePrimaryIcon = @[].mutableCopy;
+            [CFBundlePrimaryIcon setObject:CFBundleIconFiles_iPhone forKey:@"CFBundleIconFiles"];
+            [CFBundlePrimaryIcon setObject:@"AppIcon" forKey:@"CFBundleIconName"];
+            [plist setObject:@{@"CFBundlePrimaryIcon": CFBundlePrimaryIcon} forKey:@"CFBundleIcons~ipad"];
+        }
+        if (CFBundleIconFiles_iPad.count) {
+            NSMutableDictionary *CFBundlePrimaryIcon = @[].mutableCopy;
+            [CFBundlePrimaryIcon setObject:CFBundleIconFiles_iPad forKey:@"CFBundleIconFiles"];
+            [CFBundlePrimaryIcon setObject:@"AppIcon" forKey:@"CFBundleIconName"];
+            [plist setObject:@{@"CFBundlePrimaryIcon": CFBundlePrimaryIcon} forKey:@"CFBundleIcons"];
+        }
+        if (CFBundleIconFiles_iPhone.count) {
+            NSMutableDictionary *CFBundlePrimaryIcon = @[].mutableCopy;
+            [CFBundlePrimaryIcon setObject:CFBundleIconFiles_iPhone forKey:@"CFBundleIconFiles"];
+            [CFBundlePrimaryIcon setObject:@"AppIcon" forKey:@"CFBundleIconName"];
+            [plist setObject:@{@"CFBundlePrimaryIcon": CFBundlePrimaryIcon} forKey:@"CFBundleIcons~ipad"];
+        }
+        
         
         //添加渠道info.plist信息
         //1.获取渠道json文件（实际为网络下载）
         NSString *platformJsonPath = [[[CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"ChannelData"] stringByAppendingPathComponent:platformModel.platformId] stringByAppendingPathExtension:@"json"];
         NSMutableDictionary *platformJsonPlist = [[ZCDataUtil shareInstance] readJsonFile:platformJsonPath];
+        //替换参数值 如{package}
+        [self gamePlistInjectValue:platformJsonPlist platformModel:platformModel];
         NSMutableDictionary *game_plist = platformJsonPlist[@"game_plist"];
         for (NSString *key in game_plist.allKeys) {
             id value = game_plist[key];
@@ -392,6 +438,52 @@
     } else {
         if (errorBlock) {
             errorBlock(BlockType_InfoPlist, @"Info.plist未找到");
+        }
+    }
+}
+- (void)gamePlistInjectValue:(NSMutableDictionary *)platformJsonPlist platformModel:(ZCPlatformModel *)model {
+    NSMutableDictionary *game_plist = platformJsonPlist[@"game_plist"];
+    NSMutableDictionary *replace = platformJsonPlist[@"replace"];
+    for (NSString *replacekey in replace.allKeys) {
+        NSString *replacevalue = model.parameter[replace[replacekey]];
+        for (NSString *key in game_plist.allKeys) {
+            id value = game_plist[key];
+            if ([value isKindOfClass:[NSArray class]]) {
+                [self replaceArray:value replacekey:replacekey replacevalue:replacevalue];
+            } else if ([value isKindOfClass:[NSDictionary class]]) {
+                [self replaceDict:value replacekey:replacekey replacevalue:replacevalue];
+            } else if ([value isKindOfClass:[NSString class]]) {
+                if ([value containsString:replacekey]) {
+                    [game_plist setObject:[value stringByReplacingOccurrencesOfString:replacekey withString:replacevalue] forKey:key];
+                }
+            }
+        }
+    }
+}
+- (void)replaceDict:(NSMutableDictionary *)dict replacekey:(NSString *)replacekey replacevalue:(NSString *)replacevalue {
+    for (NSString *key in dict.allKeys) {
+        id valueDictId = dict[key];
+        if ([valueDictId isKindOfClass:[NSArray class]]) {
+            [self replaceArray:valueDictId replacekey:replacekey replacevalue:replacevalue];
+        } else if ([valueDictId isKindOfClass:[NSDictionary class]]) {
+            [self replaceDict:valueDictId replacekey:replacekey replacevalue:replacevalue];
+        } else if ([valueDictId isKindOfClass:[NSString class]]) {
+            if ([valueDictId containsString:replacekey]) {
+                [dict setObject:[valueDictId stringByReplacingOccurrencesOfString:replacekey withString:replacevalue] forKey:key];
+            }
+        }
+    }
+}
+- (void)replaceArray:(NSMutableArray *)array replacekey:(NSString *)replacekey replacevalue:(NSString *)replacevalue {
+    for (id valueArrayId in array) {
+        if ([valueArrayId isKindOfClass:[NSArray class]]) {
+            [self replaceArray:valueArrayId replacekey:replacekey replacevalue:replacevalue];
+        } else if ([valueArrayId isKindOfClass:[NSDictionary class]]) {
+            [self replaceDict:valueArrayId replacekey:replacekey replacevalue:replacevalue];
+        } else if ([valueArrayId isKindOfClass:[NSString class]]) {
+            if ([valueArrayId containsString:replacekey]) {
+                [array replaceObjectAtIndex:0 withObject:[valueArrayId stringByReplacingOccurrencesOfString:replacekey withString:replacevalue]];
+            }
         }
     }
 }
@@ -850,7 +942,7 @@
 }
 
 #pragma mark - 渠道出包
-- (void)platformbuildresignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName platformModels:(NSArray *)platformModels targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+- (void)platformbuildresignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName platformModels:(NSArray *)platformModels appIconPath:(NSString *)appIconPath targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     /*
      1.创建新的entitlements
@@ -879,6 +971,15 @@
                 logBlock(BlockType_Unzip, [NSString stringWithFormat:@"%@%@开始打包", platformModel.platformName, platformModel.platformId]);
                 logBlock(BlockType_PlatformShow, platformModel.platformName);
             }
+            
+            //生成AppIcon
+//            [self addLog:@"开始生成AppIcon" withColor:[NSColor labelColor]];
+            [[ZCFileHelper sharedInstance] getAppIcon:appIconPath complete:^(BOOL result) {
+                if (result) {
+//                    [self addLog:@"AppIcon完成" withColor:[NSColor systemGreenColor]];
+                }
+            }];
+            
             //1.创建新的entitlements
             [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
                 if (logBlock) {
