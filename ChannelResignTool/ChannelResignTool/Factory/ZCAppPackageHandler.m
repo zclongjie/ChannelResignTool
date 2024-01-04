@@ -826,7 +826,7 @@
     
     NSString *zipIpaName = self.bundleDisplayName;
     if (platformModel) {
-        zipIpaName = [NSString stringWithFormat:@"%@_%@_%@", platformModel.gameName, platformModel.alias, [[ZCDateFormatterUtil sharedFormatter] nowForDateFormat:@"yyyyMMddHHmmss"]];
+        zipIpaName = [NSString stringWithFormat:@"%@_%@_%@", platformModel.gameName, platformModel.alias, [[ZCDateFormatterUtil sharedFormatter] nowForDateFormat:@"yyyyMMddHHmm"]];
     }
     NSString *zipIpaPath = [[zipDirPath stringByAppendingPathComponent:zipIpaName] stringByAppendingPathExtension:@"ipa"];
     
@@ -849,7 +849,7 @@
     }];
 }
 
-#pragma mark - Xcode自动化出包
+#pragma mark - 渠道出包
 - (void)platformbuildresignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName platformModels:(NSArray *)platformModels targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     /*
@@ -860,141 +860,175 @@
      5.压缩文件
      */
     
-    dispatch_group_t group = dispatch_group_create();
-    
-    for (ZCPlatformModel *platformModel in platformModels) {
-        if (logBlock) {
-            logBlock(BlockType_Unzip, [NSString stringWithFormat:@"%@%@开始打包", platformModel.platformName, platformModel.platformId]);
-        }
-        dispatch_group_enter(group);
-        //1.创建新的entitlements
-        [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
-            if (logBlock) {
-                logBlock(BlockType_Entitlements, logString);
-            }
-        } error:^(BlockType type, NSString * _Nonnull errorString) {
-            if (logBlock) {
-                logBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
-            }
-            if (errorBlock) {
-                errorBlock(BlockType_Entitlements, errorString);
-            }
-            dispatch_group_leave(group);
-        } success:^(BlockType type, id  _Nonnull message) {
-            if (successBlock) {
-                successBlock(BlockType_Entitlements, message);
-            }
+    // 1.创建一个串行队列，保证for循环依次执行
+    dispatch_queue_t serialQueue = dispatch_queue_create("serialQueue", DISPATCH_QUEUE_SERIAL);
+    // 2.异步执行任务
+    dispatch_async(serialQueue, ^{
+        
+        NSMutableArray *successPlatforms = @[].mutableCopy;
+        NSMutableArray *errorPlatforms = @[].mutableCopy;
+        
+        // 3.创建一个数目为1的信号量，用于“卡”for循环，等上次循环结束在执行下一次的for循环
+        dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+        
+        for (ZCPlatformModel *platformModel in platformModels) {
+            // 开始执行for循环，让信号量-1，这样下次操作须等信号量>=0才会继续,否则下次操作将永久停止
             
-            //2.修改info.plist
-            [self platformeditInfoPlistWithPlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
+            printf("信号量等待中\n");
+            if (logBlock) {
+                logBlock(BlockType_Unzip, [NSString stringWithFormat:@"%@%@开始打包", platformModel.platformName, platformModel.platformId]);
+                logBlock(BlockType_PlatformShow, platformModel.platformName);
+            }
+            //1.创建新的entitlements
+            [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
                 if (logBlock) {
-                    logBlock(BlockType_InfoPlist, logString);
+                    logBlock(BlockType_Entitlements, logString);
                 }
             } error:^(BlockType type, NSString * _Nonnull errorString) {
+                if (errorBlock) {
+                    errorBlock(BlockType_Entitlements, errorString);
+                }
                 if (logBlock) {
                     logBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
                 }
-                if (errorBlock) {
-                    errorBlock(BlockType_InfoPlist, errorString);
-                }
-                dispatch_group_leave(group);
+                [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
+                NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
+                dispatch_semaphore_signal(sema);
             } success:^(BlockType type, id  _Nonnull message) {
                 if (successBlock) {
-                    successBlock(BlockType_InfoPlist, message);
+                    successBlock(BlockType_Entitlements, message);
                 }
                 
-                //
-                [self platformEditFilesPlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
+                //2.修改info.plist
+                [self platformeditInfoPlistWithPlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
                     if (logBlock) {
-                        logBlock(BlockType_PlatformEditFiles, logString);
+                        logBlock(BlockType_InfoPlist, logString);
                     }
                 } error:^(BlockType type, NSString * _Nonnull errorString) {
-                    if (logBlock) {
-                        logBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
-                    }
                     if (errorBlock) {
-                        errorBlock(BlockType_PlatformEditFiles, errorString);
+                        errorBlock(BlockType_InfoPlist, errorString);
                     }
-                    dispatch_group_leave(group);
+                    if (logBlock) {
+                        logBlock(BlockType_InfoPlist, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
+                    }
+                    [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                    // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
+                    NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
+                    dispatch_semaphore_signal(sema);
                 } success:^(BlockType type, id  _Nonnull message) {
                     if (successBlock) {
-                        successBlock(BlockType_PlatformEditFiles, message);
+                        successBlock(BlockType_InfoPlist, message);
                     }
                     
-                    //3.修改Embedded Provision
-                    [self editEmbeddedProvision:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
+                    //
+                    [self platformEditFilesPlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
                         if (logBlock) {
-                            logBlock(BlockType_EmbeddedProvision, logString);
+                            logBlock(BlockType_PlatformEditFiles, logString);
                         }
                     } error:^(BlockType type, NSString * _Nonnull errorString) {
-                        if (logBlock) {
-                            logBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
-                        }
                         if (errorBlock) {
-                            errorBlock(BlockType_EmbeddedProvision, errorString);
+                            errorBlock(BlockType_PlatformEditFiles, errorString);
                         }
-                        dispatch_group_leave(group);
+                        if (logBlock) {
+                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
+                        }
+                        [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                        // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
+                        NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
+                        dispatch_semaphore_signal(sema);
                     } success:^(BlockType type, id  _Nonnull message) {
                         if (successBlock) {
-                            successBlock(BlockType_EmbeddedProvision, message);
+                            successBlock(BlockType_PlatformEditFiles, message);
                         }
-        
-                        //4.开始签名
-                        [self doCodesignCertificateName:certificateName log:^(BlockType type, NSString * _Nonnull logString) {
+                        
+                        //3.修改Embedded Provision
+                        [self editEmbeddedProvision:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
                             if (logBlock) {
-                                logBlock(BlockType_DoCodesign, logString);
+                                logBlock(BlockType_EmbeddedProvision, logString);
                             }
                         } error:^(BlockType type, NSString * _Nonnull errorString) {
-                            if (logBlock) {
-                                logBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
-                            }
                             if (errorBlock) {
-                                errorBlock(BlockType_DoCodesign, errorString);
+                                errorBlock(BlockType_EmbeddedProvision, errorString);
                             }
-                            dispatch_group_leave(group);
+                            if (logBlock) {
+                                logBlock(BlockType_EmbeddedProvision, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
+                            }
+                            [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                            // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
+                            NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
+                            dispatch_semaphore_signal(sema);
                         } success:^(BlockType type, id  _Nonnull message) {
                             if (successBlock) {
-                                successBlock(BlockType_DoCodesign, message);
+                                successBlock(BlockType_EmbeddedProvision, message);
                             }
-        
-                            //5.压缩文件
-                            [self zipPackageToDirPath:targetPath PlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
+            
+                            //4.开始签名
+                            [self doCodesignCertificateName:certificateName log:^(BlockType type, NSString * _Nonnull logString) {
                                 if (logBlock) {
-                                    logBlock(BlockType_ZipPackage, logString);
+                                    logBlock(BlockType_DoCodesign, logString);
                                 }
                             } error:^(BlockType type, NSString * _Nonnull errorString) {
                                 if (errorBlock) {
-                                    errorBlock(BlockType_ZipPackage, errorString);
+                                    errorBlock(BlockType_DoCodesign, errorString);
                                 }
                                 if (logBlock) {
-                                    logBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
+                                    logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
                                 }
-                                dispatch_group_leave(group);
+                                [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                                // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
+                                NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
+                                dispatch_semaphore_signal(sema);
                             } success:^(BlockType type, id  _Nonnull message) {
                                 if (successBlock) {
-                                    successBlock(BlockType_ZipPackage, message);
+                                    successBlock(BlockType_DoCodesign, message);
                                 }
-                                if (logBlock) {
-                                    logBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@%@打包成功", platformModel.platformName, platformModel.platformId]);
-                                }
-                                dispatch_group_leave(group);
+            
+                                //5.压缩文件
+                                [self zipPackageToDirPath:targetPath PlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
+                                    if (logBlock) {
+                                        logBlock(BlockType_ZipPackage, logString);
+                                    }
+                                } error:^(BlockType type, NSString * _Nonnull errorString) {
+                                    if (errorBlock) {
+                                        errorBlock(BlockType_ZipPackage, errorString);
+                                    }
+                                    if (logBlock) {
+                                        logBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
+                                    }
+                                    [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                                    // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
+                                    NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
+                                    dispatch_semaphore_signal(sema);
+                                } success:^(BlockType type, id  _Nonnull message) {
+                                    if (successBlock) {
+                                        successBlock(BlockType_ZipPackage, message);
+                                    }
+                                    if (logBlock) {
+                                        logBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@%@打包成功", platformModel.platformName, platformModel.platformId]);
+                                    }
+                                    [successPlatforms addObject:platformModel.platformName];
+                                    // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
+                                    NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
+                                    dispatch_semaphore_signal(sema);
+                                }];
                             }];
                         }];
                     }];
                 }];
             }];
-            
-        }];
-        
-    }
-    
-    dispatch_group_notify(group, dispatch_get_global_queue(0, 0), ^{
-        NSLog(@"全部执行完成");
+            dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+        }
         if (successBlock) {
+
+            NSString *successString = [successPlatforms componentsJoinedByString:@"、"];
+            NSString *errorString = [errorPlatforms componentsJoinedByString:@"、"];
+            successBlock(BlockType_PlatformShow, [NSString stringWithFormat:@"打包结束\n成功(%ld)：%@\n失败(%ld)：%@", successPlatforms.count, successString, errorPlatforms.count, errorString]);
+
             successBlock(BlockType_PlatformAllEnd, @"所有渠道打包完成End");
         }
+        
     });
-    
 }
 
 @end

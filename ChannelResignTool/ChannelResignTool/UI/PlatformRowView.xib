@@ -14,7 +14,7 @@
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
             <subviews>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="yfr-Vp-SAb">
-                    <rect key="frame" x="18" y="7" width="67" height="18"/>
+                    <rect key="frame" x="-2" y="7" width="67" height="18"/>
                     <buttonCell key="cell" type="check" title="Button" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Wth-Nc-C5r">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
@@ -26,7 +26,7 @@
             </subviews>
             <constraints>
                 <constraint firstItem="yfr-Vp-SAb" firstAttribute="centerY" secondItem="c22-O7-iKe" secondAttribute="centerY" id="a4U-Y7-hUb"/>
-                <constraint firstItem="yfr-Vp-SAb" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" constant="20" id="sKC-9b-zgt"/>
+                <constraint firstItem="yfr-Vp-SAb" firstAttribute="leading" secondItem="c22-O7-iKe" secondAttribute="leading" id="sKC-9b-zgt"/>
             </constraints>
             <connections>
                 <outlet property="platformButton" destination="yfr-Vp-SAb" id="qWb-pn-UxT"/>

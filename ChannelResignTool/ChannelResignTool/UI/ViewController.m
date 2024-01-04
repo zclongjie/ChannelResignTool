@@ -12,12 +12,14 @@
 #import "ZCAppPackageHandler.h"
 #import "PlatformRowView.h"
 
-@interface ViewController ()<NSComboBoxDataSource, NSComboBoxDelegate, NSTableViewDataSource, NSTableViewDelegate, PlatformRowViewDelegate> {
-    BOOL useMobileprovisionBundleID;
-}
+@interface ViewController ()<NSComboBoxDataSource, NSComboBoxDelegate, NSTableViewDataSource, NSTableViewDelegate, PlatformRowViewDelegate>
 
 @property (weak) IBOutlet NSTextField *ipaPathField;
 @property (weak) IBOutlet NSButton *browseIpaPathButton;
+@property (weak) IBOutlet NSTextField *appIconPathField;
+@property (weak) IBOutlet NSButton *browseAppIconPathButton;
+@property (weak) IBOutlet NSTextField *launchImagePathField;
+@property (weak) IBOutlet NSButton *browseLaunchImagePathButton;
 @property (weak) IBOutlet NSComboBox *certificateComboBox;
 @property (weak) IBOutlet NSComboBox *provisioningComboBox;
 @property (weak) IBOutlet NSTextField *appNameField;
@@ -38,11 +40,15 @@
 @end
 
 @implementation ViewController {
+    BOOL useMobileprovisionBundleID;
+    
     NSArray *certificatesArray;
     NSArray *provisioningArray;
     NSMutableArray *tempPlatformArray;
     
     NSFileManager *manager;
+    
+    NSString *showSelectedPlatformFieldString;
 }
 
 - (void)viewDidLoad {
@@ -121,7 +127,7 @@
 
 - (IBAction)browseIpaPathButtonAction:(id)sender {
     [self addLog:@"浏览ipa文件路径" withColor:[NSColor labelColor]];
-    [self.view.window makeFirstResponder:nil];
+//    [self.view.window makeFirstResponder:nil];
     
     NSOpenPanel *openPanel = [NSOpenPanel openPanel];
     [openPanel setCanChooseFiles:YES];
@@ -136,6 +142,38 @@
         [self addLog:[NSString stringWithFormat:@"原始包文件:%@", fileNameOpened] withColor:[NSColor labelColor]];
     }
 }
+- (IBAction)browseAppIconPathButtonAction:(id)sender {
+    [self addLog:@"浏览AppIcon文件路径" withColor:[NSColor labelColor]];
+    NSOpenPanel *openPanel = [NSOpenPanel openPanel];
+    [openPanel setCanChooseFiles:YES];
+    [openPanel setCanChooseDirectories:NO];
+    [openPanel setAllowsMultipleSelection:NO];
+    [openPanel setAllowsOtherFileTypes:NO];
+    [openPanel setAllowedFileTypes:@[@"png"]];
+    
+    if ([openPanel runModal] == NSModalResponseOK) {
+        NSString *fileNameOpened = [[[openPanel URLs] objectAtIndex:0] path];
+        self.appIconPathField.stringValue = fileNameOpened;
+        [self addLog:[NSString stringWithFormat:@"appIcon文件:%@", fileNameOpened] withColor:[NSColor labelColor]];
+    }
+}
+- (IBAction)browseLaunchImagepathButtonAction:(id)sender {
+    [self addLog:@"浏览LaunchImage文件路径" withColor:[NSColor labelColor]];
+    NSOpenPanel *openPanel = [NSOpenPanel openPanel];
+    [openPanel setCanChooseFiles:YES];
+    [openPanel setCanChooseDirectories:NO];
+    [openPanel setAllowsMultipleSelection:NO];
+    [openPanel setAllowsOtherFileTypes:NO];
+    [openPanel setAllowedFileTypes:@[@"png"]];
+    
+    if ([openPanel runModal] == NSModalResponseOK) {
+        NSString *fileNameOpened = [[[openPanel URLs] objectAtIndex:0] path];
+        self.launchImagePathField.stringValue = fileNameOpened;
+        [self addLog:[NSString stringWithFormat:@"LaunchImage文件:%@", fileNameOpened] withColor:[NSColor labelColor]];
+    }
+}
+
+
 - (IBAction)browseIpaSavePathButtonAction:(id)sender {
     [self addLog:@"浏览ipa文件保存路径" withColor:[NSColor labelColor]];
     NSOpenPanel *openPanel = [NSOpenPanel openPanel];
@@ -161,7 +199,7 @@
 }
 - (IBAction)cleanButton:(NSButton *)sender {
     if (sender.tag == 200) {
-        [self addLog:@"清除已选渠道" withColor:[NSColor labelColor]];
+//        [self addLog:@"清除已选渠道" withColor:[NSColor labelColor]];
         [tempPlatformArray enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             ZCPlatformModel *model = (ZCPlatformModel *)obj;
             model.isSelect = NO;
@@ -171,30 +209,39 @@
     } else if (sender.tag == 201) {
         [self addLog:@"清除全部" withColor:[NSColor labelColor]];
         [self clearall];
+    } else if (sender.tag == 202) {
+        [self addLog:@"清除日志" withColor:[NSColor labelColor]];
+        self.logField.string = @"";
     }
 }
 - (IBAction)resignButton:(id)sender {
     
     if (![self->manager fileExistsAtPath:self.ipaPathField.stringValue]) {
-        [self addLog:[NSString stringWithFormat:@"未指定ipa或app文件"] withColor:[NSColor systemRedColor]];
+        [self addLog:[NSString stringWithFormat:@"请选择ipa或app文件"] withColor:[NSColor systemRedColor]];
         return;
     }
     if ([self.certificateComboBox indexOfSelectedItem] == -1) {
-        [self addLog:[NSString stringWithFormat:@"未选择签名证书"] withColor:[NSColor systemRedColor]];
+        [self addLog:[NSString stringWithFormat:@"请选择签名证书"] withColor:[NSColor systemRedColor]];
         return;
     }
     if ([self.provisioningComboBox indexOfSelectedItem] == -1) {
-        [self addLog:[NSString stringWithFormat:@"未选择描述文件"] withColor:[NSColor systemRedColor]];
+        [self addLog:[NSString stringWithFormat:@"请选择描述文件"] withColor:[NSColor systemRedColor]];
         return;
     }
     if (![self->manager fileExistsAtPath:self.ipaSavePathField.stringValue]) {
-        [self addLog:[NSString stringWithFormat:@"未指定ipa文件生成目录"] withColor:[NSColor systemRedColor]];
+        [self addLog:[NSString stringWithFormat:@"请选择ipa文件生成目录"] withColor:[NSColor systemRedColor]];
         return;
     }
     
     BOOL platformResign = YES;
     
     if (platformResign) {
+        
+        if (![self->manager fileExistsAtPath:self.appIconPathField.stringValue]) {
+            [self addLog:[NSString stringWithFormat:@"请选择AppIcon文件"] withColor:[NSColor systemRedColor]];
+            return;
+        }
+        
         NSMutableArray *selectPlatforArray = @[].mutableCopy;
         [self->tempPlatformArray enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             ZCPlatformModel *model = (ZCPlatformModel *)obj;
@@ -203,7 +250,7 @@
             }
         }];
         if (selectPlatforArray.count == 0) {
-            [self addLog:[NSString stringWithFormat:@"未选择渠道"] withColor:[NSColor systemRedColor]];
+            [self addLog:[NSString stringWithFormat:@"请选择渠道"] withColor:[NSColor systemRedColor]];
             return;
         }
         
@@ -228,13 +275,18 @@
             //开始签名
             [self.package platformbuildresignWithProvisioningProfile:provisioningProfile certiticateName:[self->certificatesArray objectAtIndex:self.certificateComboBox.indexOfSelectedItem] platformModels:selectPlatforArray targetPath:self.ipaSavePathField.stringValue log:^(BlockType type, NSString * _Nonnull logString) {
                 [self addLog:logString withColor:[NSColor labelColor]];
+                if (type == BlockType_PlatformShow) {
+                    [self showResigningPlatform:[NSString stringWithFormat:@"正在打包：%@", logString]];
+                }
             } error:^(BlockType type, NSString * _Nonnull errorString) {
                 [self enableControls];
                 [self addLog:errorString withColor:[NSColor systemRedColor]];
             } success:^(BlockType type, id  _Nonnull message) {
                 [self enableControls];
                 [self addLog:message withColor:[NSColor systemGreenColor]];
-                
+                if (type == BlockType_PlatformShow) {
+                    [self showResigningPlatform:message];
+                }
                 if (type == BlockType_PlatformAllEnd) {
                     //打包完成移除解压文件
                     if (self.package.workPath) {
@@ -358,7 +410,7 @@
 - (void)showSelectPlatformView:(NSMutableArray *)selectPlatformNameArray {
     if (selectPlatformNameArray.count) {
         NSString *platforms = [selectPlatformNameArray componentsJoinedByString:@"、"];
-        [self showSelectedPlatform:[NSString stringWithFormat:@"已选择 %ld 个渠道：\n%@", selectPlatformNameArray.count, platforms]];
+        [self showSelectedPlatform:[NSString stringWithFormat:@"已选择 %ld 个渠道：\n%@\n", selectPlatformNameArray.count, platforms]];
     } else {
         [self showSelectedPlatform:@""];
     }
@@ -402,8 +454,18 @@
 }
 #pragma mark - showSelectedPlatformField
 - (void)showSelectedPlatform:(NSString *)platforms {
+    showSelectedPlatformFieldString = platforms;
     dispatch_async(dispatch_get_main_queue(), ^{
-        NSAttributedString *logAttributedString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@\n", platforms] attributes:@{NSForegroundColorAttributeName:[NSColor textColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
+        NSAttributedString *logAttributedString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@", platforms] attributes:@{NSForegroundColorAttributeName:[NSColor textColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
+        [[self.showSelectedPlatformField textStorage] setAttributedString:logAttributedString];
+        [self.showSelectedPlatformField scrollRangeToVisible:NSMakeRange([self.showSelectedPlatformField string].length, 0)];
+        
+    });
+}
+- (void)showResigningPlatform:(NSString *)logString {
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSAttributedString *logAttributedString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@\n%@", self->showSelectedPlatformFieldString, logString] attributes:@{NSForegroundColorAttributeName:[NSColor textColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
         [[self.showSelectedPlatformField textStorage] setAttributedString:logAttributedString];
         [self.showSelectedPlatformField scrollRangeToVisible:NSMakeRange([self.showSelectedPlatformField string].length, 0)];
         

@@ -33,6 +33,7 @@ typedef NS_ENUM(NSInteger, BlockType)
     BlockType_DoCodesign,
     BlockType_ZipPackage,
     BlockType_PlatformEditFiles,
+    BlockType_PlatformShow,
     BlockType_PlatformAllEnd
 };
 
