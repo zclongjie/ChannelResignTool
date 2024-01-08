@@ -9,6 +9,7 @@
 #import "ZCProvisioningProfile.h"
 #import "ZCRunLoop.h"
 #import "ZCManuaQueue.h"
+#import "ZCAppIconModel.h"
 
 static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisioning Profiles";
 
@@ -249,46 +250,48 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     }];
 }
 
-- (void)getAppIcon:(NSString *)appIconPath complete:(void (^)(BOOL result))completeBlock {
-    if (![manager fileExistsAtPath:appIconPath]) {
+- (void)getAppIcon:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL))completeBlock {
+    if (![manager fileExistsAtPath:sourcePath]) {
         completeBlock(NO);
     }
-    /*
-     CFBundleIcons
-     "AppIcon20x20",
-     "AppIcon29x29",
-     "AppIcon40x40",
-     "AppIcon57x57",
-     "AppIcon60x60"
-     
-     CFBundleIcons~ipad
-     "AppIcon20x20",
-     "AppIcon29x29",
-     "AppIcon40x40",
-     "AppIcon57x57",
-     "AppIcon60x60",
-     "AppIcon50x50",
-     "AppIcon72x72",
-     "AppIcon76x76",
-     "AppIcon83.5x83.5"
-     */
+    
+    NSString *AssetsPath = [targetPath stringByAppendingPathComponent:@"Assets.xcassets"];
+    NSString *AppIconPath = [AssetsPath stringByAppendingPathComponent:@"AppIcon.appiconset"];
+    if (![self->manager fileExistsAtPath:AppIconPath]) {
+        [self->manager createDirectoryAtPath:AppIconPath withIntermediateDirectories:YES attributes:nil error:nil];
+    }
+    
+    
     NSString *localData_plist = [[NSBundle mainBundle] pathForResource:@"ZCLocalData" ofType:@"plist"];
     NSMutableDictionary *data = [[NSMutableDictionary alloc] initWithContentsOfFile:localData_plist];
-    NSMutableArray *iconnums = data[@"iconnums"];
+    ZCAppIconModel *appIconModel = [ZCAppIconModel mj_objectWithKeyValues:data[@"appicon"]];
     
-    for (NSDictionary *dict in iconnums) {
+    //创建Cosntents.json
+    NSData *jsonData = [appIconModel mj_JSONData];
+    // 指定 JSON 文件路径
+    NSString *ContentsPath = [AppIconPath stringByAppendingPathComponent:@"Contents.json"];
+    // 将 JSON 数据写入文件
+    if ([jsonData writeToFile:ContentsPath atomically:YES]) {
+        NSLog(@"JSON file created successfully at %@", ContentsPath);
+    } else {
+        NSLog(@"Error writing JSON data to file");
+    }
+    //创建AppIcon图片
+    for (ZCAppIconImageItem *iconImageItem in appIconModel.images) {
+        NSArray *sizeArr = [iconImageItem.size componentsSeparatedByString:@"x"];
+        NSArray *scaleArr = [iconImageItem.scale componentsSeparatedByString:@"x"];
+        int width = [sizeArr[0] intValue];
+//        int height = [sizeArr[1] intValue];
+        int scale = [scaleArr[0] intValue];
+        NSString *arguments1 = [NSString stringWithFormat:@"%d", width*scale];
 
         NSTask *task = [[NSTask alloc] init];
         [task setLaunchPath:@"/usr/bin/sips"];
 
-        NSString *AppIcons = [[CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"GameUnzip"] stringByAppendingPathComponent:@"AppIcons"];
-        if (![manager fileExistsAtPath:AppIcons]) {
-            [manager createDirectoryAtPath:AppIcons withIntermediateDirectories:YES attributes:nil error:nil];
-        }
-        [manager createDirectoryAtPath:AppIcons withIntermediateDirectories:YES attributes:nil error:nil];
-        NSString *targetPath_png = [[AppIcons stringByAppendingPathComponent:dict[@"name"]] stringByAppendingPathExtension:@"png"];
+        
+        NSString *targetPath_png = [AppIconPath stringByAppendingPathComponent:iconImageItem.filename];
         // 设置命令行参数
-        NSArray *arguments = @[@"-z", dict[@"resolution"], dict[@"resolution"], appIconPath, @"--out", targetPath_png];
+        NSArray *arguments = @[@"-z", arguments1, arguments1, sourcePath, @"--out", targetPath_png];
         [task setArguments:arguments];
         // 启动任务
         [task launch];
@@ -303,6 +306,58 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     }
     
     
+    
+    
+    // 创建 NSTask 对象
+    NSTask *task = [[NSTask alloc] init];
+    
+    // 设置命令路径和参数
+    [task setLaunchPath:@"/usr/bin/xcrun"];
+    [task setArguments:@[@"actool",
+                         @"--output-format", @"human-readable-text",
+                         @"--notices",
+                         @"--warnings",
+                         @"--platform", @"macosx",
+                         @"--minimum-deployment-target", @"10.12",
+                         @"--app-icon", @"AppIcon",
+                         @"--output-partial-info-plist", @"PartialInfo.plist",
+                         @"--compress-pngs",
+                         @"--enable-on-demand-resources", @"YES",
+                         @"--filter-for-device-model", @"Mac",
+                         @"--filter-for-device-os-version", @"10.12",
+                         @"--sticker-pack-identifier-prefix", @"1",
+                         @"--target-device", @"ipad",
+                         @"--target-device", @"iphone",
+                         @"--output-dir", targetPath,
+                         AssetsPath]];
+    
+    // 设置当前工作目录
+    [task setCurrentDirectoryPath:@"/path/to/your/project"];
+    
+    // 创建管道用于捕获输出
+    NSPipe *pipe = [NSPipe pipe];
+    [task setStandardOutput:pipe];
+    
+    // 启动任务
+    [task launch];
+    
+    // 等待任务完成
+    [task waitUntilExit];
+    
+    // 从管道中获取输出
+    NSFileHandle *fileHandle = [pipe fileHandleForReading];
+    NSData *outputData = [fileHandle readDataToEndOfFile];
+    NSString *outputString = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
+    
+    // 输出任务的标准输出
+    NSLog(@"Task Output:\n%@", outputString);
+    
+    // 检查任务的退出状态
+    if ([task terminationStatus] == 0) {
+        NSLog(@"Task completed successfully");
+    } else {
+        NSLog(@"Task failed with exit code: %d", [task terminationStatus]);
+    }
     
     completeBlock(YES);
 }

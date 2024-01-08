@@ -1,0 +1,581 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		11241C7123E28B493056B9E8669CD557 /* MJExtensionConst.m in Sources */ = {isa = PBXBuildFile; fileRef = 792D005781B9BADBD9341EA4662BD319 /* MJExtensionConst.m */; };
+		13B4D633C5608CD319B99428E956A08A /* MJProperty.m in Sources */ = {isa = PBXBuildFile; fileRef = 3CE893EB49F8860AB9ADAE7F94A5A2F2 /* MJProperty.m */; };
+		376C8857BB87E0B8C4E5B2D30D811606 /* NSObject+MJProperty.h in Headers */ = {isa = PBXBuildFile; fileRef = BE43E2C6980C87DFAFCCBB82238DD81B /* NSObject+MJProperty.h */; settings = {ATTRIBUTES = (Project, ); }; };
+		40AA24AEE84AD9A5DC302D4B53C58560 /* MJPropertyType.h in Headers */ = {isa = PBXBuildFile; fileRef = 53B291E497399D3479E1AEA9790BCF7C /* MJPropertyType.h */; settings = {ATTRIBUTES = (Project, ); }; };
+		4282815523E38D59E343DA83F58CD4A0 /* MJExtensionConst.h in Headers */ = {isa = PBXBuildFile; fileRef = 34EAA63194CAA2D289E890ED758A2778 /* MJExtensionConst.h */; settings = {ATTRIBUTES = (Project, ); }; };
+		4E493439D131631A7E0F3DC6D4EFB0A9 /* NSObject+MJKeyValue.h in Headers */ = {isa = PBXBuildFile; fileRef = 6C8FA0BFE37804E370D4D784D60FEB72 /* NSObject+MJKeyValue.h */; settings = {ATTRIBUTES = (Project, ); }; };
+		62162097D9E1D862F224D62F4A82914A /* MJPropertyKey.m in Sources */ = {isa = PBXBuildFile; fileRef = ACD65AD8F11502361C1DE62FD54059B9 /* MJPropertyKey.m */; };
+		687EE835F3FF12FA9451879044DCF247 /* MJExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 5C14E72FC19461F0D1DC8D1CDBA1250A /* MJExtension.h */; settings = {ATTRIBUTES = (Project, ); }; };
+		7424810570E945330CB2642C6BDAE6FD /* NSObject+MJCoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 1EA10B9D1785B2C6ACAEAC092B06804D /* NSObject+MJCoding.m */; };
+		75E3680F654F2F8FA4BE743961254C30 /* NSObject+MJProperty.m in Sources */ = {isa = PBXBuildFile; fileRef = 669F126BCAE7B7162889B19D14591374 /* NSObject+MJProperty.m */; };
+		7CF521903F307D14A7A9B3E5C6F88F8D /* NSObject+MJCoding.h in Headers */ = {isa = PBXBuildFile; fileRef = B6380FA5AF90EF951BA514D2FD624D4E /* NSObject+MJCoding.h */; settings = {ATTRIBUTES = (Project, ); }; };
+		7E2F09234285137127B5E1D253567D83 /* MJExtension-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 342C3CBEECBED7B6687BC1DC11141264 /* MJExtension-dummy.m */; };
+		8680B775076D1AA6335C6146D9E1029E /* MJFoundation.h in Headers */ = {isa = PBXBuildFile; fileRef = 4A4BDEB67D5573F2B058C9C9BEE3AA96 /* MJFoundation.h */; settings = {ATTRIBUTES = (Project, ); }; };
+		86A25C721AAF149DBAF527B791EA7C19 /* NSString+MJExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = EECF1C28759D6E257ED995BD90E2EB78 /* NSString+MJExtension.h */; settings = {ATTRIBUTES = (Project, ); }; };
+		94A5C5864C50810CACB80958D5289DA9 /* MJFoundation.m in Sources */ = {isa = PBXBuildFile; fileRef = 871570B6F8984C6B6B27A6BF8D7E8EA2 /* MJFoundation.m */; };
+		AA61EE754F9E07E0A751BA7D2751E89C /* MJPropertyKey.h in Headers */ = {isa = PBXBuildFile; fileRef = EF1A14A04178E9BF90DEAA9F3BAB2C64 /* MJPropertyKey.h */; settings = {ATTRIBUTES = (Project, ); }; };
+		B5BBAE2CAFF358BF2597D38DDBA22126 /* Pods-ChannelResignTool-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = B8F94EA43F254B67AF7D5C84A0E83B80 /* Pods-ChannelResignTool-dummy.m */; };
+		C29B993BDF212917F4FA77CEBDD726CB /* NSString+MJExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = AD61BC7E4A8377BF9EB4EB6251BD4412 /* NSString+MJExtension.m */; };
+		CFBA951E19602EDA704EDF9532F6A382 /* MJProperty.h in Headers */ = {isa = PBXBuildFile; fileRef = 90A683140218EABEFCC78C7F0728995B /* MJProperty.h */; settings = {ATTRIBUTES = (Project, ); }; };
+		E0CC43D5508582DD5560E8CCA83A29D6 /* NSObject+MJClass.h in Headers */ = {isa = PBXBuildFile; fileRef = 426C244642FFFD93930663E5400D565D /* NSObject+MJClass.h */; settings = {ATTRIBUTES = (Project, ); }; };
+		E6ABE7B362FBD2104D410D2B4A99A7D5 /* NSObject+MJClass.m in Sources */ = {isa = PBXBuildFile; fileRef = 91916C37F1CB0EE1F37656B5E373A97B /* NSObject+MJClass.m */; };
+		F52C750E5C0C568FFA4EAEF4201DD46D /* NSObject+MJKeyValue.m in Sources */ = {isa = PBXBuildFile; fileRef = E06018EC01F8F55DA14CB10618B66DEF /* NSObject+MJKeyValue.m */; };
+		FF53BC386AE898A15B143619E7B4FDDF /* MJPropertyType.m in Sources */ = {isa = PBXBuildFile; fileRef = 23F3C3EE22DDD434EBCE7A740A767316 /* MJPropertyType.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B96670B0BB16EC232200C850BE2C74DF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4D3BA58D0583DF37575CACAB3DDADC85;
+			remoteInfo = MJExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		07BDDA8335DF09709C7C0B84331095A4 /* Pods-ChannelResignTool-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-ChannelResignTool-acknowledgements.plist"; sourceTree = "<group>"; };
+		10C4EA46A8D33D8CF35D925FA648AA87 /* MJExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = MJExtension.debug.xcconfig; sourceTree = "<group>"; };
+		1EA10B9D1785B2C6ACAEAC092B06804D /* NSObject+MJCoding.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "NSObject+MJCoding.m"; path = "MJExtension/NSObject+MJCoding.m"; sourceTree = "<group>"; };
+		23F3C3EE22DDD434EBCE7A740A767316 /* MJPropertyType.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = MJPropertyType.m; path = MJExtension/MJPropertyType.m; sourceTree = "<group>"; };
+		2B276B0A79173A1D6E83C9B4FB9A4A57 /* MJExtension */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; name = MJExtension; path = libMJExtension.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		342C3CBEECBED7B6687BC1DC11141264 /* MJExtension-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "MJExtension-dummy.m"; sourceTree = "<group>"; };
+		34EAA63194CAA2D289E890ED758A2778 /* MJExtensionConst.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = MJExtensionConst.h; path = MJExtension/MJExtensionConst.h; sourceTree = "<group>"; };
+		3CE893EB49F8860AB9ADAE7F94A5A2F2 /* MJProperty.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = MJProperty.m; path = MJExtension/MJProperty.m; sourceTree = "<group>"; };
+		426C244642FFFD93930663E5400D565D /* NSObject+MJClass.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "NSObject+MJClass.h"; path = "MJExtension/NSObject+MJClass.h"; sourceTree = "<group>"; };
+		4A4BDEB67D5573F2B058C9C9BEE3AA96 /* MJFoundation.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = MJFoundation.h; path = MJExtension/MJFoundation.h; sourceTree = "<group>"; };
+		53B291E497399D3479E1AEA9790BCF7C /* MJPropertyType.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = MJPropertyType.h; path = MJExtension/MJPropertyType.h; sourceTree = "<group>"; };
+		5C14E72FC19461F0D1DC8D1CDBA1250A /* MJExtension.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = MJExtension.h; path = MJExtension/MJExtension.h; sourceTree = "<group>"; };
+		669F126BCAE7B7162889B19D14591374 /* NSObject+MJProperty.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "NSObject+MJProperty.m"; path = "MJExtension/NSObject+MJProperty.m"; sourceTree = "<group>"; };
+		6C8FA0BFE37804E370D4D784D60FEB72 /* NSObject+MJKeyValue.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "NSObject+MJKeyValue.h"; path = "MJExtension/NSObject+MJKeyValue.h"; sourceTree = "<group>"; };
+		792D005781B9BADBD9341EA4662BD319 /* MJExtensionConst.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = MJExtensionConst.m; path = MJExtension/MJExtensionConst.m; sourceTree = "<group>"; };
+		871570B6F8984C6B6B27A6BF8D7E8EA2 /* MJFoundation.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = MJFoundation.m; path = MJExtension/MJFoundation.m; sourceTree = "<group>"; };
+		90A683140218EABEFCC78C7F0728995B /* MJProperty.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = MJProperty.h; path = MJExtension/MJProperty.h; sourceTree = "<group>"; };
+		91916C37F1CB0EE1F37656B5E373A97B /* NSObject+MJClass.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "NSObject+MJClass.m"; path = "MJExtension/NSObject+MJClass.m"; sourceTree = "<group>"; };
+		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		AC3B9DD88DA6BDC85B480F609F508901 /* Pods-ChannelResignTool-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-ChannelResignTool-acknowledgements.markdown"; sourceTree = "<group>"; };
+		ACD65AD8F11502361C1DE62FD54059B9 /* MJPropertyKey.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = MJPropertyKey.m; path = MJExtension/MJPropertyKey.m; sourceTree = "<group>"; };
+		AD61BC7E4A8377BF9EB4EB6251BD4412 /* NSString+MJExtension.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "NSString+MJExtension.m"; path = "MJExtension/NSString+MJExtension.m"; sourceTree = "<group>"; };
+		B6380FA5AF90EF951BA514D2FD624D4E /* NSObject+MJCoding.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "NSObject+MJCoding.h"; path = "MJExtension/NSObject+MJCoding.h"; sourceTree = "<group>"; };
+		B8F94EA43F254B67AF7D5C84A0E83B80 /* Pods-ChannelResignTool-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-ChannelResignTool-dummy.m"; sourceTree = "<group>"; };
+		BD3B17F54EA2E6798D75E1767E635BFD /* Pods-ChannelResignTool.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-ChannelResignTool.debug.xcconfig"; sourceTree = "<group>"; };
+		BE43E2C6980C87DFAFCCBB82238DD81B /* NSObject+MJProperty.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "NSObject+MJProperty.h"; path = "MJExtension/NSObject+MJProperty.h"; sourceTree = "<group>"; };
+		D9DB88178E8972298F172FEB8F4A4A80 /* Pods-ChannelResignTool */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; name = "Pods-ChannelResignTool"; path = "libPods-ChannelResignTool.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E06018EC01F8F55DA14CB10618B66DEF /* NSObject+MJKeyValue.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "NSObject+MJKeyValue.m"; path = "MJExtension/NSObject+MJKeyValue.m"; sourceTree = "<group>"; };
+		E08A34D47B38E3D3111B534EFCB3BB32 /* MJExtension-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "MJExtension-prefix.pch"; sourceTree = "<group>"; };
+		EECF1C28759D6E257ED995BD90E2EB78 /* NSString+MJExtension.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "NSString+MJExtension.h"; path = "MJExtension/NSString+MJExtension.h"; sourceTree = "<group>"; };
+		EF1A14A04178E9BF90DEAA9F3BAB2C64 /* MJPropertyKey.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = MJPropertyKey.h; path = MJExtension/MJPropertyKey.h; sourceTree = "<group>"; };
+		F97A126A76BE35D7B8503D4149107D3B /* MJExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = MJExtension.release.xcconfig; sourceTree = "<group>"; };
+		FB51708303D2D612CB6A9E7D1789858D /* Pods-ChannelResignTool.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-ChannelResignTool.release.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2A7703EE4FC3AE46022A5D2DEB1D397A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E97CFCB34A52D7BB6B2CE40043F7E38A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		16B9DA0A33E24891BF46D62B8D028498 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				342C3CBEECBED7B6687BC1DC11141264 /* MJExtension-dummy.m */,
+				E08A34D47B38E3D3111B534EFCB3BB32 /* MJExtension-prefix.pch */,
+				10C4EA46A8D33D8CF35D925FA648AA87 /* MJExtension.debug.xcconfig */,
+				F97A126A76BE35D7B8503D4149107D3B /* MJExtension.release.xcconfig */,
+			);
+			name = "Support Files";
+			path = "../Target Support Files/MJExtension";
+			sourceTree = "<group>";
+		};
+		4F7EE14FDF05F06BC21CDD132129CA7E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2B276B0A79173A1D6E83C9B4FB9A4A57 /* MJExtension */,
+				D9DB88178E8972298F172FEB8F4A4A80 /* Pods-ChannelResignTool */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		56D4253E949F52611571E65B76CC4DFA /* Targets Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				825EF99FECE2F2A088BC1983B6A54626 /* Pods-ChannelResignTool */,
+			);
+			name = "Targets Support Files";
+			sourceTree = "<group>";
+		};
+		825EF99FECE2F2A088BC1983B6A54626 /* Pods-ChannelResignTool */ = {
+			isa = PBXGroup;
+			children = (
+				AC3B9DD88DA6BDC85B480F609F508901 /* Pods-ChannelResignTool-acknowledgements.markdown */,
+				07BDDA8335DF09709C7C0B84331095A4 /* Pods-ChannelResignTool-acknowledgements.plist */,
+				B8F94EA43F254B67AF7D5C84A0E83B80 /* Pods-ChannelResignTool-dummy.m */,
+				BD3B17F54EA2E6798D75E1767E635BFD /* Pods-ChannelResignTool.debug.xcconfig */,
+				FB51708303D2D612CB6A9E7D1789858D /* Pods-ChannelResignTool.release.xcconfig */,
+			);
+			name = "Pods-ChannelResignTool";
+			path = "Target Support Files/Pods-ChannelResignTool";
+			sourceTree = "<group>";
+		};
+		8B1D4436BF11CE4FB9E670E8A2CFCF7B /* MJExtension */ = {
+			isa = PBXGroup;
+			children = (
+				5C14E72FC19461F0D1DC8D1CDBA1250A /* MJExtension.h */,
+				34EAA63194CAA2D289E890ED758A2778 /* MJExtensionConst.h */,
+				792D005781B9BADBD9341EA4662BD319 /* MJExtensionConst.m */,
+				4A4BDEB67D5573F2B058C9C9BEE3AA96 /* MJFoundation.h */,
+				871570B6F8984C6B6B27A6BF8D7E8EA2 /* MJFoundation.m */,
+				90A683140218EABEFCC78C7F0728995B /* MJProperty.h */,
+				3CE893EB49F8860AB9ADAE7F94A5A2F2 /* MJProperty.m */,
+				EF1A14A04178E9BF90DEAA9F3BAB2C64 /* MJPropertyKey.h */,
+				ACD65AD8F11502361C1DE62FD54059B9 /* MJPropertyKey.m */,
+				53B291E497399D3479E1AEA9790BCF7C /* MJPropertyType.h */,
+				23F3C3EE22DDD434EBCE7A740A767316 /* MJPropertyType.m */,
+				426C244642FFFD93930663E5400D565D /* NSObject+MJClass.h */,
+				91916C37F1CB0EE1F37656B5E373A97B /* NSObject+MJClass.m */,
+				B6380FA5AF90EF951BA514D2FD624D4E /* NSObject+MJCoding.h */,
+				1EA10B9D1785B2C6ACAEAC092B06804D /* NSObject+MJCoding.m */,
+				6C8FA0BFE37804E370D4D784D60FEB72 /* NSObject+MJKeyValue.h */,
+				E06018EC01F8F55DA14CB10618B66DEF /* NSObject+MJKeyValue.m */,
+				BE43E2C6980C87DFAFCCBB82238DD81B /* NSObject+MJProperty.h */,
+				669F126BCAE7B7162889B19D14591374 /* NSObject+MJProperty.m */,
+				EECF1C28759D6E257ED995BD90E2EB78 /* NSString+MJExtension.h */,
+				AD61BC7E4A8377BF9EB4EB6251BD4412 /* NSString+MJExtension.m */,
+				16B9DA0A33E24891BF46D62B8D028498 /* Support Files */,
+			);
+			name = MJExtension;
+			path = MJExtension;
+			sourceTree = "<group>";
+		};
+		BBE7F25BDF6E2ECE64867498D8902AF4 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				8B1D4436BF11CE4FB9E670E8A2CFCF7B /* MJExtension */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		CF1408CF629C7361332E53B88F7BD30C = {
+			isa = PBXGroup;
+			children = (
+				9D940727FF8FB9C785EB98E56350EF41 /* Podfile */,
+				D89477F20FB1DE18A04690586D7808C4 /* Frameworks */,
+				BBE7F25BDF6E2ECE64867498D8902AF4 /* Pods */,
+				4F7EE14FDF05F06BC21CDD132129CA7E /* Products */,
+				56D4253E949F52611571E65B76CC4DFA /* Targets Support Files */,
+			);
+			sourceTree = "<group>";
+		};
+		D89477F20FB1DE18A04690586D7808C4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		045A6F19C3A2EBA5564B6C6553207A72 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E18EC1CD0108062C4C0CB69E839F19D2 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				687EE835F3FF12FA9451879044DCF247 /* MJExtension.h in Headers */,
+				4282815523E38D59E343DA83F58CD4A0 /* MJExtensionConst.h in Headers */,
+				8680B775076D1AA6335C6146D9E1029E /* MJFoundation.h in Headers */,
+				CFBA951E19602EDA704EDF9532F6A382 /* MJProperty.h in Headers */,
+				AA61EE754F9E07E0A751BA7D2751E89C /* MJPropertyKey.h in Headers */,
+				40AA24AEE84AD9A5DC302D4B53C58560 /* MJPropertyType.h in Headers */,
+				E0CC43D5508582DD5560E8CCA83A29D6 /* NSObject+MJClass.h in Headers */,
+				7CF521903F307D14A7A9B3E5C6F88F8D /* NSObject+MJCoding.h in Headers */,
+				4E493439D131631A7E0F3DC6D4EFB0A9 /* NSObject+MJKeyValue.h in Headers */,
+				376C8857BB87E0B8C4E5B2D30D811606 /* NSObject+MJProperty.h in Headers */,
+				86A25C721AAF149DBAF527B791EA7C19 /* NSString+MJExtension.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		4D3BA58D0583DF37575CACAB3DDADC85 /* MJExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5ABBDF6101EDABBA87A15EF7DFD7983F /* Build configuration list for PBXNativeTarget "MJExtension" */;
+			buildPhases = (
+				E18EC1CD0108062C4C0CB69E839F19D2 /* Headers */,
+				59BE820714F47EF9C7258826C19CE9DA /* Sources */,
+				2A7703EE4FC3AE46022A5D2DEB1D397A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MJExtension;
+			productName = MJExtension;
+			productReference = 2B276B0A79173A1D6E83C9B4FB9A4A57 /* MJExtension */;
+			productType = "com.apple.product-type.library.static";
+		};
+		C127D95859A993178343EB71F743F72D /* Pods-ChannelResignTool */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BC839E605EB06F4BFA23D66FA86C61C9 /* Build configuration list for PBXNativeTarget "Pods-ChannelResignTool" */;
+			buildPhases = (
+				045A6F19C3A2EBA5564B6C6553207A72 /* Headers */,
+				C9E54C0031572186F8BD44E148FB4F20 /* Sources */,
+				E97CFCB34A52D7BB6B2CE40043F7E38A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A3BE7A7FC12574948A285DD38E395C13 /* PBXTargetDependency */,
+			);
+			name = "Pods-ChannelResignTool";
+			productName = "Pods-ChannelResignTool";
+			productReference = D9DB88178E8972298F172FEB8F4A4A80 /* Pods-ChannelResignTool */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BFDFE7DC352907FC980B868725387E98 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1300;
+				LastUpgradeCheck = 1300;
+			};
+			buildConfigurationList = 4821239608C13582E20E6DA73FD5F1F9 /* Build configuration list for PBXProject "Pods" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = CF1408CF629C7361332E53B88F7BD30C;
+			productRefGroup = 4F7EE14FDF05F06BC21CDD132129CA7E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4D3BA58D0583DF37575CACAB3DDADC85 /* MJExtension */,
+				C127D95859A993178343EB71F743F72D /* Pods-ChannelResignTool */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		59BE820714F47EF9C7258826C19CE9DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7E2F09234285137127B5E1D253567D83 /* MJExtension-dummy.m in Sources */,
+				11241C7123E28B493056B9E8669CD557 /* MJExtensionConst.m in Sources */,
+				94A5C5864C50810CACB80958D5289DA9 /* MJFoundation.m in Sources */,
+				13B4D633C5608CD319B99428E956A08A /* MJProperty.m in Sources */,
+				62162097D9E1D862F224D62F4A82914A /* MJPropertyKey.m in Sources */,
+				FF53BC386AE898A15B143619E7B4FDDF /* MJPropertyType.m in Sources */,
+				E6ABE7B362FBD2104D410D2B4A99A7D5 /* NSObject+MJClass.m in Sources */,
+				7424810570E945330CB2642C6BDAE6FD /* NSObject+MJCoding.m in Sources */,
+				F52C750E5C0C568FFA4EAEF4201DD46D /* NSObject+MJKeyValue.m in Sources */,
+				75E3680F654F2F8FA4BE743961254C30 /* NSObject+MJProperty.m in Sources */,
+				C29B993BDF212917F4FA77CEBDD726CB /* NSString+MJExtension.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9E54C0031572186F8BD44E148FB4F20 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B5BBAE2CAFF358BF2597D38DDBA22126 /* Pods-ChannelResignTool-dummy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A3BE7A7FC12574948A285DD38E395C13 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = MJExtension;
+			target = 4D3BA58D0583DF37575CACAB3DDADC85 /* MJExtension */;
+			targetProxy = B96670B0BB16EC232200C850BE2C74DF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		3EA381DF4A397E2DACFBBF29C04D6081 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 10C4EA46A8D33D8CF35D925FA648AA87 /* MJExtension.debug.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				EXECUTABLE_PREFIX = lib;
+				GCC_PREFIX_HEADER = "Target Support Files/MJExtension/MJExtension-prefix.pch";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PRIVATE_HEADERS_FOLDER_PATH = "";
+				PRODUCT_MODULE_NAME = MJExtension;
+				PRODUCT_NAME = MJExtension;
+				PUBLIC_HEADERS_FOLDER_PATH = "";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+			};
+			name = Debug;
+		};
+		5E5046922B2BADEB6AE175DCA2A5C450 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"POD_CONFIGURATION_DEBUG=1",
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIP_INSTALLED_PRODUCT = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				SYMROOT = "${SRCROOT}/../build";
+			};
+			name = Debug;
+		};
+		CC6467D1B9E19BF13D9D4318B29D7121 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F97A126A76BE35D7B8503D4149107D3B /* MJExtension.release.xcconfig */;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				EXECUTABLE_PREFIX = lib;
+				GCC_PREFIX_HEADER = "Target Support Files/MJExtension/MJExtension-prefix.pch";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PRIVATE_HEADERS_FOLDER_PATH = "";
+				PRODUCT_MODULE_NAME = MJExtension;
+				PRODUCT_NAME = MJExtension;
+				PUBLIC_HEADERS_FOLDER_PATH = "";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+			};
+			name = Release;
+		};
+		D24F906F863AC8F0FCB3C4D8DE5FC281 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FB51708303D2D612CB6A9E7D1789858D /* Pods-ChannelResignTool.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				EXECUTABLE_PREFIX = lib;
+				MACH_O_TYPE = staticlib;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		D256BAA9A69C64A728E66C27D53FDD4B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"POD_CONFIGURATION_RELEASE=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIP_INSTALLED_PRODUCT = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				SYMROOT = "${SRCROOT}/../build";
+			};
+			name = Release;
+		};
+		D69010C66131457A4F3E9FB71C625C15 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = BD3B17F54EA2E6798D75E1767E635BFD /* Pods-ChannelResignTool.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				EXECUTABLE_PREFIX = lib;
+				MACH_O_TYPE = staticlib;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4821239608C13582E20E6DA73FD5F1F9 /* Build configuration list for PBXProject "Pods" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5E5046922B2BADEB6AE175DCA2A5C450 /* Debug */,
+				D256BAA9A69C64A728E66C27D53FDD4B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5ABBDF6101EDABBA87A15EF7DFD7983F /* Build configuration list for PBXNativeTarget "MJExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3EA381DF4A397E2DACFBBF29C04D6081 /* Debug */,
+				CC6467D1B9E19BF13D9D4318B29D7121 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BC839E605EB06F4BFA23D66FA86C61C9 /* Build configuration list for PBXNativeTarget "Pods-ChannelResignTool" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D69010C66131457A4F3E9FB71C625C15 /* Debug */,
+				D24F906F863AC8F0FCB3C4D8DE5FC281 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+}

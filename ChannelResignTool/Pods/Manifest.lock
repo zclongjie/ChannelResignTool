@@ -1,0 +1,16 @@
+PODS:
+  - MJExtension (3.4.0)
+
+DEPENDENCIES:
+  - MJExtension
+
+SPEC REPOS:
+  trunk:
+    - MJExtension
+
+SPEC CHECKSUMS:
+  MJExtension: 6c15c7b93398447252c0defdb8d69d02d218a41e
+
+PODFILE CHECKSUM: c4a8378f513693a7401645b722b60520bd3bd313
+
+COCOAPODS: 1.12.1

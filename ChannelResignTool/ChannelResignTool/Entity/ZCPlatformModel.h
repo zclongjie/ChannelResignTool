@@ -5,7 +5,7 @@
 //  Created by 赵隆杰 on 2024/1/2.
 //
 
-#import <Foundation/Foundation.h>
+#import "BaseModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 

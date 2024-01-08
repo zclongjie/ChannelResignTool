@@ -11,6 +11,7 @@
 #import "ZCRunLoop.h"
 #import "ZCManuaQueue.h"
 #import "ZCDataUtil.h"
+#import "ZCAppIconModel.h"
 
 @implementation ZCAppPackageHandler {
     NSFileManager *manager;//全局文件管理
@@ -352,26 +353,23 @@
             [plist setObject:@"LaunchLandscape" forKey:kUILaunchStoryboardNameiphone];
         }
         
-        NSArray *AppIcons = [self->manager contentsOfDirectoryAtPath:[[CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"GameUnzip"] stringByAppendingPathComponent:@"AppIcons"] error:nil];
+        
+        NSString *localData_plist = [[NSBundle mainBundle] pathForResource:@"ZCLocalData" ofType:@"plist"];
+        NSMutableDictionary *data = [[NSMutableDictionary alloc] initWithContentsOfFile:localData_plist];
+        ZCAppIconModel *appIconModel = [ZCAppIconModel mj_objectWithKeyValues:data[@"appicon"]];
         
         NSMutableArray *CFBundleIconFiles_iPad = @[].mutableCopy;
         NSMutableArray *CFBundleIconFiles_iPhone = @[].mutableCopy;
-        for (NSString *file in AppIcons) {
-            NSString *filename = [[file lastPathComponent] stringByDeletingPathExtension];
-            if ([filename hasSuffix:@"~ipad"]) {
-                filename = [filename substringToIndex:filename.length-5];
-                if ([filename hasSuffix:@"@2x"]) {
-                    filename = [filename substringToIndex:filename.length-3];
+        for (ZCAppIconImageItem *iconImageItem in appIconModel.images) {
+            NSString *CFBundleIconFilesName = [NSString stringWithFormat:@"AppIcon%@", iconImageItem.size];
+            if ([iconImageItem.idiom isEqualToString:@"iphone"]) {
+                if (![CFBundleIconFiles_iPhone containsObject:CFBundleIconFilesName]) {
+                    [CFBundleIconFiles_iPhone addObject:CFBundleIconFilesName];
                 }
-                if (![CFBundleIconFiles_iPad containsObject:filename]) {
-                    [CFBundleIconFiles_iPad addObject:filename];
-                }
-            } else {
-                if ([filename hasSuffix:@"@2x"] || [filename hasSuffix:@"@3x"]) {
-                    filename = [filename substringToIndex:filename.length-3];
-                }
-                if (![CFBundleIconFiles_iPhone containsObject:filename]) {
-                    [CFBundleIconFiles_iPhone addObject:filename];
+            }
+            if ([iconImageItem.idiom isEqualToString:@"ipad"]) {
+                if (![CFBundleIconFiles_iPad containsObject:CFBundleIconFilesName]) {
+                    [CFBundleIconFiles_iPad addObject:CFBundleIconFilesName];
                 }
             }
         }
@@ -710,31 +708,31 @@
             }
             
             //任务6
-            NSString *AppIconsPath = [[CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"GameUnzip"] stringByAppendingPathComponent:@"AppIcons"];
-            NSArray *AppIconsPathContents = [self->manager contentsOfDirectoryAtPath:AppIconsPath error:nil];
-            
-            for (NSString *file in AppIconsPathContents) {
-                dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                    // 创建信号量
-                    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-                    NSLog(@"%@", [NSString stringWithFormat:@"run task 6 %@", file]);
-                    NSString *sourcefilePath = [AppIconsPath stringByAppendingPathComponent:file];
-                    NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:file];
-                    [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
-                        if (result) {
-                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"AppIcons", file]);
-                        } else {
-                            errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", @"AppIcons", file]);
-                        }
-                        NSLog(@"%@", [NSString stringWithFormat:@"complete task 6 %@", file]);
-                        // 无论请求成功或失败都发送信号量(+1)
-                        dispatch_semaphore_signal(semaphore);
-                    }];
-                    // 在请求成功之前等待信号量(-1)
-                    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-                });
-                
-            }
+//            NSString *appIconSourcePath = [self.workPath stringByAppendingPathComponent:@"AppIcon.appiconset"];
+//            NSArray *AppIconsPathContents = [self->manager contentsOfDirectoryAtPath:appIconSourcePath error:nil];
+//
+//            for (NSString *file in AppIconsPathContents) {
+//                dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+//                    // 创建信号量
+//                    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+//                    NSLog(@"%@", [NSString stringWithFormat:@"run task 6 %@", file]);
+//                    NSString *sourcefilePath = [appIconSourcePath stringByAppendingPathComponent:file];
+//                    NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:file];
+//                    [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
+//                        if (result) {
+//                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"AppIcons", file]);
+//                        } else {
+//                            errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", @"AppIcons", file]);
+//                        }
+//                        NSLog(@"%@", [NSString stringWithFormat:@"complete task 6 %@", file]);
+//                        // 无论请求成功或失败都发送信号量(+1)
+//                        dispatch_semaphore_signal(semaphore);
+//                    }];
+//                    // 在请求成功之前等待信号量(-1)
+//                    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+//                });
+//
+//            }
             
             // 请求完成之后
             dispatch_group_notify(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -1010,7 +1008,7 @@
                 }
                 
                 //生成AppIcon
-                [[ZCFileHelper sharedInstance] getAppIcon:appIconPath complete:^(BOOL result) {
+                [[ZCFileHelper sharedInstance] getAppIcon:appIconPath toPath:self.workPath complete:^(BOOL result) {
                     if (result) {
                         //2.修改info.plist
                         [self platformeditInfoPlistWithPlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {

@@ -14,6 +14,8 @@
 		A8629D462B39A4B5008AD376 /* PlatformRowView.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D452B39A4B5008AD376 /* PlatformRowView.m */; };
 		A8629D482B39A7BE008AD376 /* PlatformRowView.xib in Resources */ = {isa = PBXBuildFile; fileRef = A8629D472B39A7BE008AD376 /* PlatformRowView.xib */; };
 		A8629D4D2B3A86B1008AD376 /* ZCDataUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D4C2B3A86B1008AD376 /* ZCDataUtil.m */; };
+		A8691B552B4B940F0051CF5C /* ZCAppIconModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A8691B542B4B940F0051CF5C /* ZCAppIconModel.m */; };
+		A8691B582B4B9AEF0051CF5C /* BaseModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A8691B562B4B9AEF0051CF5C /* BaseModel.m */; };
 		A87F65D62B3147C900CF380B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65D52B3147C900CF380B /* AppDelegate.m */; };
 		A87F65D92B3147C900CF380B /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65D82B3147C900CF380B /* ViewController.m */; };
 		A87F65DB2B3147CA00CF380B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A87F65DA2B3147CA00CF380B /* Assets.xcassets */; };
@@ -23,9 +25,11 @@
 		A87F65F82B357F9500CF380B /* ZCProvisioningProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */; };
 		A898F9F82B43E39B00942F69 /* ZCPlatformModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */; };
 		A898FA052B46DBC100942F69 /* ZCLocalData.plist in Resources */ = {isa = PBXBuildFile; fileRef = A898FA042B46DBC100942F69 /* ZCLocalData.plist */; };
+		E271572E63ED81F94933C5B3 /* libPods-ChannelResignTool.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 306058E42C335E3CFB25C154 /* libPods-ChannelResignTool.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		306058E42C335E3CFB25C154 /* libPods-ChannelResignTool.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ChannelResignTool.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8629D372B367360008AD376 /* ZCDateFormatterUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCDateFormatterUtil.h; sourceTree = "<group>"; };
 		A8629D382B367360008AD376 /* ZCDateFormatterUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCDateFormatterUtil.m; sourceTree = "<group>"; };
 		A8629D3B2B36A8AA008AD376 /* ZCAppPackageHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCAppPackageHandler.h; sourceTree = "<group>"; };
@@ -39,6 +43,10 @@
 		A8629D472B39A7BE008AD376 /* PlatformRowView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PlatformRowView.xib; sourceTree = "<group>"; };
 		A8629D4B2B3A86B1008AD376 /* ZCDataUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCDataUtil.h; sourceTree = "<group>"; };
 		A8629D4C2B3A86B1008AD376 /* ZCDataUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCDataUtil.m; sourceTree = "<group>"; };
+		A8691B532B4B940F0051CF5C /* ZCAppIconModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCAppIconModel.h; sourceTree = "<group>"; };
+		A8691B542B4B940F0051CF5C /* ZCAppIconModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCAppIconModel.m; sourceTree = "<group>"; };
+		A8691B562B4B9AEF0051CF5C /* BaseModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BaseModel.m; sourceTree = "<group>"; };
+		A8691B572B4B9AEF0051CF5C /* BaseModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BaseModel.h; sourceTree = "<group>"; };
 		A87F65D12B3147C900CF380B /* ChannelResignTool.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChannelResignTool.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A87F65D42B3147C900CF380B /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		A87F65D52B3147C900CF380B /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -55,6 +63,8 @@
 		A898F9F62B43E39B00942F69 /* ZCPlatformModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCPlatformModel.h; sourceTree = "<group>"; };
 		A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCPlatformModel.m; sourceTree = "<group>"; };
 		A898FA042B46DBC100942F69 /* ZCLocalData.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = ZCLocalData.plist; sourceTree = "<group>"; };
+		AAC1D8F0AFF9DB3AE2FC8C82 /* Pods-ChannelResignTool.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChannelResignTool.release.xcconfig"; path = "Target Support Files/Pods-ChannelResignTool/Pods-ChannelResignTool.release.xcconfig"; sourceTree = "<group>"; };
+		C73809A0133C20B527560E97 /* Pods-ChannelResignTool.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChannelResignTool.debug.xcconfig"; path = "Target Support Files/Pods-ChannelResignTool/Pods-ChannelResignTool.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,12 +72,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E271572E63ED81F94933C5B3 /* libPods-ChannelResignTool.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		76604C35DEBC98A7466FCA78 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				306058E42C335E3CFB25C154 /* libPods-ChannelResignTool.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		A8629D3A2B36A87B008AD376 /* Factory */ = {
 			isa = PBXGroup;
 			children = (
@@ -95,6 +114,8 @@
 			children = (
 				A87F65D32B3147C900CF380B /* ChannelResignTool */,
 				A87F65D22B3147C900CF380B /* Products */,
+				AE7701AEB5BFC9A5C1CF8DF5 /* Pods */,
+				76604C35DEBC98A7466FCA78 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -147,8 +168,21 @@
 				A898F9F62B43E39B00942F69 /* ZCPlatformModel.h */,
 				A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */,
 				A898FA042B46DBC100942F69 /* ZCLocalData.plist */,
+				A8691B532B4B940F0051CF5C /* ZCAppIconModel.h */,
+				A8691B542B4B940F0051CF5C /* ZCAppIconModel.m */,
+				A8691B572B4B9AEF0051CF5C /* BaseModel.h */,
+				A8691B562B4B9AEF0051CF5C /* BaseModel.m */,
 			);
 			path = Entity;
+			sourceTree = "<group>";
+		};
+		AE7701AEB5BFC9A5C1CF8DF5 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				C73809A0133C20B527560E97 /* Pods-ChannelResignTool.debug.xcconfig */,
+				AAC1D8F0AFF9DB3AE2FC8C82 /* Pods-ChannelResignTool.release.xcconfig */,
+			);
+			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -158,6 +192,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A87F65E42B3147CA00CF380B /* Build configuration list for PBXNativeTarget "ChannelResignTool" */;
 			buildPhases = (
+				D6D7F69084329C5C690894BC /* [CP] Check Pods Manifest.lock */,
 				A87F65CD2B3147C900CF380B /* Sources */,
 				A87F65CE2B3147C900CF380B /* Frameworks */,
 				A87F65CF2B3147C900CF380B /* Resources */,
@@ -216,6 +251,31 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		D6D7F69084329C5C690894BC /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ChannelResignTool-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		A87F65CD2B3147C900CF380B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -225,11 +285,13 @@
 				A87F65F82B357F9500CF380B /* ZCProvisioningProfile.m in Sources */,
 				A8629D4D2B3A86B1008AD376 /* ZCDataUtil.m in Sources */,
 				A87F65D92B3147C900CF380B /* ViewController.m in Sources */,
+				A8691B552B4B940F0051CF5C /* ZCAppIconModel.m in Sources */,
 				A8629D402B36BA76008AD376 /* ZCRunLoop.m in Sources */,
 				A8629D462B39A4B5008AD376 /* PlatformRowView.m in Sources */,
 				A898F9F82B43E39B00942F69 /* ZCPlatformModel.m in Sources */,
 				A87F65E02B3147CA00CF380B /* main.m in Sources */,
 				A8629D392B367360008AD376 /* ZCDateFormatterUtil.m in Sources */,
+				A8691B582B4B9AEF0051CF5C /* BaseModel.m in Sources */,
 				A87F65F22B356DB900CF380B /* ZCFileHelper.m in Sources */,
 				A87F65D62B3147C900CF380B /* AppDelegate.m in Sources */,
 				A8629D3D2B36A8AA008AD376 /* ZCAppPackageHandler.m in Sources */,
@@ -361,6 +423,7 @@
 		};
 		A87F65E52B3147CA00CF380B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C73809A0133C20B527560E97 /* Pods-ChannelResignTool.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -394,6 +457,7 @@
 		};
 		A87F65E62B3147CA00CF380B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AAC1D8F0AFF9DB3AE2FC8C82 /* Pods-ChannelResignTool.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;

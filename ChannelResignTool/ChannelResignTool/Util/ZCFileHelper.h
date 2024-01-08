@@ -36,7 +36,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)zip:(NSString *)sourcepath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
 
 ///生成AppIcon
-- (void)getAppIcon:(NSString *)appIconPath complete:(void (^)(BOOL result))completeBlock;
+- (void)getAppIcon:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
 
 @end
 
