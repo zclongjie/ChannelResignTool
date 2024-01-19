@@ -140,7 +140,7 @@
 }
 
 #pragma mark - Resign
-- (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+- (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certificateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     /*
      1.创建新的entitlements
@@ -267,6 +267,17 @@
                             self->entitlementsResult = [linesInOutput componentsJoinedByString:@"\n"];
                         }
                         NSMutableDictionary *entitlementsDict = [[NSMutableDictionary alloc] initWithDictionary:self->entitlementsResult.propertyList[@"Entitlements"]];
+                        /*
+                         {
+                             "application-identifier" = "53V38J3HUU.com.*";
+                             "com.apple.developer.team-identifier" = 53V38J3HUU;
+                             "get-task-allow" = 1;
+                             "keychain-access-groups" =     (
+                                 "53V38J3HUU.*",
+                                 "com.apple.token"
+                             );
+                         }
+                         */
                         NSString *filePath = [self.workPath stringByAppendingPathComponent:kEntitlementsPlistFileName];
                         NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:entitlementsDict format:NSPropertyListXMLFormat_v1_0 options:kCFPropertyListImmutable error:nil];
                         if ([xmlData writeToFile:filePath atomically:YES]) {
@@ -478,7 +489,7 @@
     }
 }
 
-- (void)platformEditFilesPlatformModel:(ZCPlatformModel *)platformModel log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+- (void)platformEditFilesPlatformModel:(ZCPlatformModel *)platformModel launchImagePath:(NSString *)launchImagePath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     if (logBlock) {
         logBlock(BlockType_PlatformEditFiles, @"复制渠道文件……");
@@ -494,7 +505,7 @@
     [[ZCFileHelper sharedInstance] unzip:platformJsonPath toPath:platformUnzipPath complete:^(BOOL result) {
         if (result) {
             if (logBlock) {
-                logBlock(BlockType_PlatformEditFiles, @"渠道文件复制完成");
+                logBlock(BlockType_PlatformEditFiles, @"渠道文件解压完成");
             }
             //渠道文件复制
             NSString *resourcePath = [miliyouPath stringByAppendingPathComponent:@"resource"];
@@ -608,67 +619,68 @@
             }
             
             //任务4
+            NSString *launchimage_ = @"launchimage-";
             if ([platformModel.isLan isEqualToString:@"0"]) {
-                NSString *launchimage_portrait = [miliyouPath stringByAppendingPathComponent:@"launchimage-portrait"];
-                if ([self->manager fileExistsAtPath:launchimage_portrait]) {
-                    NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:launchimage_portrait error:nil];
-                    if (sourceContents.count) {
-                        for (NSString *file in sourceContents) {
-                            dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                                // 创建信号量
-                                dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-                                NSLog(@"%@", [NSString stringWithFormat:@"run task 4 %@", file]);
-                                NSString *sourcefilePath = [launchimage_portrait stringByAppendingPathComponent:file];
-                                NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:file];
-                                [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
-                                    if (result) {
-                                        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"launchimage-portrait", file]);
-                                    } else {
-                                        errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", @"launchimage-portrait", file]);
-                                    }
-                                    NSLog(@"%@", [NSString stringWithFormat:@"complete task 4 %@", file]);
-                                    // 无论请求成功或失败都发送信号量(+1)
-                                    dispatch_semaphore_signal(semaphore);
-                                }];
-                                // 在请求成功之前等待信号量(-1)
-                                dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-                            });
-                            
-                        }
-                        
-                    }
-                }
-                
-                
+                launchimage_ = @"launchimage-portrait";
             } else {
-                NSString *launchimage_landscape = [miliyouPath stringByAppendingPathComponent:@"launchimage-landscape"];
-                if ([self->manager fileExistsAtPath:launchimage_landscape]) {
-                    NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:launchimage_landscape error:nil];
-                    if (sourceContents.count) {
-                        for (NSString *file in sourceContents) {
-                            dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                                // 创建信号量
-                                dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-                                NSLog(@"%@", [NSString stringWithFormat:@"run task 4 %@", file]);
-                                NSString *sourcefilePath = [launchimage_landscape stringByAppendingPathComponent:file];
-                                NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:file];
-                                [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
-                                    if (result) {
-                                        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"launchimage-landscape", file]);
-                                    } else {
-                                        errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", @"launchimage-landscape", file]);
-                                    }
-                                    NSLog(@"%@", [NSString stringWithFormat:@"complete task 4 %@", file]);
-                                    // 无论请求成功或失败都发送信号量(+1)
-                                    dispatch_semaphore_signal(semaphore);
-                                }];
-                                // 在请求成功之前等待信号量(-1)
-                                dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-                            });
-                            
-                        }
+                launchimage_ = @"launchimage-landscape";
+            }
+            NSString *launchimage_Path = [miliyouPath stringByAppendingPathComponent:launchimage_];
+            if ([self->manager fileExistsAtPath:launchimage_Path]) {
+                NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:launchimage_Path error:nil];
+                if (sourceContents.count) {
+                    for (NSString *file in sourceContents) {
+                        dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                            // 创建信号量
+                            dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+                            NSLog(@"%@", [NSString stringWithFormat:@"run task 4 %@", file]);
+                            NSString *sourcefilePath = [launchimage_Path stringByAppendingPathComponent:file];
+                            NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:file];
+                            [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
+                                if (result) {
+                                    logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", launchimage_, file]);
+                                } else {
+                                    errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", launchimage_, file]);
+                                }
+                                NSLog(@"%@", [NSString stringWithFormat:@"complete task 4 %@", file]);
+                                // 无论请求成功或失败都发送信号量(+1)
+                                dispatch_semaphore_signal(semaphore);
+                            }];
+                            // 在请求成功之前等待信号量(-1)
+                            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+                        });
                         
                     }
+                    NSString *platform_bg = nil;
+                    for (NSString *file in sourceContents) {
+                        if ([[[file pathExtension] lowercaseString] isEqualToString:@"png"]) {
+                            platform_bg = file;
+                            break;
+                        }
+                    }
+                    if (!platform_bg && launchImagePath.length) {
+                        //表示需要设置健康公告为闪屏
+                        dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                            // 创建信号量
+                            dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+                            NSLog(@"%@", [NSString stringWithFormat:@"run task 4 %@", launchImagePath]);
+                            NSString *sourcefilePath = launchImagePath;
+                            NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:@"bg.png"];
+                            [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
+                                if (result) {
+                                    logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", launchimage_, launchImagePath]);
+                                } else {
+                                    errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", launchimage_, launchImagePath]);
+                                }
+                                NSLog(@"%@", [NSString stringWithFormat:@"complete task 4 %@", launchImagePath]);
+                                // 无论请求成功或失败都发送信号量(+1)
+                                dispatch_semaphore_signal(semaphore);
+                            }];
+                            // 在请求成功之前等待信号量(-1)
+                            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+                        });
+                    }
+                    
                 }
                 
             }
@@ -708,31 +720,68 @@
             }
             
             //任务6
-//            NSString *appIconSourcePath = [self.workPath stringByAppendingPathComponent:@"AppIcon.appiconset"];
-//            NSArray *AppIconsPathContents = [self->manager contentsOfDirectoryAtPath:appIconSourcePath error:nil];
-//
-//            for (NSString *file in AppIconsPathContents) {
-//                dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-//                    // 创建信号量
-//                    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-//                    NSLog(@"%@", [NSString stringWithFormat:@"run task 6 %@", file]);
-//                    NSString *sourcefilePath = [appIconSourcePath stringByAppendingPathComponent:file];
-//                    NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:file];
-//                    [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
-//                        if (result) {
-//                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"AppIcons", file]);
-//                        } else {
-//                            errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", @"AppIcons", file]);
-//                        }
-//                        NSLog(@"%@", [NSString stringWithFormat:@"complete task 6 %@", file]);
-//                        // 无论请求成功或失败都发送信号量(+1)
-//                        dispatch_semaphore_signal(semaphore);
-//                    }];
-//                    // 在请求成功之前等待信号量(-1)
-//                    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-//                });
-//
-//            }
+            NSString *AssetsPath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"Assets.xcassets"];
+            NSString *appIconSourcePath = [AssetsPath stringByAppendingPathComponent:@"AppIcon.appiconset"];
+            NSArray *AppIconsPathContents = [self->manager contentsOfDirectoryAtPath:appIconSourcePath error:nil];
+
+            for (NSString *file in AppIconsPathContents) {
+                dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                    // 创建信号量
+                    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+                    NSLog(@"%@", [NSString stringWithFormat:@"run task 6 %@", file]);
+                    NSString *sourcefilePath = [appIconSourcePath stringByAppendingPathComponent:file];
+                    
+                    NSString *localData_plist = [[NSBundle mainBundle] pathForResource:@"ZCLocalData" ofType:@"plist"];
+                    NSMutableDictionary *data = [[NSMutableDictionary alloc] initWithContentsOfFile:localData_plist];
+                    ZCAppIconModel *appIconModel = [ZCAppIconModel mj_objectWithKeyValues:data[@"appicon"]];
+                    NSString *newFile = nil;
+                    for (ZCAppIconImageItem *iconImageItem in appIconModel.images) {
+                        if ([iconImageItem.filename isEqualToString:file]) {
+                            NSString *CFBundleIconFilesName = [NSString stringWithFormat:@"AppIcon%@", iconImageItem.size];
+                            if ([iconImageItem.idiom isEqualToString:@"iphone"]) {
+                                if ([iconImageItem.scale isEqualToString:@"1x"]) {
+                                    newFile = [NSString stringWithFormat:@"%@", CFBundleIconFilesName];
+                                } else if ([iconImageItem.scale isEqualToString:@"2x"]) {
+                                    newFile = [NSString stringWithFormat:@"%@@2x", CFBundleIconFilesName];
+                                } else if ([iconImageItem.scale isEqualToString:@"3x"]) {
+                                    newFile = [NSString stringWithFormat:@"%@@3x", CFBundleIconFilesName];
+                                }
+                            }
+                            if ([iconImageItem.idiom isEqualToString:@"ipad"]) {
+                                if ([iconImageItem.scale isEqualToString:@"1x"]) {
+                                    newFile = [NSString stringWithFormat:@"%@~ipad", CFBundleIconFilesName];
+                                } else if ([iconImageItem.scale isEqualToString:@"2x"]) {
+                                    newFile = [NSString stringWithFormat:@"%@@2x~ipad", CFBundleIconFilesName];
+                                } else if ([iconImageItem.scale isEqualToString:@"3x"]) {
+                                    newFile = [NSString stringWithFormat:@"%@@3x~ipad", CFBundleIconFilesName];
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    if (newFile) {
+                        NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:[newFile stringByAppendingPathExtension:@"png"]];
+                        [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
+                            if (result) {
+                                logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制成功", newFile]);
+                            } else {
+                                errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制失败", newFile]);
+                            }
+                            NSLog(@"%@", [NSString stringWithFormat:@"complete task 6 %@", file]);
+                            // 无论请求成功或失败都发送信号量(+1)
+                            dispatch_semaphore_signal(semaphore);
+                        }];
+                    } else {
+                        NSLog(@"%@", [NSString stringWithFormat:@"complete task 6 %@", file]);
+                        // 无论请求成功或失败都发送信号量(+1)
+                        dispatch_semaphore_signal(semaphore);
+                    }
+                    
+                    // 在请求成功之前等待信号量(-1)
+                    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+                });
+
+            }
             
             // 请求完成之后
             dispatch_group_notify(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -942,6 +991,17 @@
     
     [manager createDirectoryAtPath:zipDirPath withIntermediateDirectories:YES attributes:nil error:nil];
     
+    //先检查是否存在entitlements，存在先删掉
+    NSString *entitlementsPath = [self.workPath stringByAppendingPathComponent:kEntitlementsPlistFileName];
+    if (entitlementsPath && [manager fileExistsAtPath:entitlementsPath]) {
+        if (![manager removeItemAtPath:entitlementsPath error:nil]) {
+            if (errorBlock) {
+                errorBlock(BlockType_Entitlements, @"错误：删除旧Entitlements失败");
+            }
+            return;
+        }
+    }
+    
     [[ZCFileHelper sharedInstance] zip:self.workPath toPath:zipIpaPath complete:^(BOOL result) {
         if (result) {
             if (successBlock) {
@@ -956,20 +1016,25 @@
 }
 
 #pragma mark - 渠道出包
-- (void)platformbuildresignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certiticateName:(NSString *)certificateName platformModels:(NSArray *)platformModels appIconPath:(NSString *)appIconPath targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+- (void)platformbuildresignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certificateName:(NSString *)certificateName platformModels:(NSArray *)platformModels appIconPath:(NSString *)appIconPath launchImagePath:(NSString *)launchImagePath targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     /*
+     0.生成AppIcon
      1.创建新的entitlements
      2.修改info.plist
      3.修改Embedded Provision
      4.开始签名并验证
      5.压缩文件
+     
      */
     
     // 1.创建一个串行队列，保证for循环依次执行
     dispatch_queue_t serialQueue = dispatch_queue_create("serialQueue", DISPATCH_QUEUE_SERIAL);
     // 2.异步执行任务
     dispatch_async(serialQueue, ^{
+        
+        //标记当前时间
+        NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
         
         NSMutableArray *successPlatforms = @[].mutableCopy;
         NSMutableArray *errorPlatforms = @[].mutableCopy;
@@ -986,41 +1051,67 @@
                 logBlock(BlockType_PlatformShow, platformModel.platformName);
             }
             
-            //1.创建新的entitlements
-            [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
+            //0.生成AppIcon
+            [[ZCFileHelper sharedInstance] getAppIcon:appIconPath toPath:self.appPath log:^(NSString * _Nonnull logString) {
                 if (logBlock) {
-                    logBlock(BlockType_Entitlements, logString);
+                    logBlock(BlockType_PlatformAppIcon, logString);
                 }
-            } error:^(BlockType type, NSString * _Nonnull errorString) {
+            } error:^(NSString * _Nonnull errorString) {
                 if (errorBlock) {
-                    errorBlock(BlockType_Entitlements, errorString);
+                    errorBlock(BlockType_PlatformAppIcon, errorString);
                 }
-                if (logBlock) {
-                    logBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
-                }
-                [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
                 // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                 NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                 dispatch_semaphore_signal(sema);
-            } success:^(BlockType type, id  _Nonnull message) {
+            } success:^(id  _Nonnull message) {
                 if (successBlock) {
-                    successBlock(BlockType_Entitlements, message);
+                    successBlock(BlockType_PlatformAppIcon, message);
                 }
                 
-                //生成AppIcon
-                [[ZCFileHelper sharedInstance] getAppIcon:appIconPath toPath:self.workPath complete:^(BOOL result) {
-                    if (result) {
-                        //2.修改info.plist
-                        [self platformeditInfoPlistWithPlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
+                //1.创建新的entitlements
+                [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
+                    if (logBlock) {
+                        logBlock(BlockType_Entitlements, logString);
+                    }
+                } error:^(BlockType type, NSString * _Nonnull errorString) {
+                    if (errorBlock) {
+                        errorBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
+                    }
+                    [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                    // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
+                    NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
+                    dispatch_semaphore_signal(sema);
+                } success:^(BlockType type, id  _Nonnull message) {
+                    if (successBlock) {
+                        successBlock(BlockType_Entitlements, message);
+                    }
+                    
+                    //2.修改info.plist
+                    [self platformeditInfoPlistWithPlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
+                        if (logBlock) {
+                            logBlock(BlockType_InfoPlist, logString);
+                        }
+                    } error:^(BlockType type, NSString * _Nonnull errorString) {
+                        if (errorBlock) {
+                            errorBlock(BlockType_InfoPlist, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
+                        }
+                        [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                        // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
+                        NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
+                        dispatch_semaphore_signal(sema);
+                    } success:^(BlockType type, id  _Nonnull message) {
+                        if (successBlock) {
+                            successBlock(BlockType_InfoPlist, message);
+                        }
+                        
+                        //
+                        [self platformEditFilesPlatformModel:platformModel launchImagePath:launchImagePath log:^(BlockType type, NSString * _Nonnull logString) {
                             if (logBlock) {
-                                logBlock(BlockType_InfoPlist, logString);
+                                logBlock(BlockType_PlatformEditFiles, logString);
                             }
                         } error:^(BlockType type, NSString * _Nonnull errorString) {
                             if (errorBlock) {
-                                errorBlock(BlockType_InfoPlist, errorString);
-                            }
-                            if (logBlock) {
-                                logBlock(BlockType_InfoPlist, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
+                                errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
                             }
                             [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
                             // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
@@ -1028,20 +1119,17 @@
                             dispatch_semaphore_signal(sema);
                         } success:^(BlockType type, id  _Nonnull message) {
                             if (successBlock) {
-                                successBlock(BlockType_InfoPlist, message);
+                                successBlock(BlockType_PlatformEditFiles, message);
                             }
                             
-                            //
-                            [self platformEditFilesPlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
+                            //3.修改Embedded Provision
+                            [self editEmbeddedProvision:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
                                 if (logBlock) {
-                                    logBlock(BlockType_PlatformEditFiles, logString);
+                                    logBlock(BlockType_EmbeddedProvision, logString);
                                 }
                             } error:^(BlockType type, NSString * _Nonnull errorString) {
                                 if (errorBlock) {
-                                    errorBlock(BlockType_PlatformEditFiles, errorString);
-                                }
-                                if (logBlock) {
-                                    logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
+                                    errorBlock(BlockType_EmbeddedProvision, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
                                 }
                                 [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
                                 // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
@@ -1049,20 +1137,17 @@
                                 dispatch_semaphore_signal(sema);
                             } success:^(BlockType type, id  _Nonnull message) {
                                 if (successBlock) {
-                                    successBlock(BlockType_PlatformEditFiles, message);
+                                    successBlock(BlockType_EmbeddedProvision, message);
                                 }
-                                
-                                //3.修改Embedded Provision
-                                [self editEmbeddedProvision:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
+                
+                                //4.开始签名
+                                [self doCodesignCertificateName:certificateName log:^(BlockType type, NSString * _Nonnull logString) {
                                     if (logBlock) {
-                                        logBlock(BlockType_EmbeddedProvision, logString);
+                                        logBlock(BlockType_DoCodesign, logString);
                                     }
                                 } error:^(BlockType type, NSString * _Nonnull errorString) {
                                     if (errorBlock) {
-                                        errorBlock(BlockType_EmbeddedProvision, errorString);
-                                    }
-                                    if (logBlock) {
-                                        logBlock(BlockType_EmbeddedProvision, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
+                                        errorBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
                                     }
                                     [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
                                     // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
@@ -1070,20 +1155,17 @@
                                     dispatch_semaphore_signal(sema);
                                 } success:^(BlockType type, id  _Nonnull message) {
                                     if (successBlock) {
-                                        successBlock(BlockType_EmbeddedProvision, message);
+                                        successBlock(BlockType_DoCodesign, message);
                                     }
-                    
-                                    //4.开始签名
-                                    [self doCodesignCertificateName:certificateName log:^(BlockType type, NSString * _Nonnull logString) {
+                
+                                    //5.压缩文件
+                                    [self zipPackageToDirPath:targetPath PlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
                                         if (logBlock) {
-                                            logBlock(BlockType_DoCodesign, logString);
+                                            logBlock(BlockType_ZipPackage, logString);
                                         }
                                     } error:^(BlockType type, NSString * _Nonnull errorString) {
                                         if (errorBlock) {
-                                            errorBlock(BlockType_DoCodesign, errorString);
-                                        }
-                                        if (logBlock) {
-                                            logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
+                                            errorBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
                                         }
                                         [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
                                         // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
@@ -1091,55 +1173,52 @@
                                         dispatch_semaphore_signal(sema);
                                     } success:^(BlockType type, id  _Nonnull message) {
                                         if (successBlock) {
-                                            successBlock(BlockType_DoCodesign, message);
+                                            successBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@\n%@%@打包成功", message, platformModel.platformName, platformModel.platformId]);
                                         }
-                    
-                                        //5.压缩文件
-                                        [self zipPackageToDirPath:targetPath PlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
-                                            if (logBlock) {
-                                                logBlock(BlockType_ZipPackage, logString);
-                                            }
-                                        } error:^(BlockType type, NSString * _Nonnull errorString) {
-                                            if (errorBlock) {
-                                                errorBlock(BlockType_ZipPackage, errorString);
-                                            }
-                                            if (logBlock) {
-                                                logBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@%@打包失败", platformModel.platformName, platformModel.platformId]);
-                                            }
-                                            [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
-                                            // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
-                                            NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
-                                            dispatch_semaphore_signal(sema);
-                                        } success:^(BlockType type, id  _Nonnull message) {
-                                            if (successBlock) {
-                                                successBlock(BlockType_ZipPackage, message);
-                                            }
-                                            if (logBlock) {
-                                                logBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@%@打包成功", platformModel.platformName, platformModel.platformId]);
-                                            }
-                                            [successPlatforms addObject:platformModel.platformName];
-                                            // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
-                                            NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
-                                            dispatch_semaphore_signal(sema);
-                                        }];
+                                        [successPlatforms addObject:platformModel.platformName];
+                                        // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
+                                        NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
+                                        dispatch_semaphore_signal(sema);
                                     }];
                                 }];
                             }];
                         }];
-                    }
+                    }];
                 }];
-                
-                
+                    
             }];
             dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
         }
         if (successBlock) {
-
+            
+            //再次标记当前时间,计算耗时
+            NSTimeInterval currentTime1 = [[NSDate date] timeIntervalSince1970];
+            NSTimeInterval diffTime = currentTime1 - currentTime;
+            NSString *diffTimeStr = @"";
+            long timeHour = 0;
+            long timeMinutes = 0;
+            long timeSeconds = 0;
+            timeHour = diffTime / (60 * 60);
+            timeMinutes = (diffTime - timeHour * 60 * 60) / 60;
+            timeSeconds = diffTime - timeHour * 60 * 60 - timeMinutes * 60;
+            if (timeHour > 24) {
+                //时间大于1天，不精确计算
+                diffTimeStr = @"大于24小时";
+            } else {
+                if (timeHour > 1) {
+                    diffTimeStr = [NSString stringWithFormat:@"%ld小时", timeHour];
+                }
+                diffTimeStr = [NSString stringWithFormat:@"%@%ld分", diffTimeStr, timeMinutes];
+                if (timeHour || timeMinutes) {
+                    diffTimeStr = [NSString stringWithFormat:@"%@%ld秒", diffTimeStr, timeSeconds];
+                } else {
+                    diffTimeStr = [NSString stringWithFormat:@"%ld秒", timeSeconds];
+                }
+            }
+            
             NSString *successString = [successPlatforms componentsJoinedByString:@"、"];
             NSString *errorString = [errorPlatforms componentsJoinedByString:@"、"];
-            successBlock(BlockType_PlatformShow, [NSString stringWithFormat:@"打包结束\n成功(%ld)：%@\n失败(%ld)：%@", successPlatforms.count, successString, errorPlatforms.count, errorString]);
-
-            successBlock(BlockType_PlatformAllEnd, @"所有渠道打包完成End");
+            successBlock(BlockType_PlatformAllEnd, [NSString stringWithFormat:@"打包结束，耗时%@\n成功(%ld)：%@\n失败(%ld)：%@", diffTimeStr, successPlatforms.count, successString, errorPlatforms.count, errorString]);
         }
         
     });

@@ -261,6 +261,11 @@
             return;
         }
         
+        NSString *launchImagePath = nil;
+        if ([self->manager fileExistsAtPath:self.launchImagePathField.stringValue]) {
+            launchImagePath = self.launchImagePathField.stringValue;
+        }
+        
         [self addLog:@"解压..." withColor:[NSColor systemGreenColor]];
         self.package = [[ZCAppPackageHandler alloc] initWithPackagePath:self.ipaPathField.stringValue];
         [self addLog:[NSString stringWithFormat:@"文件解压到:%@", self.package.workPath] withColor:[NSColor systemGreenColor]];
@@ -282,7 +287,7 @@
             
             ZCProvisioningProfile *provisioningProfile = [self->provisioningArray objectAtIndex:self.provisioningComboBox.indexOfSelectedItem];
             //开始签名
-            [self.package platformbuildresignWithProvisioningProfile:provisioningProfile certiticateName:[self->certificatesArray objectAtIndex:self.certificateComboBox.indexOfSelectedItem] platformModels:selectPlatforArray appIconPath:self.appIconPathField.stringValue targetPath:self.ipaSavePathField.stringValue log:^(BlockType type, NSString * _Nonnull logString) {
+            [self.package platformbuildresignWithProvisioningProfile:provisioningProfile certificateName:[self->certificatesArray objectAtIndex:self.certificateComboBox.indexOfSelectedItem] platformModels:selectPlatforArray appIconPath:self.appIconPathField.stringValue launchImagePath:launchImagePath targetPath:self.ipaSavePathField.stringValue log:^(BlockType type, NSString * _Nonnull logString) {
                 [self addLog:logString withColor:[NSColor labelColor]];
                 if (type == BlockType_PlatformShow) {
                     [self showResigningPlatform:[NSString stringWithFormat:@"正在打包：%@", logString]];
@@ -293,10 +298,9 @@
             } success:^(BlockType type, id  _Nonnull message) {
                 [self enableControls];
                 [self addLog:message withColor:[NSColor systemGreenColor]];
-                if (type == BlockType_PlatformShow) {
-                    [self showResigningPlatform:message];
-                }
+                
                 if (type == BlockType_PlatformAllEnd) {
+                    [self showResigningPlatform:message];
                     //打包完成移除解压文件
                     if (self.package.workPath) {
                         [self->manager removeItemAtPath:[self.package.workPath stringByDeletingLastPathComponent] error:nil];
@@ -341,11 +345,13 @@
             
             [self addLog:@"开始签名" withColor:[NSColor systemGreenColor]];
             
+            
+            
             [self.package removeCodeSignatureDirectory];
             
             ZCProvisioningProfile *provisioningProfile = [self->provisioningArray objectAtIndex:self.provisioningComboBox.indexOfSelectedItem];
             //开始签名
-            [self.package resignWithProvisioningProfile:provisioningProfile certiticateName:[self->certificatesArray objectAtIndex:self.certificateComboBox.indexOfSelectedItem] bundleIdentifier:provisioningProfile.bundleIdentifier displayName:displayName targetPath:self.ipaSavePathField.stringValue log:^(BlockType type, NSString * _Nonnull logString) {
+            [self.package resignWithProvisioningProfile:provisioningProfile certificateName:[self->certificatesArray objectAtIndex:self.certificateComboBox.indexOfSelectedItem] bundleIdentifier:provisioningProfile.bundleIdentifier displayName:displayName targetPath:self.ipaSavePathField.stringValue log:^(BlockType type, NSString * _Nonnull logString) {
                 [self addLog:logString withColor:[NSColor labelColor]];
             } error:^(BlockType type, NSString * _Nonnull errorString) {
                 [self enableControls];

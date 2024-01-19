@@ -250,17 +250,50 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     }];
 }
 
-- (void)getAppIcon:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL))completeBlock {
+- (void)getAppIcon:(NSString *)sourcePath toPath:(NSString *)targetPath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
     if (![manager fileExistsAtPath:sourcePath]) {
-        completeBlock(NO);
+        errorBlock([NSString stringWithFormat:@"%@不存在", sourcePath]);
+        return;
     }
-    
-    NSString *AssetsPath = [targetPath stringByAppendingPathComponent:@"Assets.xcassets"];
+
+    NSString *AssetsPath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"Assets.xcassets"];
     NSString *AppIconPath = [AssetsPath stringByAppendingPathComponent:@"AppIcon.appiconset"];
     if (![self->manager fileExistsAtPath:AppIconPath]) {
         [self->manager createDirectoryAtPath:AppIconPath withIntermediateDirectories:YES attributes:nil error:nil];
     }
     
+    //生成AppIcon.appiconset
+    [self createAppIcon:sourcePath toPath:AppIconPath log:^(NSString * _Nonnull logString) {
+        logBlock(logString);
+    } error:^(NSString * _Nonnull errorString) {
+        errorBlock(errorString);
+    } success:^(id  _Nonnull message) {
+        
+        //复制图片到临时项目
+        [self copyAppIcon:AppIconPath log:^(NSString * _Nonnull logString) {
+            logBlock(logString);
+        } error:^(NSString * _Nonnull errorString) {
+            errorBlock(errorString);
+        } success:^(id  _Nonnull message) {
+            logBlock(message);
+            [self buildAppIconError:^(NSString * _Nonnull errorString) {
+                errorBlock(errorString);
+            } success:^(id  _Nonnull message) {
+                logBlock(message);
+                //移动Assets到目标app
+                [self moveAssetsToPath:targetPath error:^(NSString * _Nonnull errorString) {
+                    errorBlock(errorString);
+                } success:^(id  _Nonnull message) {
+                    successBlock(message);
+                }];
+            }];
+        }];
+        
+    }];
+    
+}
+
+- (void)createAppIcon:(NSString *)sourcePath toPath:(NSString *)targetPath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
     
     NSString *localData_plist = [[NSBundle mainBundle] pathForResource:@"ZCLocalData" ofType:@"plist"];
     NSMutableDictionary *data = [[NSMutableDictionary alloc] initWithContentsOfFile:localData_plist];
@@ -269,7 +302,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     //创建Cosntents.json
     NSData *jsonData = [appIconModel mj_JSONData];
     // 指定 JSON 文件路径
-    NSString *ContentsPath = [AppIconPath stringByAppendingPathComponent:@"Contents.json"];
+    NSString *ContentsPath = [targetPath stringByAppendingPathComponent:@"Contents.json"];
     // 将 JSON 数据写入文件
     if ([jsonData writeToFile:ContentsPath atomically:YES]) {
         NSLog(@"JSON file created successfully at %@", ContentsPath);
@@ -281,15 +314,13 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
         NSArray *sizeArr = [iconImageItem.size componentsSeparatedByString:@"x"];
         NSArray *scaleArr = [iconImageItem.scale componentsSeparatedByString:@"x"];
         int width = [sizeArr[0] intValue];
-//        int height = [sizeArr[1] intValue];
         int scale = [scaleArr[0] intValue];
         NSString *arguments1 = [NSString stringWithFormat:@"%d", width*scale];
 
         NSTask *task = [[NSTask alloc] init];
         [task setLaunchPath:@"/usr/bin/sips"];
 
-        
-        NSString *targetPath_png = [AppIconPath stringByAppendingPathComponent:iconImageItem.filename];
+        NSString *targetPath_png = [targetPath stringByAppendingPathComponent:iconImageItem.filename];
         // 设置命令行参数
         NSArray *arguments = @[@"-z", arguments1, arguments1, sourcePath, @"--out", targetPath_png];
         [task setArguments:arguments];
@@ -299,70 +330,115 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
         // 获取任务的退出状态
         int status = [task terminationStatus];
         if (status == 0) {
-            NSLog(@"sips command executed successfully!");
+            logBlock([NSString stringWithFormat:@"appicon %@ 成功", targetPath_png]);
         } else {
-            NSLog(@"Error executing sips command. Exit code: %d", status);
+            errorBlock([NSString stringWithFormat:@"appicon %@ 失败", targetPath_png]);
         }
     }
     
+    successBlock(@"appicon生成完成");
     
-    
-    
-    // 创建 NSTask 对象
-    NSTask *task = [[NSTask alloc] init];
-    
-    // 设置命令路径和参数
-    [task setLaunchPath:@"/usr/bin/xcrun"];
-    [task setArguments:@[@"actool",
-                         @"--output-format", @"human-readable-text",
-                         @"--notices",
-                         @"--warnings",
-                         @"--platform", @"macosx",
-                         @"--minimum-deployment-target", @"10.12",
-                         @"--app-icon", @"AppIcon",
-                         @"--output-partial-info-plist", @"PartialInfo.plist",
-                         @"--compress-pngs",
-                         @"--enable-on-demand-resources", @"YES",
-                         @"--filter-for-device-model", @"Mac",
-                         @"--filter-for-device-os-version", @"10.12",
-                         @"--sticker-pack-identifier-prefix", @"1",
-                         @"--target-device", @"ipad",
-                         @"--target-device", @"iphone",
-                         @"--output-dir", targetPath,
-                         AssetsPath]];
-    
-    // 设置当前工作目录
-    [task setCurrentDirectoryPath:@"/path/to/your/project"];
-    
-    // 创建管道用于捕获输出
-    NSPipe *pipe = [NSPipe pipe];
-    [task setStandardOutput:pipe];
-    
-    // 启动任务
-    [task launch];
-    
-    // 等待任务完成
-    [task waitUntilExit];
-    
-    // 从管道中获取输出
-    NSFileHandle *fileHandle = [pipe fileHandleForReading];
-    NSData *outputData = [fileHandle readDataToEndOfFile];
-    NSString *outputString = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
-    
-    // 输出任务的标准输出
-    NSLog(@"Task Output:\n%@", outputString);
-    
-    // 检查任务的退出状态
-    if ([task terminationStatus] == 0) {
-        NSLog(@"Task completed successfully");
-    } else {
-        NSLog(@"Task failed with exit code: %d", [task terminationStatus]);
-    }
-    
-    completeBlock(YES);
 }
 
+- (void)copyAppIcon:(NSString *)sourcePath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
+    // Xcode 项目根目录
+    NSString *projectDirectory = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"ZCTemp"];
+    // Asset Catalog 文件夹相对路径
+    NSString *assetsCatalogRelativePath = [projectDirectory stringByAppendingPathComponent:@"ZCTemp/Assets.xcassets"];
+    //将AppIconPath移到ZCTemp->Assets.xcassets
+    NSString *AppIcon_appiconset = [assetsCatalogRelativePath stringByAppendingPathComponent:@"AppIcon.appiconset"];
+    if ([self->manager fileExistsAtPath:AppIcon_appiconset]) {
+        [self->manager removeItemAtPath:AppIcon_appiconset error:nil];
+    }
+    [self->manager createDirectoryAtPath:AppIcon_appiconset withIntermediateDirectories:YES attributes:nil error:nil];
+    
+    NSArray *AppIconsPathContents = [self->manager contentsOfDirectoryAtPath:sourcePath error:nil];
+    for (NSString *file in AppIconsPathContents) {
+        NSString *sourcefilePath = [sourcePath stringByAppendingPathComponent:file];
+        // 创建 NSTask 对象
+        NSTask *mvTask = [[NSTask alloc] init];
+        // 设置要执行的命令（mv）
+        [mvTask setLaunchPath:@"/bin/cp"];
+        // 设置 mv 的参数
+        [mvTask setArguments:@[sourcefilePath, AppIcon_appiconset]];
+        // 启动任务
+        [mvTask launch];
+        [mvTask waitUntilExit];
 
+        // 获取任务的退出状态
+        int status = [mvTask terminationStatus];
+        if (status == 0) {
+            logBlock([NSString stringWithFormat:@"appicon %@ 复制成功", file]);
+        } else {
+            errorBlock([NSString stringWithFormat:@"appicon %@ 复制失败", file]);
+        }
+    }
+    successBlock(@"appicon复制到项目完成");
+}
+
+- (void)buildAppIconError:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
+    // Xcode 项目根目录
+    NSString *projectDirectory = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"ZCTemp"];
+    // 创建 NSTask 对象
+    NSTask *xcodebuildTask = [[NSTask alloc] init];
+    // 设置要执行的命令（actool）
+    [xcodebuildTask setLaunchPath:@"/usr/bin/xcrun"];
+    // 设置 xcodebuild 的参数
+    [xcodebuildTask setArguments:@[@"xcodebuild",
+                                   @"-project", [projectDirectory stringByAppendingPathComponent:@"ZCTemp.xcodeproj"],
+                                   @"-target", @"ZCTemp",  // 替换为你的目标名称
+                                   @"-configuration", @"Release",  // 或者使用 "Debug"
+                                   @"-sdk", @"iphonesimulator",  // 或者使用 "iphonesimulator" 等
+                                   @"build"]];
+    // 启动任务
+    [xcodebuildTask launch];
+    [xcodebuildTask waitUntilExit];
+    // 获取任务的退出状态
+    int xcodebuildTerminationStatus = [xcodebuildTask terminationStatus];
+    if (xcodebuildTerminationStatus == 0) {
+        successBlock(@"appicon build 成功");
+    } else {
+        errorBlock(@"appicon build 失败");
+    }
+}
+
+- (void)moveAssetsToPath:(NSString *)targetPath error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
+    // Xcode 项目根目录
+    NSString *ReleasePath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"ZCTemp/build/Release-iphonesimulator"];
+    NSArray *ReleaseContents = [manager contentsOfDirectoryAtPath:ReleasePath error:nil];
+    __block NSString *appPath;
+    [ReleaseContents enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString *file = (NSString *)obj;
+        if ([[[file pathExtension] lowercaseString] isEqualToString:@"app"]) {
+            appPath = [ReleasePath stringByAppendingPathComponent:file];
+            *stop = YES;
+        }
+    }];
+    NSString *assetsCarPath = [appPath stringByAppendingPathComponent:@"Assets.car"];
+    if ([manager fileExistsAtPath:assetsCarPath]) {
+        // 创建 NSTask 对象
+        NSTask *mvTask = [[NSTask alloc] init];
+        // 设置要执行的命令（mv）
+        [mvTask setLaunchPath:@"/bin/mv"];
+        // 设置 mv 的参数
+        [mvTask setArguments:@[assetsCarPath, targetPath]];
+        // 启动任务
+        [mvTask launch];
+        [mvTask waitUntilExit];
+
+        // 获取任务的退出状态
+        int status = [mvTask terminationStatus];
+        if (status == 0) {
+            successBlock(@"Assets 移动 成功");
+        } else {
+            errorBlock(@"Assets 移动 失败");
+        }
+    } else {
+        errorBlock(@"Assets.car文件不存在");
+    }
+    
+    
+}
 
 
 @end

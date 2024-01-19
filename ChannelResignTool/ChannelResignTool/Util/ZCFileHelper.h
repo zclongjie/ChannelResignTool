@@ -11,6 +11,23 @@ NS_ASSUME_NONNULL_BEGIN
 
 #define CHANNELRESIGNTOOL_PATH [NSHomeDirectory() stringByAppendingPathComponent:[[[NSBundle mainBundle] infoDictionary] objectForKey:(NSString *)kCFBundleExecutableKey]]
 
+//typedef NS_ENUM(NSInteger, FileHelperBlockType)
+//{
+//    FileHelperBlockType_Unzip = 0,
+//    BlockType_Entitlements,
+//    BlockType_InfoPlist,
+//    BlockType_EmbeddedProvision,
+//    BlockType_DoCodesign,
+//    BlockType_ZipPackage,
+//    BlockType_PlatformEditFiles,
+//    BlockType_PlatformShow,
+//    BlockType_PlatformAllEnd
+//};
+
+typedef void(^FileHelperSuccessBlock)(id message);
+typedef void(^FileHelperErrorBlock)(NSString *errorString);
+typedef void(^FileHelperLogBlock)(NSString *logString);
+
 
 @interface ZCFileHelper : NSObject
 
@@ -36,7 +53,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)zip:(NSString *)sourcepath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
 
 ///生成AppIcon
-- (void)getAppIcon:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
+- (void)getAppIcon:(NSString *)sourcePath toPath:(NSString *)targetPath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock;
 
 @end
 
