@@ -10,6 +10,8 @@
 #import "ZCRunLoop.h"
 #import "ZCManuaQueue.h"
 #import "ZCAppIconModel.h"
+#import "ZCPlatformModel.h"
+#import "NSImage+ZCUtil.h"
 
 static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisioning Profiles";
 
@@ -36,25 +38,32 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     return self;
 }
 
+- (NSMutableArray *)platformArray {
+    if (!_platformArray) {
+        _platformArray = [NSMutableArray array];
+    }
+    return _platformArray;
+}
+
 - (void)appSpace {
     
-    NSString *DownSdk = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"DownSdk"];
-    NSString *ChannelData = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"ChannelData"];
-    NSString *PlatformUnzip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformUnzip"];
+    NSString *PlatformSDKDownloadZip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKDownloadZip"];
+    NSString *PlatformSDKJson = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKJson"];
+    NSString *PlatformSDKUnzip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKUnzip"];
     NSString *GameUnzip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"GameUnzip"];
     //创建新目录
-    if (![manager fileExistsAtPath:DownSdk]) {
-        [manager createDirectoryAtPath:DownSdk withIntermediateDirectories:YES attributes:nil error:nil];
+    if (![manager fileExistsAtPath:PlatformSDKDownloadZip]) {
+        [manager createDirectoryAtPath:PlatformSDKDownloadZip withIntermediateDirectories:YES attributes:nil error:nil];
     }
-    if (![manager fileExistsAtPath:ChannelData]) {
-        [manager createDirectoryAtPath:ChannelData withIntermediateDirectories:YES attributes:nil error:nil];
+    if (![manager fileExistsAtPath:PlatformSDKJson]) {
+        [manager createDirectoryAtPath:PlatformSDKJson withIntermediateDirectories:YES attributes:nil error:nil];
     }
-    if (![manager fileExistsAtPath:PlatformUnzip]) {
-        [manager createDirectoryAtPath:PlatformUnzip withIntermediateDirectories:YES attributes:nil error:nil];
+    if (![manager fileExistsAtPath:PlatformSDKUnzip]) {
+        [manager createDirectoryAtPath:PlatformSDKUnzip withIntermediateDirectories:YES attributes:nil error:nil];
     } else {
-        NSArray *contents = [self->manager contentsOfDirectoryAtPath:PlatformUnzip error:nil];
+        NSArray *contents = [self->manager contentsOfDirectoryAtPath:PlatformSDKUnzip error:nil];
         for (NSString *file in contents) {
-            NSString *filePath = [PlatformUnzip stringByAppendingPathComponent:file];
+            NSString *filePath = [PlatformSDKUnzip stringByAppendingPathComponent:file];
             [manager removeItemAtPath:filePath error:nil];
         }
     }
@@ -67,6 +76,47 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
             [manager removeItemAtPath:filePath error:nil];
         }
     }
+    
+
+#warning PlatformSDKJson 这里更新全部渠道json文件
+    
+#warning PlatformSDKConfig 这里执行渠道配置下载
+    ZCPlatformModel *model = [[ZCPlatformModel alloc] init];
+    model.platformName = @"朋克";
+    model.gameName = @"街机之三国战记";
+    model.bundleIdentifier = @"com.jjsgios.punk";
+    model.platformId = @"30241";
+    model.alias = @"pengke";
+    model.version = @"1.0.2";
+    model.isLan = @"0";
+    model.parameter = @{
+        @"package": @"com.jjsgios.punk",
+        @"appID": @"11654",
+        @"appKey": @"a7832bbb02c086a061c75b8cfcaec4e7",
+        @"clientID": @"11597",
+        @"clientKey": @"ad619c4b10c8b23a300968ff3ca9b311"
+    };
+    model.isSelect = NO;
+    [self.platformArray addObject:model];
+    
+    ZCPlatformModel *model2 = [[ZCPlatformModel alloc] init];
+    model2.platformName = @"早游戏";
+    model2.gameName = @"街机之三国战记";
+    model2.bundleIdentifier = @"com.jjsgios.zaoyx";
+    model2.platformId = @"208";
+    model2.alias = @"zaoyouxi";
+    model2.version = @"13.0.2";
+    model2.isLan = @"0";
+    model2.parameter = @{
+        @"package": @"com.jjsgios.zaoyx",
+        @"appID": @"141132",
+        @"appKey": @"4d483faa7a65ef69a9f847300541f6c5",
+        @"clientID": @"21199",
+        @"clientKey": @"560dd236c91d04d67057dc86b68201d8"
+    };
+    model2.isSelect = NO;
+    [self.platformArray addObject:model2];
+    
     
 }
 
@@ -85,6 +135,41 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     
     return result.copy;
 }
+
+- (void)downloadPlatformSDKWithPlatformId:(NSString *)platformId log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
+#warning PlatformSDKDownloadZip 这里执行渠道sdk下载操作
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        successBlock([NSString stringWithFormat:@"渠道%@下载成功", platformId]);
+    });
+    
+//    // SVN 仓库地址和目标文件路径
+//    NSString *svnRepositoryURL = @"svn://svn.wan73.com/project/doc/SDK";
+//    NSString *PlatformSDKDownloadZip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKDownloadZip"];
+//
+//    // 创建 NSTask 对象
+//    NSTask *svnTask = [[NSTask alloc] init];
+//
+//    // 设置要执行的命令（/usr/bin/svn）
+//    [svnTask setLaunchPath:[NSHomeDirectory() stringByAppendingPathComponent:@"svn"]];
+//
+//    // 设置 svn 的参数，包括 checkout 命令和仓库地址
+//    [svnTask setArguments:@[@"checkout", svnRepositoryURL, PlatformSDKDownloadZip]];
+//
+//    // 启动任务
+//    [svnTask launch];
+//    [svnTask waitUntilExit];
+//
+//    // 获取任务的退出状态
+//    int terminationStatus = [svnTask terminationStatus];
+//    NSLog(@"svn Task completed with exit code: %d", terminationStatus);
+//
+//    // 输出下载后的文件路径
+//    NSLog(@"下载后的文件路径: %@", PlatformSDKDownloadZip);
+//
+//    successBlock([NSString stringWithFormat:@"渠道%@下载成功", platformId]);
+}
+
 - (void)getCertificatesLog:(void (^)(NSString * _Nonnull))logBlock error:(void (^)(NSString * _Nonnull))errorBlock success:(void (^)(NSArray * _Nonnull))successBlock {
     NSTask *certTask = [[NSTask alloc] init];
     [certTask setLaunchPath:@"/usr/bin/security"];
@@ -250,12 +335,12 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     }];
 }
 
-- (void)getAppIcon:(NSString *)sourcePath toPath:(NSString *)targetPath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
+- (void)getAppIcon:(NSString *)sourcePath markerPath:(NSString *)markerPath toPath:(NSString *)targetPath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
     if (![manager fileExistsAtPath:sourcePath]) {
         errorBlock([NSString stringWithFormat:@"%@不存在", sourcePath]);
         return;
     }
-
+    
     NSString *AssetsPath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"Assets.xcassets"];
     NSString *AppIconPath = [AssetsPath stringByAppendingPathComponent:@"AppIcon.appiconset"];
     if (![self->manager fileExistsAtPath:AppIconPath]) {
@@ -263,7 +348,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     }
     
     //生成AppIcon.appiconset
-    [self createAppIcon:sourcePath toPath:AppIconPath log:^(NSString * _Nonnull logString) {
+    [self createAppIcon:sourcePath markerPath:markerPath toPath:AppIconPath log:^(NSString * _Nonnull logString) {
         logBlock(logString);
     } error:^(NSString * _Nonnull errorString) {
         errorBlock(errorString);
@@ -293,7 +378,21 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     
 }
 
-- (void)createAppIcon:(NSString *)sourcePath toPath:(NSString *)targetPath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
+- (void)createAppIcon:(NSString *)sourcePath markerPath:(NSString *)markerPath toPath:(NSString *)targetPath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
+    
+    NSString *outputImagePath = sourcePath;
+    if (markerPath) {
+        //合并角标
+        // 合并后的图片保存路径
+        outputImagePath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"mergedImage.png"];
+
+        NSImage *image1 = [[NSImage alloc] initWithContentsOfFile:sourcePath];
+        NSImage *image2 = [[NSImage alloc] initWithContentsOfFile:markerPath];
+
+        NSImage *mergedImage = [NSImage mergeImages:image1 withImage:image2];
+        [NSImage saveMergedImage:mergedImage toPath:outputImagePath];
+
+    }
     
     NSString *localData_plist = [[NSBundle mainBundle] pathForResource:@"ZCLocalData" ofType:@"plist"];
     NSMutableDictionary *data = [[NSMutableDictionary alloc] initWithContentsOfFile:localData_plist];
@@ -322,7 +421,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
 
         NSString *targetPath_png = [targetPath stringByAppendingPathComponent:iconImageItem.filename];
         // 设置命令行参数
-        NSArray *arguments = @[@"-z", arguments1, arguments1, sourcePath, @"--out", targetPath_png];
+        NSArray *arguments = @[@"-z", arguments1, arguments1, outputImagePath, @"--out", targetPath_png];
         [task setArguments:arguments];
         // 启动任务
         [task launch];
@@ -333,6 +432,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
             logBlock([NSString stringWithFormat:@"appicon %@ 成功", targetPath_png]);
         } else {
             errorBlock([NSString stringWithFormat:@"appicon %@ 失败", targetPath_png]);
+            break;
         }
     }
     
@@ -371,6 +471,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
             logBlock([NSString stringWithFormat:@"appicon %@ 复制成功", file]);
         } else {
             errorBlock([NSString stringWithFormat:@"appicon %@ 复制失败", file]);
+            break;
         }
     }
     successBlock(@"appicon复制到项目完成");

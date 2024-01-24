@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-#define CHANNELRESIGNTOOL_PATH [NSHomeDirectory() stringByAppendingPathComponent:[[[NSBundle mainBundle] infoDictionary] objectForKey:(NSString *)kCFBundleExecutableKey]]
+#define CHANNELRESIGNTOOL_PATH [[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] stringByAppendingPathComponent:[[[NSBundle mainBundle] infoDictionary] objectForKey:(NSString *)kCFBundleExecutableKey]]
 
 //typedef NS_ENUM(NSInteger, FileHelperBlockType)
 //{
@@ -53,7 +53,12 @@ typedef void(^FileHelperLogBlock)(NSString *logString);
 - (void)zip:(NSString *)sourcepath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
 
 ///生成AppIcon
-- (void)getAppIcon:(NSString *)sourcePath toPath:(NSString *)targetPath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock;
+- (void)getAppIcon:(NSString *)sourcePath markerPath:(NSString *)markerPath toPath:(NSString *)targetPath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock;
+
+///渠道sdk下载
+- (void)downloadPlatformSDKWithPlatformId:(NSString *)platformId log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock;
+
+@property (nonatomic, strong) NSMutableArray *platformArray;
 
 @end
 

@@ -32,9 +32,11 @@ typedef NS_ENUM(NSInteger, BlockType)
     BlockType_EmbeddedProvision,
     BlockType_DoCodesign,
     BlockType_ZipPackage,
+    BlockType_PlatformUnzipFiles,
     BlockType_PlatformEditFiles,
     BlockType_PlatformShow,
     BlockType_PlatformAppIcon,
+    BlockType_PlatformSDKDownload,
     BlockType_PlatformAllEnd
 };
 

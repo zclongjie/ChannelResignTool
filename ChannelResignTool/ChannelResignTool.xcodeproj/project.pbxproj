@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A80266762B5F95CA00A34D3A /* NSImage+ZCUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = A80266752B5F95CA00A34D3A /* NSImage+ZCUtil.m */; };
 		A8629D392B367360008AD376 /* ZCDateFormatterUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D382B367360008AD376 /* ZCDateFormatterUtil.m */; };
 		A8629D3D2B36A8AA008AD376 /* ZCAppPackageHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D3C2B36A8AA008AD376 /* ZCAppPackageHandler.m */; };
 		A8629D402B36BA76008AD376 /* ZCRunLoop.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D3F2B36BA76008AD376 /* ZCRunLoop.m */; };
@@ -30,6 +31,8 @@
 
 /* Begin PBXFileReference section */
 		306058E42C335E3CFB25C154 /* libPods-ChannelResignTool.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ChannelResignTool.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A80266742B5F95CA00A34D3A /* NSImage+ZCUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSImage+ZCUtil.h"; sourceTree = "<group>"; };
+		A80266752B5F95CA00A34D3A /* NSImage+ZCUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSImage+ZCUtil.m"; sourceTree = "<group>"; };
 		A8629D372B367360008AD376 /* ZCDateFormatterUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCDateFormatterUtil.h; sourceTree = "<group>"; };
 		A8629D382B367360008AD376 /* ZCDateFormatterUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCDateFormatterUtil.m; sourceTree = "<group>"; };
 		A8629D3B2B36A8AA008AD376 /* ZCAppPackageHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCAppPackageHandler.h; sourceTree = "<group>"; };
@@ -156,6 +159,8 @@
 				A8629D422B36E137008AD376 /* ZCManuaQueue.m */,
 				A8629D4B2B3A86B1008AD376 /* ZCDataUtil.h */,
 				A8629D4C2B3A86B1008AD376 /* ZCDataUtil.m */,
+				A80266742B5F95CA00A34D3A /* NSImage+ZCUtil.h */,
+				A80266752B5F95CA00A34D3A /* NSImage+ZCUtil.m */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -281,6 +286,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A80266762B5F95CA00A34D3A /* NSImage+ZCUtil.m in Sources */,
 				A8629D432B36E137008AD376 /* ZCManuaQueue.m in Sources */,
 				A87F65F82B357F9500CF380B /* ZCProvisioningProfile.m in Sources */,
 				A8629D4D2B3A86B1008AD376 /* ZCDataUtil.m in Sources */,

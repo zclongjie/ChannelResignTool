@@ -954,43 +954,53 @@
                                 </scroller>
                             </scrollView>
                             <button verticalHuggingPriority="750" tag="202" translatesAutoresizingMaskIntoConstraints="NO" id="wu9-nE-GcC">
-                                <rect key="frame" x="-51" y="272" width="88" height="32"/>
+                                <rect key="frame" x="-51" y="312" width="88" height="32"/>
                                 <buttonCell key="cell" type="push" title="清除日志" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="9dk-jr-DAX">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
-                                    <action selector="cleanButton:" target="XfG-lQ-9wD" id="VsE-xZ-olC"/>
+                                    <action selector="cleanButtonAction:" target="XfG-lQ-9wD" id="xf3-Vb-B5x"/>
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" tag="200" translatesAutoresizingMaskIntoConstraints="NO" id="Mr3-rs-6YJ">
-                                <rect key="frame" x="-51" y="232" width="88" height="32"/>
+                                <rect key="frame" x="-51" y="272" width="88" height="32"/>
                                 <buttonCell key="cell" type="push" title="清除渠道" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="Nbr-2Z-d8P">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
-                                    <action selector="cleanButton:" target="XfG-lQ-9wD" id="ygk-Yy-upa"/>
+                                    <action selector="cleanButtonAction:" target="XfG-lQ-9wD" id="di9-pP-Mwc"/>
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" tag="201" translatesAutoresizingMaskIntoConstraints="NO" id="bTQ-Nr-8pu">
-                                <rect key="frame" x="-51" y="192" width="88" height="32"/>
+                                <rect key="frame" x="-51" y="232" width="88" height="32"/>
                                 <buttonCell key="cell" type="push" title="清除全部" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="f7v-0m-oSP">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
-                                    <action selector="cleanButton:" target="XfG-lQ-9wD" id="F6M-55-WTi"/>
+                                    <action selector="cleanButtonAction:" target="XfG-lQ-9wD" id="yHN-8X-8em"/>
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="sJZ-Zz-bwa">
-                                <rect key="frame" x="-51" y="152" width="88" height="32"/>
-                                <buttonCell key="cell" type="push" title="开始签名" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="hh4-0S-gXT">
+                                <rect key="frame" x="-48" y="192" width="82" height="32"/>
+                                <buttonCell key="cell" type="push" title="IPA重签" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="hh4-0S-gXT">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
-                                    <action selector="resignButton:" target="XfG-lQ-9wD" id="QSD-Wx-WkF"/>
+                                    <action selector="ipaResignAction:" target="XfG-lQ-9wD" id="Way-qb-Nu0"/>
+                                </connections>
+                            </button>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="cM5-x1-OIH">
+                                <rect key="frame" x="-51" y="152" width="88" height="32"/>
+                                <buttonCell key="cell" type="push" title="渠道签名" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="2Wj-SD-mXW">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="platformSignAction:" target="XfG-lQ-9wD" id="ZUW-Cm-6LZ"/>
                                 </connections>
                             </button>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="IiK-4M-CBy">
@@ -1037,12 +1047,13 @@
                             <constraint firstItem="AQM-Lo-zp8" firstAttribute="trailing" secondItem="Ezz-Mb-UO7" secondAttribute="trailing" id="Awv-hP-QOr"/>
                             <constraint firstItem="igw-q9-56j" firstAttribute="trailing" secondItem="rSc-ZO-KFH" secondAttribute="leading" constant="-10" id="BBW-QT-JUf"/>
                             <constraint firstItem="k6k-fL-KNU" firstAttribute="leading" secondItem="bTV-QI-vMj" secondAttribute="leading" id="CWk-Cs-alL"/>
-                            <constraint firstItem="sJZ-Zz-bwa" firstAttribute="bottom" secondItem="bTV-QI-vMj" secondAttribute="bottom" id="F3r-8t-zXV"/>
                             <constraint firstItem="nc5-ce-c9r" firstAttribute="top" secondItem="owW-dH-peN" secondAttribute="bottom" constant="20" id="FuP-KI-l3O"/>
                             <constraint firstItem="bTQ-Nr-8pu" firstAttribute="centerX" secondItem="Mr3-rs-6YJ" secondAttribute="centerX" id="Jso-P6-dmt"/>
                             <constraint firstItem="rSc-ZO-KFH" firstAttribute="top" secondItem="QGi-vC-XUs" secondAttribute="bottom" constant="10" id="JtU-uM-19X"/>
                             <constraint firstItem="igw-q9-56j" firstAttribute="leading" secondItem="47I-aM-xde" secondAttribute="leading" id="Lbf-p1-rLB"/>
                             <constraint firstItem="k6k-fL-KNU" firstAttribute="centerY" secondItem="nc5-ce-c9r" secondAttribute="centerY" id="Mk1-0n-cld"/>
+                            <constraint firstItem="cM5-x1-OIH" firstAttribute="trailing" secondItem="AQM-Lo-zp8" secondAttribute="trailing" constant="-20" id="NDY-jM-gnH"/>
+                            <constraint firstItem="cM5-x1-OIH" firstAttribute="centerX" secondItem="sJZ-Zz-bwa" secondAttribute="centerX" id="NW1-Pf-zJD"/>
                             <constraint firstItem="rSc-ZO-KFH" firstAttribute="trailing" secondItem="QGi-vC-XUs" secondAttribute="trailing" id="NiF-X7-ZBB"/>
                             <constraint firstItem="bTV-QI-vMj" firstAttribute="centerY" secondItem="Jvg-lW-CyQ" secondAttribute="centerY" id="Od7-3f-2Of"/>
                             <constraint firstItem="Pwm-kW-d3K" firstAttribute="leading" secondItem="lCV-6n-ZWj" secondAttribute="leading" id="Ofi-5f-ILB"/>
@@ -1067,12 +1078,13 @@
                             <constraint firstItem="LHY-Zj-aZm" firstAttribute="centerY" secondItem="AQM-Lo-zp8" secondAttribute="centerY" id="YfC-zS-Bbh"/>
                             <constraint firstItem="IiK-4M-CBy" firstAttribute="leading" secondItem="kYr-xC-zEU" secondAttribute="leading" id="ZoT-Rm-2gy"/>
                             <constraint firstItem="nc5-ce-c9r" firstAttribute="trailing" secondItem="Jvg-lW-CyQ" secondAttribute="trailing" id="ZtH-Rm-EPV"/>
+                            <constraint firstItem="cM5-x1-OIH" firstAttribute="top" secondItem="sJZ-Zz-bwa" secondAttribute="bottom" constant="20" id="bCd-2n-sSN"/>
                             <constraint firstItem="sJZ-Zz-bwa" firstAttribute="top" secondItem="bTQ-Nr-8pu" secondAttribute="bottom" constant="20" id="cCo-5P-ulQ"/>
                             <constraint firstItem="Ezz-Mb-UO7" firstAttribute="trailing" secondItem="Pwm-kW-d3K" secondAttribute="trailing" id="dFv-d1-oj4"/>
                             <constraint firstItem="IiK-4M-CBy" firstAttribute="leading" secondItem="nc5-ce-c9r" secondAttribute="leading" id="dTN-Cr-0Oz"/>
-                            <constraint firstItem="sJZ-Zz-bwa" firstAttribute="trailing" secondItem="AQM-Lo-zp8" secondAttribute="trailing" constant="-20" id="da9-Sb-Ptu"/>
                             <constraint firstItem="Pwm-kW-d3K" firstAttribute="top" secondItem="lCV-6n-ZWj" secondAttribute="bottom" constant="10" id="eSh-u7-hht"/>
                             <constraint firstItem="sGV-9S-mtM" firstAttribute="trailing" secondItem="rSc-ZO-KFH" secondAttribute="trailing" id="eeB-dD-WK6"/>
+                            <constraint firstItem="cM5-x1-OIH" firstAttribute="bottom" secondItem="bTV-QI-vMj" secondAttribute="bottom" id="g4K-Lz-I7H"/>
                             <constraint firstItem="lCV-6n-ZWj" firstAttribute="leading" secondItem="b2h-MA-91h" secondAttribute="leading" id="gLQ-DG-BAJ"/>
                             <constraint firstItem="AQM-Lo-zp8" firstAttribute="top" secondItem="Ezz-Mb-UO7" secondAttribute="bottom" constant="10" id="h4v-I9-Wt0"/>
                             <constraint firstItem="owW-dH-peN" firstAttribute="centerY" secondItem="LHY-Zj-aZm" secondAttribute="centerY" id="hA2-lY-6PG"/>
@@ -1104,14 +1116,17 @@
                         <outlet property="browseLaunchImagePathButton" destination="sGV-9S-mtM" id="WHT-0E-drJ"/>
                         <outlet property="bundleIdField" destination="LHY-Zj-aZm" id="kFX-KL-QkB"/>
                         <outlet property="certificateComboBox" destination="lCV-6n-ZWj" id="k84-Tm-Ovh"/>
-                        <outlet property="cleanButton" destination="bTQ-Nr-8pu" id="lzD-7G-VBd"/>
+                        <outlet property="cleanAllButton" destination="bTQ-Nr-8pu" id="atY-L3-eCd"/>
+                        <outlet property="cleanLogButton" destination="wu9-nE-GcC" id="Kf8-To-cmt"/>
+                        <outlet property="cleanPlatformButton" destination="Mr3-rs-6YJ" id="YLV-CR-fcj"/>
                         <outlet property="ipaPathField" destination="47I-aM-xde" id="P3k-fG-HVy"/>
+                        <outlet property="ipaResignButton" destination="sJZ-Zz-bwa" id="nTc-3h-JAY"/>
                         <outlet property="ipaSavePathField" destination="b2h-MA-91h" id="WE8-ho-whH"/>
                         <outlet property="launchImagePathField" destination="4yL-Ar-G9c" id="dgk-v3-ZaF"/>
                         <outlet property="logField" destination="xIO-Oh-umY" id="luw-e9-MRp"/>
+                        <outlet property="platformSignButton" destination="cM5-x1-OIH" id="lIt-Cg-dwx"/>
                         <outlet property="platformTableView" destination="VrT-wW-wRC" id="Yqf-8i-BHX"/>
                         <outlet property="provisioningComboBox" destination="Pwm-kW-d3K" id="1zl-zZ-YA4"/>
-                        <outlet property="resignButton" destination="sJZ-Zz-bwa" id="OiY-6N-f4T"/>
                         <outlet property="showSelectedPlatformField" destination="0EI-pO-lUC" id="03f-dH-3cq"/>
                     </connections>
                 </viewController>
