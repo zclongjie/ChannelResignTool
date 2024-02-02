@@ -46,11 +46,16 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
 }
 
 - (void)appSpace {
-    
+    //渠道sdk下载目录
     NSString *PlatformSDKDownloadZip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKDownloadZip"];
+    //渠道配置json下载目录
     NSString *PlatformSDKJson = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKJson"];
+    //渠道sdk解压目录
     NSString *PlatformSDKUnzip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKUnzip"];
-    NSString *GameUnzip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"GameUnzip"];
+    
+    //临时目录临时目录在出包完成后清除
+    NSString *GameTemp = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"GameTemp"];
+    
     //创建新目录
     if (![manager fileExistsAtPath:PlatformSDKDownloadZip]) {
         [manager createDirectoryAtPath:PlatformSDKDownloadZip withIntermediateDirectories:YES attributes:nil error:nil];
@@ -67,15 +72,20 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
             [manager removeItemAtPath:filePath error:nil];
         }
     }
-    if (![manager fileExistsAtPath:GameUnzip]) {
-        [manager createDirectoryAtPath:GameUnzip withIntermediateDirectories:YES attributes:nil error:nil];
+    if (![manager fileExistsAtPath:GameTemp]) {
+        [manager createDirectoryAtPath:GameTemp withIntermediateDirectories:YES attributes:nil error:nil];
     } else {
-        NSArray *contents = [self->manager contentsOfDirectoryAtPath:GameUnzip error:nil];
+        NSArray *contents = [self->manager contentsOfDirectoryAtPath:GameTemp error:nil];
         for (NSString *file in contents) {
-            NSString *filePath = [GameUnzip stringByAppendingPathComponent:file];
+            NSString *filePath = [GameTemp stringByAppendingPathComponent:file];
             [manager removeItemAtPath:filePath error:nil];
         }
     }
+    
+    self.PlatformSDKDownloadZip = PlatformSDKDownloadZip;
+    self.PlatformSDKJson = PlatformSDKJson;
+    self.PlatformSDKUnzip = PlatformSDKUnzip;
+    self.GameTemp = GameTemp;
     
 
 #warning PlatformSDKJson 这里更新全部渠道json文件
@@ -341,7 +351,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
         return;
     }
     
-    NSString *AssetsPath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"Assets.xcassets"];
+    NSString *AssetsPath = [self.GameTemp stringByAppendingPathComponent:@"Assets.xcassets"];
     NSString *AppIconPath = [AssetsPath stringByAppendingPathComponent:@"AppIcon.appiconset"];
     if (![self->manager fileExistsAtPath:AppIconPath]) {
         [self->manager createDirectoryAtPath:AppIconPath withIntermediateDirectories:YES attributes:nil error:nil];
@@ -354,25 +364,31 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
         errorBlock(errorString);
     } success:^(id  _Nonnull message) {
         
-        //复制图片到临时项目
-        [self copyAppIcon:AppIconPath log:^(NSString * _Nonnull logString) {
-            logBlock(logString);
-        } error:^(NSString * _Nonnull errorString) {
+        //解压ZCTemp
+        [self unzipZCTempError:^(NSString * _Nonnull errorString) {
             errorBlock(errorString);
         } success:^(id  _Nonnull message) {
-            logBlock(message);
-            [self buildAppIconError:^(NSString * _Nonnull errorString) {
+            //复制图片到临时项目
+            [self copyAppIcon:AppIconPath log:^(NSString * _Nonnull logString) {
+                logBlock(logString);
+            } error:^(NSString * _Nonnull errorString) {
                 errorBlock(errorString);
             } success:^(id  _Nonnull message) {
                 logBlock(message);
-                //移动Assets到目标app
-                [self moveAssetsToPath:targetPath error:^(NSString * _Nonnull errorString) {
+                [self buildAppIconError:^(NSString * _Nonnull errorString) {
                     errorBlock(errorString);
                 } success:^(id  _Nonnull message) {
-                    successBlock(message);
+                    logBlock(message);
+                    //移动Assets到目标app
+                    [self moveAssetsToPath:targetPath error:^(NSString * _Nonnull errorString) {
+                        errorBlock(errorString);
+                    } success:^(id  _Nonnull message) {
+                        successBlock(message);
+                    }];
                 }];
             }];
         }];
+        
         
     }];
     
@@ -384,7 +400,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     if (markerPath) {
         //合并角标
         // 合并后的图片保存路径
-        outputImagePath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"mergedImage.png"];
+        outputImagePath = [self.GameTemp stringByAppendingPathComponent:@"mergedImage.png"];
 
         NSImage *image1 = [[NSImage alloc] initWithContentsOfFile:sourcePath];
         NSImage *image2 = [[NSImage alloc] initWithContentsOfFile:markerPath];
@@ -440,9 +456,32 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     
 }
 
-- (void)copyAppIcon:(NSString *)sourcePath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
+- (void)unzipZCTempError:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
+    //拿到ZCTemp.xcodeproj
     // Xcode 项目根目录
-    NSString *projectDirectory = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"ZCTemp"];
+    NSString *projectDirectory = [self.GameTemp stringByAppendingPathComponent:@"ZCTemp"];
+    if (![self->manager fileExistsAtPath:projectDirectory]) {
+        [self->manager createDirectoryAtPath:projectDirectory withIntermediateDirectories:YES attributes:nil error:nil];
+        
+        NSBundle *bundle = [NSBundle bundleWithPath:[[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"ZCTemp.bundle"]];
+        NSString *ZCTempZip = [bundle pathForResource:@"ZCTemp" ofType:@"zip"];
+        [self unzip:ZCTempZip toPath:self.GameTemp complete:^(BOOL result) {
+            if (result) {
+                successBlock(@"ZCTemp解压完成");
+            } else {
+                errorBlock(@"ZCTemp解压失败");
+            }
+        }];
+    } else {
+        successBlock(@"ZCTemp存在，无需解压");
+    }
+    
+}
+
+- (void)copyAppIcon:(NSString *)sourcePath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
+    
+    // Xcode 项目根目录
+    NSString *projectDirectory = [self.GameTemp stringByAppendingPathComponent:@"ZCTemp"];
     // Asset Catalog 文件夹相对路径
     NSString *assetsCatalogRelativePath = [projectDirectory stringByAppendingPathComponent:@"ZCTemp/Assets.xcassets"];
     //将AppIconPath移到ZCTemp->Assets.xcassets
@@ -478,8 +517,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
 }
 
 - (void)buildAppIconError:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
-    // Xcode 项目根目录
-    NSString *projectDirectory = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"ZCTemp"];
+    NSString *projectDirectory = [self.GameTemp stringByAppendingPathComponent:@"ZCTemp"];
     // 创建 NSTask 对象
     NSTask *xcodebuildTask = [[NSTask alloc] init];
     // 设置要执行的命令（actool）
@@ -505,7 +543,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
 
 - (void)moveAssetsToPath:(NSString *)targetPath error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
     // Xcode 项目根目录
-    NSString *ReleasePath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"ZCTemp/build/Release-iphonesimulator"];
+    NSString *ReleasePath = [self.GameTemp stringByAppendingPathComponent:@"ZCTemp/build/Release-iphonesimulator"];
     NSArray *ReleaseContents = [manager contentsOfDirectoryAtPath:ReleasePath error:nil];
     __block NSString *appPath;
     [ReleaseContents enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {

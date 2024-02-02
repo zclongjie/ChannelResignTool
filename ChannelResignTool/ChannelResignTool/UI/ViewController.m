@@ -507,7 +507,7 @@
     self.bundleIdField.stringValue = @"";
     self.logField.string = @"";
     
-    [manager removeItemAtPath:[CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"GameUnzip"] error:nil];
+    [manager removeItemAtPath:[ZCFileHelper sharedInstance].GameTemp error:nil];
     self.package = nil;
     
     NSButton *btn = [self.view viewWithTag:200];

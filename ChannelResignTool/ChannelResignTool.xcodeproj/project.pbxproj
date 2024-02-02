@@ -26,6 +26,7 @@
 		A87F65F82B357F9500CF380B /* ZCProvisioningProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */; };
 		A898F9F82B43E39B00942F69 /* ZCPlatformModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */; };
 		A898FA052B46DBC100942F69 /* ZCLocalData.plist in Resources */ = {isa = PBXBuildFile; fileRef = A898FA042B46DBC100942F69 /* ZCLocalData.plist */; };
+		A8A278282B6CD296005EB8C8 /* ZCTemp.Bundle in Resources */ = {isa = PBXBuildFile; fileRef = A8A278272B6CD296005EB8C8 /* ZCTemp.Bundle */; };
 		E271572E63ED81F94933C5B3 /* libPods-ChannelResignTool.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 306058E42C335E3CFB25C154 /* libPods-ChannelResignTool.a */; };
 /* End PBXBuildFile section */
 
@@ -66,6 +67,7 @@
 		A898F9F62B43E39B00942F69 /* ZCPlatformModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCPlatformModel.h; sourceTree = "<group>"; };
 		A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCPlatformModel.m; sourceTree = "<group>"; };
 		A898FA042B46DBC100942F69 /* ZCLocalData.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = ZCLocalData.plist; sourceTree = "<group>"; };
+		A8A278272B6CD296005EB8C8 /* ZCTemp.Bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = ZCTemp.Bundle; sourceTree = "<group>"; };
 		AAC1D8F0AFF9DB3AE2FC8C82 /* Pods-ChannelResignTool.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChannelResignTool.release.xcconfig"; path = "Target Support Files/Pods-ChannelResignTool/Pods-ChannelResignTool.release.xcconfig"; sourceTree = "<group>"; };
 		C73809A0133C20B527560E97 /* Pods-ChannelResignTool.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChannelResignTool.debug.xcconfig"; path = "Target Support Files/Pods-ChannelResignTool/Pods-ChannelResignTool.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -142,6 +144,7 @@
 				A87F65DA2B3147CA00CF380B /* Assets.xcassets */,
 				A87F65DF2B3147CA00CF380B /* main.m */,
 				A87F65E12B3147CA00CF380B /* ChannelResignTool.entitlements */,
+				A8A278272B6CD296005EB8C8 /* ZCTemp.Bundle */,
 			);
 			path = ChannelResignTool;
 			sourceTree = "<group>";
@@ -247,6 +250,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A8A278282B6CD296005EB8C8 /* ZCTemp.Bundle in Resources */,
 				A87F65DB2B3147CA00CF380B /* Assets.xcassets in Resources */,
 				A898FA052B46DBC100942F69 /* ZCLocalData.plist in Resources */,
 				A8629D482B39A7BE008AD376 /* PlatformRowView.xib in Resources */,

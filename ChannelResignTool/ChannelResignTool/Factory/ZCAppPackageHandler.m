@@ -28,9 +28,8 @@
         self.packagePath = path;
         
         //生成临时解压路径（此时目录还未创建）
-        NSString *unzipPath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"GameUnzip"];
         NSString *ipaPathName = [[self.packagePath lastPathComponent] stringByDeletingPathExtension];//从文件的最后一部分删除扩展名
-        self.workPath = [unzipPath stringByAppendingPathComponent:ipaPathName];
+        self.workPath = [[ZCFileHelper sharedInstance].GameTemp stringByAppendingPathComponent:ipaPathName];
         
     }
     return self;
@@ -400,7 +399,7 @@
         
         //添加渠道info.plist信息
         //1.获取渠道json文件（实际为网络下载）
-        NSString *platformJsonPath = [[[CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKJson"] stringByAppendingPathComponent:platformModel.platformId] stringByAppendingPathExtension:@"json"];
+        NSString *platformJsonPath = [[[ZCFileHelper sharedInstance].PlatformSDKJson stringByAppendingPathComponent:platformModel.platformId] stringByAppendingPathExtension:@"json"];
         NSMutableDictionary *platformJsonPlist = [[ZCDataUtil shareInstance] readJsonFile:platformJsonPath];
         //替换参数值 如{package}
         [self gamePlistInjectValue:platformJsonPlist platformModel:platformModel];
@@ -492,16 +491,15 @@
 ///渠道sdk解压
 - (void)platformSDKUnzipPlatformModel:(ZCPlatformModel *)platformModel launchImagePath:(NSString *)launchImagePath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     //1.获取渠道文件
-    NSString *platformZipPath = [[[CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKDownloadZip"] stringByAppendingPathComponent:[NSString stringWithFormat:@"%@_%@", platformModel.alias, platformModel.version]] stringByAppendingPathExtension:@"zip"];
-    NSString *PlatformSDKUnzipPath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKUnzip"];
+    NSString *platformZipPath = [[[ZCFileHelper sharedInstance].PlatformSDKDownloadZip stringByAppendingPathComponent:[NSString stringWithFormat:@"%@_%@", platformModel.alias, platformModel.version]] stringByAppendingPathExtension:@"zip"];
     //移除之前的解压路径
-    NSString *platformPath = [PlatformSDKUnzipPath stringByAppendingPathComponent:platformModel.alias];
+    NSString *platformPath = [[ZCFileHelper sharedInstance].PlatformSDKUnzip stringByAppendingPathComponent:platformModel.alias];
     [manager removeItemAtPath:platformPath error:nil];
     if (logBlock) {
         logBlock(BlockType_PlatformUnzipFiles, [NSString stringWithFormat:@"正在解压%@", platformModel.platformName]);
     }
     //2.解压
-    [[ZCFileHelper sharedInstance] unzip:platformZipPath toPath:PlatformSDKUnzipPath complete:^(BOOL result) {
+    [[ZCFileHelper sharedInstance] unzip:platformZipPath toPath:[ZCFileHelper sharedInstance].PlatformSDKUnzip complete:^(BOOL result) {
         if (result) {
             
             if (successBlock) {
@@ -520,8 +518,7 @@
         logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"复制渠道%@", platformModel.platformName]);
     }
     
-    NSString *PlatformSDKUnzipPath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKUnzip"];
-    NSString *platformPath = [PlatformSDKUnzipPath stringByAppendingPathComponent:platformModel.alias];
+    NSString *platformPath = [[ZCFileHelper sharedInstance].PlatformSDKUnzip stringByAppendingPathComponent:platformModel.alias];
     //渠道文件
     NSString *resourcePath = [platformPath stringByAppendingPathComponent:@"resource"];
     
@@ -529,7 +526,7 @@
     dispatch_group_t group = dispatch_group_create();
     
     //任务1
-    NSString *platformJsonPath = [[[CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKJson"] stringByAppendingPathComponent:platformModel.platformId] stringByAppendingPathExtension:@"json"];
+    NSString *platformJsonPath = [[[ZCFileHelper sharedInstance].PlatformSDKJson stringByAppendingPathComponent:platformModel.platformId] stringByAppendingPathExtension:@"json"];
     NSMutableDictionary *platformJsonPlist = [[ZCDataUtil shareInstance] readJsonFile:platformJsonPath];
     NSString *plat_plist = platformJsonPlist[@"plat_plist"];
     NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:resourcePath error:nil];
@@ -737,7 +734,7 @@
     }
     
     //任务6
-    NSString *AssetsPath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"Assets.xcassets"];
+    NSString *AssetsPath = [[ZCFileHelper sharedInstance].GameTemp stringByAppendingPathComponent:@"Assets.xcassets"];
     NSString *appIconSourcePath = [AssetsPath stringByAppendingPathComponent:@"AppIcon.appiconset"];
     NSArray *AppIconsPathContents = [self->manager contentsOfDirectoryAtPath:appIconSourcePath error:nil];
 
@@ -1099,8 +1096,7 @@
                     
                     //2.生成AppIcon
                     //获取角标
-                    NSString *PlatformSDKUnzipPath = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKUnzip"];
-                    NSString *platformPath = [PlatformSDKUnzipPath stringByAppendingPathComponent:platformModel.alias];
+                    NSString *platformPath = [[ZCFileHelper sharedInstance].PlatformSDKUnzip stringByAppendingPathComponent:platformModel.alias];
                     NSString *corner_Path = [platformPath stringByAppendingPathComponent:@"corner"];
                     NSString *marker_path = nil;
                     if ([self->manager fileExistsAtPath:corner_Path]) {

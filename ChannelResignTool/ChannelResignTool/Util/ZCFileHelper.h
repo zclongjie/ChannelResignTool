@@ -41,6 +41,10 @@ typedef void(^FileHelperLogBlock)(NSString *logString);
 
 ///app文件空间
 - (void)appSpace;
+@property (nonatomic, copy) NSString *PlatformSDKDownloadZip;
+@property (nonatomic, copy) NSString *PlatformSDKJson;
+@property (nonatomic, copy) NSString *PlatformSDKUnzip;
+@property (nonatomic, copy) NSString *GameTemp;
 
 ///复制文件
 - (void)copyFile:(NSString *)sourcePath toPath:(NSString *)targetPath complete:(void (^)(BOOL result))completeBlock;
