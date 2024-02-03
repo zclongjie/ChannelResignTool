@@ -12,6 +12,9 @@
 #import "ZCAppPackageHandler.h"
 #import "PlatformRowView.h"
 
+#import "ZCMainView.h"
+#import <Masonry/Masonry.h>
+
 @interface ViewController ()<NSComboBoxDataSource, NSComboBoxDelegate, NSTableViewDataSource, NSTableViewDelegate, PlatformRowViewDelegate>
 
 @property (weak) IBOutlet NSTextField *ipaPathField;
@@ -40,6 +43,8 @@
 
 @property (nonatomic, strong) ZCAppPackageHandler *package;
 
+@property (nonatomic, strong) ZCMainView *mainView;
+
 
 @end
 
@@ -61,6 +66,17 @@
     NSNib *nib = [[NSNib alloc] initWithNibNamed:@"PlatformRowView" bundle:nil];
     [self.platformTableView registerNib:nib forIdentifier:@"PlatformRowView"];
     
+    //app文件
+    [[ZCFileHelper sharedInstance] appSpace];
+    
+    
+//    ZCMainView *mainView = [[ZCMainView alloc] init];
+//    [self.view addSubview:mainView];
+//    [mainView mas_makeConstraints:^(MASConstraintMaker *make) {
+//        make.edges.equalTo(self.view);
+//    }];
+//    self.mainView = mainView;
+    
     NSArray *lackSupportUtility = [[ZCFileHelper sharedInstance] lackSupportUtility];
     if (lackSupportUtility.count == 0) {
         //获取本机证书
@@ -75,8 +91,7 @@
     
     [self.ipaPathField becomeFirstResponder];//让ipaPath为第一响应
     
-    //app文件
-    [[ZCFileHelper sharedInstance] appSpace];
+    
     
 }
 
@@ -409,6 +424,7 @@
         [self addLog:error withColor:[NSColor systemRedColor]];
     } success:^(NSArray * _Nonnull certificateNames) {
         self->certificatesArray = certificateNames;
+        self.mainView.certificatesArray = certificateNames;
         [self.certificateComboBox reloadData];
         [self.certificateComboBox selectItemAtIndex:0];//默认选择第一个
     }];
@@ -417,6 +433,7 @@
 #pragma mark -
 - (void)getProvisioningProfiles {
     provisioningArray = [[ZCFileHelper sharedInstance] getProvisioningProfiles];
+    self.mainView.provisioningArray = provisioningArray;
     [self.provisioningComboBox reloadData];
     [self.provisioningComboBox selectItemAtIndex:0];//默认选择第一个
 }
