@@ -6,7 +6,7 @@
 //
 
 #import "ZCMainView.h"
-#import <Masonry/Masonry.h>
+#import "Masonry.h"
 #import "NSView+ZCUtil.h"
 #import "ZCProvisioningProfile.h"
 #import "ZCDateFormatterUtil.h"

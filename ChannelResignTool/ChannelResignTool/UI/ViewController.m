@@ -13,7 +13,7 @@
 #import "PlatformRowView.h"
 
 #import "ZCMainView.h"
-#import <Masonry/Masonry.h>
+#import "Masonry.h"
 
 @interface ViewController ()<NSComboBoxDataSource, NSComboBoxDelegate, NSTableViewDataSource, NSTableViewDelegate, PlatformRowViewDelegate>
 
