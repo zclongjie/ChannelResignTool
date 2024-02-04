@@ -7,10 +7,11 @@
 
 #import <Foundation/Foundation.h>
 #import "ZCProvisioningProfile.h"
-#import "ZCPlatformModel.h"
+#import "ZCPlatformDataJsonModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
+static NSString *kQPJHPLISTFileName = @"QPJHPLIST.plist";
 static NSString *kPayloadDirName = @"Payload";
 static NSString *kInfoPlistFileName = @"Info.plist";
 static NSString *kCFBundleDisplayName = @"CFBundleDisplayName";
@@ -52,7 +53,8 @@ typedef void(^LogBlock)(BlockType type, NSString *logString);
 ///包的路径
 @property (nonatomic, copy) NSString *packagePath;
 ///包解压的路径
-@property (nonatomic, copy) NSString *workPath;
+@property (nonatomic, copy) NSString *temp_workPath;//先放临时路径，为下个渠道直接使用
+@property (nonatomic, copy) NSString *workPath;//从临时路径copy
 ///xxx.app的路径
 @property (nonatomic, copy) NSString *appPath;
 

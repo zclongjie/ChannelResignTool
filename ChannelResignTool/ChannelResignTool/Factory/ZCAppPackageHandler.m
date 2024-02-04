@@ -18,6 +18,8 @@
     NSString *entitlementsResult;//创建entitlementss任务的结果
     NSString *codesigningResult;//签名任务的结果
     NSString *verificationResult;//验证签名任务的结果
+    
+    NSInteger _gameId;
 }
 
 - (instancetype)initWithPackagePath:(NSString *)path {
@@ -29,7 +31,7 @@
         
         //生成临时解压路径（此时目录还未创建）
         NSString *ipaPathName = [[self.packagePath lastPathComponent] stringByDeletingPathExtension];//从文件的最后一部分删除扩展名
-        self.workPath = [[ZCFileHelper sharedInstance].GameTemp stringByAppendingPathComponent:ipaPathName];
+        self.temp_workPath = [[ZCFileHelper sharedInstance].GameTemp stringByAppendingPathComponent:[NSString stringWithFormat:@"temp_%@",ipaPathName]];
         
     }
     return self;
@@ -50,16 +52,17 @@
     if ([self.packagePath.pathExtension.lowercaseString isEqualToString:@"ipa"]) {
         
         //移除之前的解压路径
-        if ([manager fileExistsAtPath:self.workPath]) {
-            [manager removeItemAtPath:self.workPath error:nil];
+        if ([manager fileExistsAtPath:self.temp_workPath]) {
+            [manager removeItemAtPath:self.temp_workPath error:nil];
         }
         //创建新目录
-        [manager createDirectoryAtPath:self.workPath withIntermediateDirectories:YES attributes:nil error:nil];
+        [manager createDirectoryAtPath:self.temp_workPath withIntermediateDirectories:YES attributes:nil error:nil];
         
         //解压
-        [[ZCFileHelper sharedInstance] unzip:self.packagePath toPath:self.workPath complete:^(BOOL result) {
+        [[ZCFileHelper sharedInstance] unzip:self.packagePath toPath:self.temp_workPath complete:^(BOOL result) {
             if (result) {
-                [self setAppPath];
+                
+                [self setGameId];
                 if (successBlock) {
                     successBlock(BlockType_Unzip, @"文件解压完成");
                 }
@@ -71,17 +74,17 @@
     } else if ([self.packagePath.pathExtension.lowercaseString isEqualToString:@"app"]) {
         
         //移除之前的解压路径
-        if ([manager fileExistsAtPath:self.workPath]) {
-            [manager removeItemAtPath:self.workPath error:nil];
+        if ([manager fileExistsAtPath:self.temp_workPath]) {
+            [manager removeItemAtPath:self.temp_workPath error:nil];
         }
         //创建新目录
-        NSString *payloadPath = [self.workPath stringByAppendingPathComponent:kPayloadDirName];
-        [manager createDirectoryAtPath:payloadPath withIntermediateDirectories:YES attributes:nil error:nil];
-        NSString *targetPath = [payloadPath stringByAppendingPathComponent:self.packagePath.lastPathComponent];
+        NSString *temp_payloadPath = [self.temp_workPath stringByAppendingPathComponent:kPayloadDirName];
+        [manager createDirectoryAtPath:temp_payloadPath withIntermediateDirectories:YES attributes:nil error:nil];
+        NSString *targetPath = [temp_payloadPath stringByAppendingPathComponent:self.packagePath.lastPathComponent];
         
         [[ZCFileHelper sharedInstance] copyFile:self.packagePath toPath:targetPath complete:^(BOOL result) {
             if (result) {
-                [self setAppPath];
+                [self setGameId];
                 if (successBlock) {
                     successBlock(BlockType_Unzip, @"文件复制完成");
                 }
@@ -96,8 +99,37 @@
         }
     }
 }
+- (void)temp_workPathToWorkPath {
+        
+    if ([manager fileExistsAtPath:self.workPath]) {
+        [manager removeItemAtPath:self.workPath error:nil];
+    }
+    //创建新目录
+    self.workPath = [[ZCFileHelper sharedInstance].GameTemp stringByAppendingPathComponent:@(_gameId).stringValue];
+    [manager createDirectoryAtPath:self.workPath withIntermediateDirectories:YES attributes:nil error:nil];
+    [[ZCFileHelper sharedInstance] copyFile:self.temp_workPath toPath:self.workPath complete:^(BOOL result) {
+        if (result) {
+            [self setAppPath];
+        }
+    }];
+}
 
 #pragma mark - App Info
+- (void)setGameId {
+    NSString *temp_payloadPath = [self.temp_workPath stringByAppendingPathComponent:kPayloadDirName];
+    NSArray *temp_payloadContents = [manager contentsOfDirectoryAtPath:temp_payloadPath error:nil];
+    [temp_payloadContents enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString *file = (NSString *)obj;
+        if ([[[file pathExtension] lowercaseString] isEqualToString:@"app"]) {
+            NSString *tem_appPath = [[self.temp_workPath stringByAppendingPathComponent:kPayloadDirName] stringByAppendingPathComponent:file];
+            NSString *QPJHPLISTFilePath = [tem_appPath stringByAppendingPathComponent:kQPJHPLISTFileName];
+            NSMutableDictionary *plist = [[NSMutableDictionary alloc] initWithContentsOfFile:QPJHPLISTFilePath];
+            NSString *gameId = [plist objectForKey:@"game_id"];
+            _gameId = gameId.integerValue;
+            *stop = YES;
+        }
+    }];
+}
 - (void)setAppPath {
     NSString *payloadPath = [self.workPath stringByAppendingPathComponent:kPayloadDirName];
     NSArray *payloadContents = [manager contentsOfDirectoryAtPath:payloadPath error:nil];
@@ -206,7 +238,7 @@
                     }
                     
                     //5.压缩文件
-                    [self zipPackageToDirPath:targetPath PlatformModel:nil log:^(BlockType type, NSString * _Nonnull logString) {
+                    [self zipPackageToDirPath:targetPath platformModel:nil argument:nil log:^(BlockType type, NSString * _Nonnull logString) {
                         
                     } error:^(BlockType type, NSString * _Nonnull errorString) {
                         if (errorBlock) {
@@ -339,21 +371,29 @@
     }
 }
 
-- (void)platformeditInfoPlistWithPlatformModel:(ZCPlatformModel *)platformModel log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+- (void)platformeditInfoPlistWithArgument:(NSDictionary *)argument channelId:(NSInteger)channelId log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     if (logBlock) {
         logBlock(BlockType_InfoPlist, @"修改info.plist……");
     }
+    
+    NSString *ios_package = [argument objectForKey:@"ios_package"];
+    NSString *screen_type = [argument objectForKey:@"screen_type"];//2为竖屏
+    NSString *plat_game_name = [argument objectForKey:@"plat_game_name"];
         
     NSString *infoPlistPath = [self.appPath stringByAppendingPathComponent:kInfoPlistFileName];
     if ([manager fileExistsAtPath:infoPlistPath]) {
         NSMutableDictionary *plist = [[NSMutableDictionary alloc] initWithContentsOfFile:infoPlistPath];
-        [plist setObject:platformModel.bundleIdentifier forKey:kCFBundleIdentifier];
-        [plist setObject:platformModel.gameName forKey:kCFBundleDisplayName];
+        if (ios_package) {
+            [plist setObject:ios_package forKey:kCFBundleIdentifier];
+        }
+        if (plat_game_name) {
+            [plist setObject:plat_game_name forKey:kCFBundleDisplayName];
+        }
         
         [plist setObject:@"LaunchImage" forKey:kUILaunchImageFile];
         
-        if ([platformModel.isLan isEqualToString:@"0"]) {
+        if ([screen_type isEqualToString:@"2"]) {
             [plist setObject:@"LaunchPortrait" forKey:kUILaunchStoryboardName];
             [plist setObject:@"LaunchPortrait" forKey:kUILaunchStoryboardNameipad];
             [plist setObject:@"LaunchPortrait" forKey:kUILaunchStoryboardNameiphone];
@@ -399,10 +439,10 @@
         
         //添加渠道info.plist信息
         //1.获取渠道json文件（实际为网络下载）
-        NSString *platformJsonPath = [[[ZCFileHelper sharedInstance].PlatformSDKJson stringByAppendingPathComponent:platformModel.platformId] stringByAppendingPathExtension:@"json"];
+        NSString *platformJsonPath = [[[ZCFileHelper sharedInstance].PlatformSDKJson stringByAppendingPathComponent:@(channelId).stringValue] stringByAppendingPathExtension:@"json"];
         NSMutableDictionary *platformJsonPlist = [[ZCDataUtil shareInstance] readJsonFile:platformJsonPath];
         //替换参数值 如{package}
-        [self gamePlistInjectValue:platformJsonPlist platformModel:platformModel];
+        [self gamePlistInjectValue:platformJsonPlist platformArgument:argument];
         NSMutableDictionary *game_plist = platformJsonPlist[@"game_plist"];
         for (NSString *key in game_plist.allKeys) {
             id value = game_plist[key];
@@ -441,23 +481,26 @@
         }
     }
 }
-- (void)gamePlistInjectValue:(NSMutableDictionary *)platformJsonPlist platformModel:(ZCPlatformModel *)model {
+- (void)gamePlistInjectValue:(NSMutableDictionary *)platformJsonPlist platformArgument:(NSDictionary *)argument {
     NSMutableDictionary *game_plist = platformJsonPlist[@"game_plist"];
     NSMutableDictionary *replace = platformJsonPlist[@"replace"];
     for (NSString *replacekey in replace.allKeys) {
-        NSString *replacevalue = model.parameter[replace[replacekey]];
-        for (NSString *key in game_plist.allKeys) {
-            id value = game_plist[key];
-            if ([value isKindOfClass:[NSArray class]]) {
-                [self replaceArray:value replacekey:replacekey replacevalue:replacevalue];
-            } else if ([value isKindOfClass:[NSDictionary class]]) {
-                [self replaceDict:value replacekey:replacekey replacevalue:replacevalue];
-            } else if ([value isKindOfClass:[NSString class]]) {
-                if ([value containsString:replacekey]) {
-                    [game_plist setObject:[value stringByReplacingOccurrencesOfString:replacekey withString:replacevalue] forKey:key];
+        NSString *replacevalue = argument[replace[replacekey]];
+        if (replacevalue) {
+            for (NSString *key in game_plist.allKeys) {
+                id value = game_plist[key];
+                if ([value isKindOfClass:[NSArray class]]) {
+                    [self replaceArray:value replacekey:replacekey replacevalue:replacevalue];
+                } else if ([value isKindOfClass:[NSDictionary class]]) {
+                    [self replaceDict:value replacekey:replacekey replacevalue:replacevalue];
+                } else if ([value isKindOfClass:[NSString class]]) {
+                    if ([value containsString:replacekey]) {
+                        [game_plist setObject:[value stringByReplacingOccurrencesOfString:replacekey withString:replacevalue] forKey:key];
+                    }
                 }
             }
         }
+        
     }
 }
 - (void)replaceDict:(NSMutableDictionary *)dict replacekey:(NSString *)replacekey replacevalue:(NSString *)replacevalue {
@@ -489,33 +532,64 @@
 }
 
 ///渠道sdk解压
-- (void)platformSDKUnzipPlatformModel:(ZCPlatformModel *)platformModel launchImagePath:(NSString *)launchImagePath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
-    //1.获取渠道文件
-    NSString *platformZipPath = [[[ZCFileHelper sharedInstance].PlatformSDKDownloadZip stringByAppendingPathComponent:[NSString stringWithFormat:@"%@_%@", platformModel.alias, platformModel.version]] stringByAppendingPathExtension:@"zip"];
-    //移除之前的解压路径
-    NSString *platformPath = [[ZCFileHelper sharedInstance].PlatformSDKUnzip stringByAppendingPathComponent:platformModel.alias];
-    [manager removeItemAtPath:platformPath error:nil];
-    if (logBlock) {
-        logBlock(BlockType_PlatformUnzipFiles, [NSString stringWithFormat:@"正在解压%@", platformModel.platformName]);
-    }
-    //2.解压
-    [[ZCFileHelper sharedInstance] unzip:platformZipPath toPath:[ZCFileHelper sharedInstance].PlatformSDKUnzip complete:^(BOOL result) {
-        if (result) {
-            
-            if (successBlock) {
-                successBlock(BlockType_PlatformUnzipFiles, [NSString stringWithFormat:@"渠道%@解压完成", platformModel.platformName]);
+- (void)platformSDKUnzipPlatformModel:(ZCPlatformDataJsonModel *)platformModel launchImagePath:(NSString *)launchImagePath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+    //判断PlatformSDKUnzip是否存在，存在则不需要解压
+    NSString *PlatformSDKUnzip = [ZCFileHelper sharedInstance].PlatformSDKUnzip;
+    NSArray *PlatformSDKUnzipContents = [self->manager contentsOfDirectoryAtPath:PlatformSDKUnzip error:nil];
+    NSString *location_channel_unzip = nil;
+    if (PlatformSDKUnzipContents.count) {
+        for (NSString *file in PlatformSDKUnzipContents) {
+            if ([file hasPrefix:platformModel.alias]) {
+                location_channel_unzip = file;
+                break;
             }
-        } else {
-            errorBlock(BlockType_PlatformUnzipFiles, [NSString stringWithFormat:@"渠道%@解压失败", platformModel.platformName]);
         }
+    }
+    if (location_channel_unzip) {
+        if (successBlock) {
+            successBlock(BlockType_PlatformUnzipFiles, [NSString stringWithFormat:@"渠道%@无需解压", platformModel.name]);
+        }
+    } else {
+        //1.获取渠道文件
+        NSString *PlatformSDKDownloadZip = [ZCFileHelper sharedInstance].PlatformSDKDownloadZip;
+        NSArray *PlatformSDKDownloadZipContents = [self->manager contentsOfDirectoryAtPath:PlatformSDKDownloadZip error:nil];
+        NSString *location_channel_zip = nil;
+        if (PlatformSDKDownloadZipContents.count) {
+            for (NSString *file in PlatformSDKDownloadZipContents) {
+                if ([file hasPrefix:platformModel.alias]) {
+                    location_channel_zip = file;
+                    break;
+                }
+            }
+        }
+        if (location_channel_zip) {
+            if (logBlock) {
+                logBlock(BlockType_PlatformUnzipFiles, [NSString stringWithFormat:@"正在解压%@", platformModel.name]);
+            }
+            //2.解压
+            NSString *location_channel_zip_path = [PlatformSDKDownloadZip stringByAppendingPathComponent:location_channel_zip];
+            [[ZCFileHelper sharedInstance] unzip:location_channel_zip_path toPath:[ZCFileHelper sharedInstance].PlatformSDKUnzip complete:^(BOOL result) {
+                if (result) {
+                    
+                    if (successBlock) {
+                        successBlock(BlockType_PlatformUnzipFiles, [NSString stringWithFormat:@"渠道%@解压完成", platformModel.name]);
+                    }
+                } else {
+                    errorBlock(BlockType_PlatformUnzipFiles, [NSString stringWithFormat:@"渠道%@解压失败", platformModel.name]);
+                }
+                
+            }];
+        }
+    }
+    
+    
         
-    }];
 }
 ///渠道文件注入
-- (void)platformEditFilesPlatformModel:(ZCPlatformModel *)platformModel launchImagePath:(NSString *)launchImagePath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+- (void)platformEditFilesPlatformModel:(ZCPlatformDataJsonModel *)platformModel argument:(NSDictionary *)argument launchImagePath:(NSString *)launchImagePath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     if (logBlock) {
-        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"复制渠道%@", platformModel.platformName]);
+        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"复制渠道%@SDK", platformModel.name]);
     }
     
     NSString *platformPath = [[ZCFileHelper sharedInstance].PlatformSDKUnzip stringByAppendingPathComponent:platformModel.alias];
@@ -526,7 +600,7 @@
     dispatch_group_t group = dispatch_group_create();
     
     //任务1
-    NSString *platformJsonPath = [[[ZCFileHelper sharedInstance].PlatformSDKJson stringByAppendingPathComponent:platformModel.platformId] stringByAppendingPathExtension:@"json"];
+    NSString *platformJsonPath = [[[ZCFileHelper sharedInstance].PlatformSDKJson stringByAppendingPathComponent:@(platformModel.id_).stringValue] stringByAppendingPathExtension:@"json"];
     NSMutableDictionary *platformJsonPlist = [[ZCDataUtil shareInstance] readJsonFile:platformJsonPath];
     NSString *plat_plist = platformJsonPlist[@"plat_plist"];
     NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:resourcePath error:nil];
@@ -544,10 +618,9 @@
             NSLog(@"run task 1");
             
             NSMutableDictionary *plat_plistDict = [[NSMutableDictionary alloc] initWithContentsOfFile:plat_plistPath];
-            NSDictionary *parameter = platformModel.parameter;
-            for (NSString *key in parameter.allKeys) {
+            for (NSString *key in argument.allKeys) {
                 if ([plat_plistDict.allKeys containsObject:key]) {
-                    [plat_plistDict setObject:parameter[key] forKey:key];
+                    [plat_plistDict setObject:argument[key] forKey:key];
                 }
             }
             NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:plat_plistDict format:NSPropertyListXMLFormat_v1_0 options:kCFPropertyListImmutable error:nil];
@@ -584,7 +657,7 @@
                 NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:file];
                 [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
                     if (result) {
-                        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"resource", file]);
+//                        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"resource", file]);
                     } else {
                         errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", @"resource", file]);
                     }
@@ -613,7 +686,7 @@
                     NSString *targetfilePath = [[self.appPath stringByAppendingPathComponent:@"Frameworks"] stringByAppendingPathComponent:file];
                     [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
                         if (result) {
-                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"dylibs", file]);
+//                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"dylibs", file]);
                         } else {
                             errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", @"dylibs", file]);
                         }
@@ -632,11 +705,16 @@
     
     //任务4
     NSString *launchimage_ = @"launchimage-";
-    if ([platformModel.isLan isEqualToString:@"0"]) {
+    NSString *screen_type = [argument objectForKey:@"screen_type"];//2为竖屏
+    if (!screen_type) {
+        launchimage_ = @"launchimage-portrait";
+    }
+    if ([screen_type isEqualToString:@"2"]) {
         launchimage_ = @"launchimage-portrait";
     } else {
         launchimage_ = @"launchimage-landscape";
     }
+    
     NSString *launchimage_Path = [platformPath stringByAppendingPathComponent:launchimage_];
     if ([self->manager fileExistsAtPath:launchimage_Path]) {
         NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:launchimage_Path error:nil];
@@ -650,7 +728,7 @@
                     NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:file];
                     [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
                         if (result) {
-                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", launchimage_, file]);
+//                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", launchimage_, file]);
                         } else {
                             errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", launchimage_, file]);
                         }
@@ -682,7 +760,7 @@
                     NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:@"bg.png"];
                     [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
                         if (result) {
-                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", launchimage_, launchImagePath]);
+//                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", launchimage_, launchImagePath]);
                         } else {
                             errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", launchimage_, launchImagePath]);
                         }
@@ -719,7 +797,7 @@
             NSLog(@"run task 5");
             [[ZCFileHelper sharedInstance] copyFile:QPJHLightSDKPath toPath:targetQPJHLightSDKPath complete:^(BOOL result) {
                 if (result) {
-                    logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制成功", @"QPJHLightSDK"]);
+//                    logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制成功", @"QPJHLightSDK"]);
                 } else {
                     errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制失败", @"QPJHLightSDK"]);
                 }
@@ -777,7 +855,7 @@
                 NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:[newFile stringByAppendingPathExtension:@"png"]];
                 [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
                     if (result) {
-                        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制成功", newFile]);
+//                        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制成功", newFile]);
                     } else {
                         errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制失败", newFile]);
                     }
@@ -984,12 +1062,17 @@
 }
 
 #pragma mark - ZipPackage
-- (void)zipPackageToDirPath:(NSString *)zipDirPath PlatformModel:(ZCPlatformModel *)platformModel log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+- (void)zipPackageToDirPath:(NSString *)zipDirPath platformModel:(ZCPlatformDataJsonModel *)platformModel argument:(NSDictionary *)argument log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
-    NSString *zipIpaName = self.bundleDisplayName;
-    if (platformModel) {
-        zipIpaName = [NSString stringWithFormat:@"%@_%@_%@", platformModel.gameName, platformModel.alias, [[ZCDateFormatterUtil sharedFormatter] nowForDateFormat:@"yyyyMMddHHmm"]];
+    NSString *zipIpaName = self.bundleDisplayName;//ipa重签
+    if (argument) {
+        NSString *plat_game_name = [argument objectForKey:@"plat_game_name"];
+        if (!plat_game_name) {
+            plat_game_name = zipIpaName;
+        }
+        zipIpaName = [NSString stringWithFormat:@"%ld%@_%@_%@", (long)_gameId, plat_game_name, platformModel.alias, [[ZCDateFormatterUtil sharedFormatter] nowForDateFormat:@"yyyyMMddHHmm"]];
     }
+
     NSString *zipIpaPath = [[zipDirPath stringByAppendingPathComponent:zipIpaName] stringByAppendingPathExtension:@"ipa"];
     
     if (logBlock) {
@@ -1052,16 +1135,22 @@
         // 3.创建一个数目为1的信号量，用于“卡”for循环，等上次循环结束在执行下一次的for循环
         dispatch_semaphore_t sema = dispatch_semaphore_create(0);
         
-        for (ZCPlatformModel *platformModel in platformModels) {
+        for (ZCPlatformDataJsonModel *platformModel in platformModels) {
             // 开始执行for循环，让信号量-1，这样下次操作须等信号量>=0才会继续,否则下次操作将永久停止
             
             printf("信号量等待中\n");
             if (logBlock) {
-                logBlock(BlockType_Unzip, [NSString stringWithFormat:@"%@%@开始打包", platformModel.platformName, platformModel.platformId]);
-                logBlock(BlockType_PlatformShow, platformModel.platformName);
+                logBlock(BlockType_Unzip, [NSString stringWithFormat:@"%@%ld开始打包", platformModel.name, (long)platformModel.id_]);
+                logBlock(BlockType_PlatformShow, platformModel.name);
             }
+            
+            //开始前清除之前的游戏解压路径
+            
+            //copy到workPath
+            [self temp_workPathToWorkPath];
+            
             //1.渠道sdk下载
-            [[ZCFileHelper sharedInstance] downloadPlatformSDKWithPlatformId:platformModel.platformId log:^(NSString * _Nonnull logString) {
+            [[ZCFileHelper sharedInstance] downloadPlatformSDKByGameId:self->_gameId ByPlatformModel:platformModel log:^(NSString * _Nonnull logString) {
                 if (logBlock) {
                     logBlock(BlockType_PlatformSDKDownload, logString);
                 }
@@ -1069,13 +1158,16 @@
                 if (errorBlock) {
                     errorBlock(BlockType_PlatformSDKDownload, errorString);
                 }
+                [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                 // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                 NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                 dispatch_semaphore_signal(sema);
             } success:^(id  _Nonnull message) {
                 if (successBlock) {
-                    successBlock(BlockType_PlatformSDKDownload, message);
+                    successBlock(BlockType_PlatformSDKDownload, [NSString stringWithFormat:@"渠道%@下载成功", platformModel.name]);
                 }
+                
+                NSDictionary *game_channel_argument = (NSDictionary *)message;
                 
                 //2.渠道sdk解压
                 [self platformSDKUnzipPlatformModel:platformModel launchImagePath:launchImagePath log:^(BlockType type, NSString * _Nonnull logString) {
@@ -1086,6 +1178,7 @@
                     if (errorBlock) {
                         errorBlock(BlockType_PlatformUnzipFiles, errorString);
                     }
+                    [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                     // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                     NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                     dispatch_semaphore_signal(sema);
@@ -1119,6 +1212,7 @@
                         if (errorBlock) {
                             errorBlock(BlockType_PlatformAppIcon, errorString);
                         }
+                        [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                         // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                         NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                         dispatch_semaphore_signal(sema);
@@ -1134,9 +1228,9 @@
                             }
                         } error:^(BlockType type, NSString * _Nonnull errorString) {
                             if (errorBlock) {
-                                errorBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
+                                errorBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
                             }
-                            [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                            [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                             // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                             NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                             dispatch_semaphore_signal(sema);
@@ -1146,15 +1240,15 @@
                             }
                             
                             //4.修改info.plist
-                            [self platformeditInfoPlistWithPlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
+                            [self platformeditInfoPlistWithArgument:game_channel_argument channelId:platformModel.id_ log:^(BlockType type, NSString * _Nonnull logString) {
                                 if (logBlock) {
                                     logBlock(BlockType_InfoPlist, logString);
                                 }
                             } error:^(BlockType type, NSString * _Nonnull errorString) {
                                 if (errorBlock) {
-                                    errorBlock(BlockType_InfoPlist, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
+                                    errorBlock(BlockType_InfoPlist, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
                                 }
-                                [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                                [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                                 // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                                 NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                                 dispatch_semaphore_signal(sema);
@@ -1164,15 +1258,15 @@
                                 }
                                 
                                 //5.渠道文件注入
-                                [self platformEditFilesPlatformModel:platformModel launchImagePath:launchImagePath log:^(BlockType type, NSString * _Nonnull logString) {
+                                [self platformEditFilesPlatformModel:platformModel argument:game_channel_argument launchImagePath:launchImagePath log:^(BlockType type, NSString * _Nonnull logString) {
                                     if (logBlock) {
                                         logBlock(BlockType_PlatformEditFiles, logString);
                                     }
                                 } error:^(BlockType type, NSString * _Nonnull errorString) {
                                     if (errorBlock) {
-                                        errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
+                                        errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
                                     }
-                                    [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                                    [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                                     // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                                     NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                                     dispatch_semaphore_signal(sema);
@@ -1188,9 +1282,9 @@
                                         }
                                     } error:^(BlockType type, NSString * _Nonnull errorString) {
                                         if (errorBlock) {
-                                            errorBlock(BlockType_EmbeddedProvision, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
+                                            errorBlock(BlockType_EmbeddedProvision, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
                                         }
-                                        [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                                        [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                                         // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                                         NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                                         dispatch_semaphore_signal(sema);
@@ -1206,9 +1300,9 @@
                                             }
                                         } error:^(BlockType type, NSString * _Nonnull errorString) {
                                             if (errorBlock) {
-                                                errorBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
+                                                errorBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
                                             }
-                                            [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                                            [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                                             // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                                             NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                                             dispatch_semaphore_signal(sema);
@@ -1218,23 +1312,23 @@
                                             }
                         
                                             //8.压缩文件
-                                            [self zipPackageToDirPath:targetPath PlatformModel:platformModel log:^(BlockType type, NSString * _Nonnull logString) {
+                                            [self zipPackageToDirPath:targetPath platformModel:platformModel argument:game_channel_argument log:^(BlockType type, NSString * _Nonnull logString) {
                                                 if (logBlock) {
                                                     logBlock(BlockType_ZipPackage, logString);
                                                 }
                                             } error:^(BlockType type, NSString * _Nonnull errorString) {
                                                 if (errorBlock) {
-                                                    errorBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@\n%@%@打包失败", errorString, platformModel.platformName, platformModel.platformId]);
+                                                    errorBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
                                                 }
-                                                [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.platformName, errorString]];
+                                                [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                                                 // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                                                 NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                                                 dispatch_semaphore_signal(sema);
                                             } success:^(BlockType type, id  _Nonnull message) {
                                                 if (successBlock) {
-                                                    successBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@\n%@%@打包成功", message, platformModel.platformName, platformModel.platformId]);
+                                                    successBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@\n%@%ld打包成功", message, platformModel.name, (long)platformModel.id_]);
                                                 }
-                                                [successPlatforms addObject:platformModel.platformName];
+                                                [successPlatforms addObject:platformModel.name];
                                                 // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                                                 NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                                                 dispatch_semaphore_signal(sema);

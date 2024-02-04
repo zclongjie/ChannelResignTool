@@ -6,10 +6,10 @@
 //
 
 #import <Foundation/Foundation.h>
-
+#import "ZCPlatformDataJsonModel.h"
 NS_ASSUME_NONNULL_BEGIN
 
-#define CHANNELRESIGNTOOL_PATH [[NSHomeDirectory() stringByAppendingPathComponent:@"Library"] stringByAppendingPathComponent:[[[NSBundle mainBundle] infoDictionary] objectForKey:(NSString *)kCFBundleExecutableKey]]
+
 
 //typedef NS_ENUM(NSInteger, FileHelperBlockType)
 //{
@@ -40,7 +40,7 @@ typedef void(^FileHelperLogBlock)(NSString *logString);
 - (NSArray *)getProvisioningProfiles;
 
 ///app文件空间
-- (void)appSpace;
+- (void)appSpaceError:(void (^)(NSString *error))errorBlock success:(void (^)(void))successBlock;
 @property (nonatomic, copy) NSString *PlatformSDKDownloadZip;
 @property (nonatomic, copy) NSString *PlatformSDKJson;
 @property (nonatomic, copy) NSString *PlatformSDKUnzip;
@@ -60,7 +60,7 @@ typedef void(^FileHelperLogBlock)(NSString *logString);
 - (void)getAppIcon:(NSString *)sourcePath markerPath:(NSString *)markerPath toPath:(NSString *)targetPath log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock;
 
 ///渠道sdk下载
-- (void)downloadPlatformSDKWithPlatformId:(NSString *)platformId log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock;
+- (void)downloadPlatformSDKByGameId:(NSInteger)gameId ByPlatformModel:(ZCPlatformDataJsonModel *)platformModel log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock;
 
 @property (nonatomic, strong) NSMutableArray *platformArray;
 

@@ -22,9 +22,9 @@
     // Drawing code here.
 }
 
-- (void)setModel:(ZCPlatformModel *)model {
+- (void)setModel:(ZCPlatformDataJsonModel *)model {
     _model = model;
-    self.platformButton.title = [NSString stringWithFormat:@"%@[%@]", model.platformName, model.platformId];
+    self.platformButton.title = [NSString stringWithFormat:@"%@[%ld]", model.name, (long)model.id_];
     self.platformButton.state = model.isSelect;
 }
 - (IBAction)platformButtonClick:(NSButton *)sender {

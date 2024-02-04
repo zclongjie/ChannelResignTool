@@ -28,15 +28,15 @@
 @property (weak) IBOutlet NSTextField *appNameField;
 @property (weak) IBOutlet NSTextField *ipaSavePathField;
 @property (weak) IBOutlet NSButton *browseIpaSavePathButton;
+@property (weak) IBOutlet NSButton *radioButton;
+@property (weak) IBOutlet NSButton *bundleIDButton;
 @property (weak) IBOutlet NSTextField *bundleIdField;
 @property (weak) IBOutlet NSButton *cleanLogButton;
 @property (weak) IBOutlet NSButton *cleanPlatformButton;
 @property (weak) IBOutlet NSButton *cleanAllButton;
 @property (weak) IBOutlet NSButton *ipaResignButton;
 @property (weak) IBOutlet NSButton *platformSignButton;
-
 @property (unsafe_unretained) IBOutlet NSTextView *logField;
-
 @property (weak) IBOutlet NSTableView *platformTableView;
 @property (unsafe_unretained) IBOutlet NSTextView *showSelectedPlatformField;
 
@@ -67,7 +67,13 @@
     [self.platformTableView registerNib:nib forIdentifier:@"PlatformRowView"];
     
     //app文件
-    [[ZCFileHelper sharedInstance] appSpace];
+    [[ZCFileHelper sharedInstance] appSpaceError:^(NSString * _Nonnull error) {
+        
+    } success:^{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.platformTableView reloadData];
+        });
+    }];
     
     
 //    ZCMainView *mainView = [[ZCMainView alloc] init];
@@ -188,7 +194,7 @@
     if (sender.tag == 200) {
 //        [self addLog:@"清除已选渠道" withColor:[NSColor labelColor]];
         [[[ZCFileHelper sharedInstance] platformArray] enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            ZCPlatformModel *model = (ZCPlatformModel *)obj;
+            ZCPlatformDataJsonModel *model = (ZCPlatformDataJsonModel *)obj;
             model.isSelect = NO;
         }];
         [self.platformTableView reloadData];
@@ -219,10 +225,10 @@
         [self addLog:[NSString stringWithFormat:@"请选择ipa文件生成目录"] withColor:[NSColor systemRedColor]];
         return;
     }
-    
+    [self addLog:@"-----------------------" withColor:[NSColor labelColor]];
     [self addLog:@"解压..." withColor:[NSColor systemGreenColor]];
     self.package = [[ZCAppPackageHandler alloc] initWithPackagePath:self.ipaPathField.stringValue];
-    [self addLog:[NSString stringWithFormat:@"文件解压到:%@", self.package.workPath] withColor:[NSColor systemGreenColor]];
+    [self addLog:[NSString stringWithFormat:@"文件解压到:%@", self.package.temp_workPath] withColor:[NSColor systemGreenColor]];
     [self disenableControls];
     
     [self.package unzipIpaLog:^(BlockType type, NSString * _Nonnull logString) {
@@ -259,17 +265,17 @@
         [self.package resignWithProvisioningProfile:provisioningProfile certificateName:[self->certificatesArray objectAtIndex:self.certificateComboBox.indexOfSelectedItem] bundleIdentifier:provisioningProfile.bundleIdentifier displayName:displayName targetPath:self.ipaSavePathField.stringValue log:^(BlockType type, NSString * _Nonnull logString) {
             [self addLog:logString withColor:[NSColor labelColor]];
         } error:^(BlockType type, NSString * _Nonnull errorString) {
-            [self enableControls];
             [self addLog:errorString withColor:[NSColor systemRedColor]];
         } success:^(BlockType type, id  _Nonnull message) {
-            [self enableControls];
             [self addLog:message withColor:[NSColor systemGreenColor]];
 
             if (type == BlockType_PlatformAllEnd) {
+                [self enableControls];
                 //打包完成移除解压文件
                 if (self.package.workPath) {
                     [self->manager removeItemAtPath:[self.package.workPath stringByDeletingLastPathComponent] error:nil];
                 }
+                [self addLog:@"-----------------------" withColor:[NSColor labelColor]];
             }
 
         }];
@@ -302,7 +308,7 @@
     
     NSMutableArray *selectPlatforArray = @[].mutableCopy;
     [[[ZCFileHelper sharedInstance] platformArray] enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        ZCPlatformModel *model = (ZCPlatformModel *)obj;
+        ZCPlatformDataJsonModel *model = (ZCPlatformDataJsonModel *)obj;
         if (model.isSelect) {
             [selectPlatforArray addObject:model];
         }
@@ -312,15 +318,15 @@
         return;
     }
     
+    [self disenableControls];
+    [self addLog:@"-----------------------" withColor:[NSColor labelColor]];
     NSString *launchImagePath = nil;
     if ([self->manager fileExistsAtPath:self.launchImagePathField.stringValue]) {
         launchImagePath = self.launchImagePathField.stringValue;
     }
-    
     [self addLog:@"解压..." withColor:[NSColor systemGreenColor]];
     self.package = [[ZCAppPackageHandler alloc] initWithPackagePath:self.ipaPathField.stringValue];
-    [self addLog:[NSString stringWithFormat:@"文件解压到:%@", self.package.workPath] withColor:[NSColor systemGreenColor]];
-    [self disenableControls];
+    [self addLog:[NSString stringWithFormat:@"文件解压到:%@", self.package.temp_workPath] withColor:[NSColor systemGreenColor]];
     
     [self.package unzipIpaLog:^(BlockType type, NSString * _Nonnull logString) {
         [self addLog:logString withColor:[NSColor labelColor]];
@@ -340,7 +346,6 @@
                 [self showResigningPlatform:[NSString stringWithFormat:@"正在打包：%@", logString]];
             }
         } error:^(BlockType type, NSString * _Nonnull errorString) {
-            [self enableControls];
             [self addLog:errorString withColor:[NSColor systemRedColor]];
         } success:^(BlockType type, id  _Nonnull message) {
             [self addLog:message withColor:[NSColor systemGreenColor]];
@@ -352,6 +357,7 @@
                 if (self.package.workPath) {
                     [self->manager removeItemAtPath:[self.package.workPath stringByDeletingLastPathComponent] error:nil];
                 }
+                [self addLog:@"-----------------------" withColor:[NSColor labelColor]];
             }
         }];
     }];
@@ -393,16 +399,16 @@
         rowView.identifier = @"PlatformRowView";
     }
     rowView.delegate = self;
-    ZCPlatformModel *model = [[ZCFileHelper sharedInstance] platformArray][row];
+    ZCPlatformDataJsonModel *model = [[ZCFileHelper sharedInstance] platformArray][row];
     rowView.model = model;
     return rowView;
 }
-- (void)platformRowViewButtonClick:(ZCPlatformModel *)selectModel {
+- (void)platformRowViewButtonClick:(ZCPlatformDataJsonModel *)selectModel {
     NSMutableArray *selectPlatformNameArray = @[].mutableCopy;
     [[[ZCFileHelper sharedInstance] platformArray] enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        ZCPlatformModel *model = (ZCPlatformModel *)obj;
+        ZCPlatformDataJsonModel *model = (ZCPlatformDataJsonModel *)obj;
         if (model.isSelect) {
-            [selectPlatformNameArray addObject:model.platformName];
+            [selectPlatformNameArray addObject:model.name];
         }
     }];
     [self showSelectPlatformView:selectPlatformNameArray];
@@ -480,17 +486,24 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.ipaPathField setEnabled:YES];
         [self.browseIpaPathButton setEnabled:YES];
+        [self.appIconPathField setEnabled:YES];
+        [self.browseAppIconPathButton setEnabled:YES];
+        [self.launchImagePathField setEnabled:YES];
+        [self.browseLaunchImagePathButton setEnabled:YES];
         [self.certificateComboBox setEnabled:YES];
         [self.provisioningComboBox setEnabled:YES];
         [self.appNameField setEnabled:YES];
         [self.ipaSavePathField setEnabled:YES];
         [self.browseIpaSavePathButton setEnabled:YES];
+        [self.radioButton setEnabled:YES];
+        [self.bundleIDButton setEnabled:YES];
         [self.bundleIdField setEnabled:YES];
         [self.cleanLogButton setEnabled:YES];
         [self.cleanPlatformButton setEnabled:YES];
         [self.cleanAllButton setEnabled:YES];
         [self.ipaResignButton setEnabled:YES];
         [self.platformSignButton setEnabled:YES];
+        [self.platformTableView setEnabled:YES];
     });
     
 }
@@ -499,17 +512,24 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.ipaPathField setEnabled:NO];
         [self.browseIpaPathButton setEnabled:NO];
+        [self.appIconPathField setEnabled:NO];
+        [self.browseAppIconPathButton setEnabled:NO];
+        [self.launchImagePathField setEnabled:NO];
+        [self.browseLaunchImagePathButton setEnabled:NO];
         [self.certificateComboBox setEnabled:NO];
         [self.provisioningComboBox setEnabled:NO];
         [self.appNameField setEnabled:NO];
         [self.ipaSavePathField setEnabled:NO];
         [self.browseIpaSavePathButton setEnabled:NO];
+        [self.radioButton setEnabled:NO];
+        [self.bundleIDButton setEnabled:NO];
         [self.bundleIdField setEnabled:NO];
         [self.cleanLogButton setEnabled:NO];
         [self.cleanPlatformButton setEnabled:NO];
         [self.cleanAllButton setEnabled:NO];
         [self.ipaResignButton setEnabled:NO];
         [self.platformSignButton setEnabled:NO];
+        [self.platformTableView setEnabled:NO];
     });
     
 }

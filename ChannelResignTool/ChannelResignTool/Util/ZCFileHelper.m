@@ -12,6 +12,10 @@
 #import "ZCAppIconModel.h"
 #import "ZCPlatformModel.h"
 #import "NSImage+ZCUtil.h"
+#import "ZCNetworkingViewModel.h"
+#import "ZCHttpConfig.h"
+#import "ZCPlatformDataJsonModel.h"
+#import "ZCDataUtil.h"
 
 static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisioning Profiles";
 
@@ -45,7 +49,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     return _platformArray;
 }
 
-- (void)appSpace {
+- (void)appSpaceError:(void (^)(NSString * _Nonnull))errorBlock success:(nonnull void (^)(void))successBlock {
     //渠道sdk下载目录
     NSString *PlatformSDKDownloadZip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKDownloadZip"];
     //渠道配置json下载目录
@@ -87,47 +91,18 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     self.PlatformSDKUnzip = PlatformSDKUnzip;
     self.GameTemp = GameTemp;
     
+    //获取所有渠道，展示列表
+    //下载data.json
+    [ZCNetworkingViewModel downloadWithDataConfigUrlSuccess:^(id  _Nonnull responseObject) {
+        //解析data.json
+        NSArray *array = [[ZCDataUtil shareInstance] readJsonFile:responseObject];
+        NSArray *dataJsonArray = [ZCPlatformDataJsonModel mj_objectArrayWithKeyValuesArray:array];
+        [self.platformArray addObjectsFromArray:dataJsonArray];
+        successBlock();
+    } failure:^(NSString * _Nonnull error) {
+        errorBlock(error);
+    }];
 
-#warning PlatformSDKJson 这里更新全部渠道json文件
-    
-#warning PlatformSDKConfig 这里执行渠道配置下载
-    ZCPlatformModel *model = [[ZCPlatformModel alloc] init];
-    model.platformName = @"朋克";
-    model.gameName = @"街机之三国战记";
-    model.bundleIdentifier = @"com.jjsgios.punk";
-    model.platformId = @"30241";
-    model.alias = @"pengke";
-    model.version = @"1.0.2";
-    model.isLan = @"0";
-    model.parameter = @{
-        @"package": @"com.jjsgios.punk",
-        @"appID": @"11654",
-        @"appKey": @"a7832bbb02c086a061c75b8cfcaec4e7",
-        @"clientID": @"11597",
-        @"clientKey": @"ad619c4b10c8b23a300968ff3ca9b311"
-    };
-    model.isSelect = NO;
-    [self.platformArray addObject:model];
-    
-    ZCPlatformModel *model2 = [[ZCPlatformModel alloc] init];
-    model2.platformName = @"早游戏";
-    model2.gameName = @"街机之三国战记";
-    model2.bundleIdentifier = @"com.jjsgios.zaoyx";
-    model2.platformId = @"208";
-    model2.alias = @"zaoyouxi";
-    model2.version = @"13.0.2";
-    model2.isLan = @"0";
-    model2.parameter = @{
-        @"package": @"com.jjsgios.zaoyx",
-        @"appID": @"141132",
-        @"appKey": @"4d483faa7a65ef69a9f847300541f6c5",
-        @"clientID": @"21199",
-        @"clientKey": @"560dd236c91d04d67057dc86b68201d8"
-    };
-    model2.isSelect = NO;
-    [self.platformArray addObject:model2];
-    
-    
 }
 
 - (NSArray *)lackSupportUtility {
@@ -146,38 +121,121 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     return result.copy;
 }
 
-- (void)downloadPlatformSDKWithPlatformId:(NSString *)platformId log:(FileHelperLogBlock)logBlock error:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
-#warning PlatformSDKDownloadZip 这里执行渠道sdk下载操作
-
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        successBlock([NSString stringWithFormat:@"渠道%@下载成功", platformId]);
+- (void)downloadPlatformSDKByGameId:(NSInteger)gameId ByPlatformModel:(nonnull ZCPlatformDataJsonModel *)platformModel log:(nonnull FileHelperLogBlock)logBlock error:(nonnull FileHelperErrorBlock)errorBlock success:(nonnull FileHelperSuccessBlock)successBlock {    
+    /*
+     1.获取渠道配置参数
+     2.下载渠道json文件
+     */
+    ZCPlatformDataJsonModel *currentModel = nil;
+    for (ZCPlatformDataJsonModel *model in self.platformArray) {
+        if (model.id_ == platformModel.id_) {
+            currentModel = model;
+            break;
+        }
+    }
+    if (currentModel == nil) {
+        NSLog(@"渠道不存在");
+        errorBlock(@"渠道不存在");
+        return;
+    }
+    
+    NSString *channel_version = currentModel.down_info.allKeys.firstObject;
+    
+    //已下载渠道版本
+    NSString *location_channel_version = nil;
+    //1.获取渠道文件
+    NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:self.PlatformSDKDownloadZip error:nil];
+    NSString *location_channel_zip = nil;
+    if (sourceContents.count) {
+        for (NSString *file in sourceContents) {
+            if ([file hasPrefix:platformModel.alias]) {
+                NSString *fileName = file.lastPathComponent.stringByDeletingPathExtension;
+                location_channel_version = [fileName substringWithRange:NSMakeRange(platformModel.alias.length+1, fileName.length - platformModel.alias.length-1)];
+                location_channel_version = [location_channel_version stringByReplacingOccurrencesOfString:@"_" withString:@"."];
+                location_channel_zip = file;
+                break;
+            }
+        }
+    }
+    
+    BOOL mustDownload = NO;
+    if (location_channel_version) {
+        //版本号比较
+        if ([[ZCDataUtil shareInstance] compareVersion2:location_channel_version to:channel_version]) {
+            //表示本地版本号小于线上版本号
+            //先删除本地，再下载
+            [self->manager removeItemAtPath:location_channel_zip error:nil];
+            mustDownload = YES;
+        }
+    } else {
+        //本地无，直接下载
+        mustDownload = YES;
+    }
+    
+    __block NSDictionary *game_channel_argument = nil;
+    // 创建队列组，可以使两个网络请求异步执行，执行完之后再进行操作
+    dispatch_group_t group = dispatch_group_create();
+    //任务1 data.json
+    dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        // 创建信号量
+        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+        [ZCNetworkingViewModel getGameConfigByGameId:gameId ByChannelId:platformModel.id_ success:^(id  _Nonnull responseObject) {
+            if (responseObject != nil && [responseObject isKindOfClass:[NSDictionary class]]) {
+                game_channel_argument = (NSDictionary *)responseObject;
+            }
+            // 无论请求成功或失败都发送信号量(+1)
+            dispatch_semaphore_signal(semaphore);
+        } failure:^(NSString * _Nonnull error) {
+            // 无论请求成功或失败都发送信号量(+1)
+            dispatch_semaphore_signal(semaphore);
+        }];
+        // 在请求成功之前等待信号量(-1)
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
     });
     
-//    // SVN 仓库地址和目标文件路径
-//    NSString *svnRepositoryURL = @"svn://svn.wan73.com/project/doc/SDK";
-//    NSString *PlatformSDKDownloadZip = [CHANNELRESIGNTOOL_PATH stringByAppendingPathComponent:@"PlatformSDKDownloadZip"];
-//
-//    // 创建 NSTask 对象
-//    NSTask *svnTask = [[NSTask alloc] init];
-//
-//    // 设置要执行的命令（/usr/bin/svn）
-//    [svnTask setLaunchPath:[NSHomeDirectory() stringByAppendingPathComponent:@"svn"]];
-//
-//    // 设置 svn 的参数，包括 checkout 命令和仓库地址
-//    [svnTask setArguments:@[@"checkout", svnRepositoryURL, PlatformSDKDownloadZip]];
-//
-//    // 启动任务
-//    [svnTask launch];
-//    [svnTask waitUntilExit];
-//
-//    // 获取任务的退出状态
-//    int terminationStatus = [svnTask terminationStatus];
-//    NSLog(@"svn Task completed with exit code: %d", terminationStatus);
-//
-//    // 输出下载后的文件路径
-//    NSLog(@"下载后的文件路径: %@", PlatformSDKDownloadZip);
-//
-//    successBlock([NSString stringWithFormat:@"渠道%@下载成功", platformId]);
+    //任务2 208.json
+    dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        // 创建信号量
+        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+        [ZCNetworkingViewModel downloadWithChannelConfigUrl:platformModel.id_ success:^(id  _Nonnull responseObject) {
+            // 无论请求成功或失败都发送信号量(+1)
+            dispatch_semaphore_signal(semaphore);
+        } failure:^(NSString * _Nonnull error) {
+            // 无论请求成功或失败都发送信号量(+1)
+            dispatch_semaphore_signal(semaphore);
+        }];
+        // 在请求成功之前等待信号量(-1)
+        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+    });
+    
+    if (mustDownload) {
+        //任务3 zaoyouxi.zip
+        dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            // 创建信号量
+            dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+            [ZCNetworkingViewModel downloadWithChannelSDKUrl:platformModel.alias channelVersion:channel_version success:^(id  _Nonnull responseObject) {
+                // 无论请求成功或失败都发送信号量(+1)
+                dispatch_semaphore_signal(semaphore);
+            } failure:^(NSString * _Nonnull error) {
+                // 无论请求成功或失败都发送信号量(+1)
+                dispatch_semaphore_signal(semaphore);
+            }];
+            // 在请求成功之前等待信号量(-1)
+            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+        });
+    }
+    
+    // 请求完成之后
+    dispatch_group_notify(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (game_channel_argument) {
+                successBlock(game_channel_argument);
+            } else {
+                errorBlock(@"参数未配置");
+            }
+        });
+    });
+
 }
 
 - (void)getCertificatesLog:(void (^)(NSString * _Nonnull))logBlock error:(void (^)(NSString * _Nonnull))errorBlock success:(void (^)(NSArray * _Nonnull))successBlock {
@@ -445,7 +503,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
         // 获取任务的退出状态
         int status = [task terminationStatus];
         if (status == 0) {
-            logBlock([NSString stringWithFormat:@"appicon %@ 成功", targetPath_png]);
+//            logBlock([NSString stringWithFormat:@"appicon %@ 成功", targetPath_png]);
         } else {
             errorBlock([NSString stringWithFormat:@"appicon %@ 失败", targetPath_png]);
             break;
@@ -507,7 +565,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
         // 获取任务的退出状态
         int status = [mvTask terminationStatus];
         if (status == 0) {
-            logBlock([NSString stringWithFormat:@"appicon %@ 复制成功", file]);
+//            logBlock([NSString stringWithFormat:@"appicon %@ 复制成功", file]);
         } else {
             errorBlock([NSString stringWithFormat:@"appicon %@ 复制失败", file]);
             break;

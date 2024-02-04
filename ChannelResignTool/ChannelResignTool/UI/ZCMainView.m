@@ -385,17 +385,17 @@
         rowView.identifier = @"PlatformRowView";
     }
     rowView.delegate = self;
-    ZCPlatformModel *model = [[ZCFileHelper sharedInstance] platformArray][row];
+    ZCPlatformDataJsonModel *model = [[ZCFileHelper sharedInstance] platformArray][row];
     rowView.model = model;
     return rowView;
 }
 #pragma mark - PlatformRowViewDelegate
-- (void)platformRowViewButtonClick:(ZCPlatformModel *)selectModel {
+- (void)platformRowViewButtonClick:(ZCPlatformDataJsonModel *)selectModel {
     NSMutableArray *selectPlatformNameArray = @[].mutableCopy;
     [[[ZCFileHelper sharedInstance] platformArray] enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        ZCPlatformModel *model = (ZCPlatformModel *)obj;
+        ZCPlatformDataJsonModel *model = (ZCPlatformDataJsonModel *)obj;
         if (model.isSelect) {
-            [selectPlatformNameArray addObject:model.platformName];
+            [selectPlatformNameArray addObject:model.name];
         }
     }];
     [self showSelectPlatformView:selectPlatformNameArray];

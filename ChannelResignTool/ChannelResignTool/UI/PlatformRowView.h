@@ -6,19 +6,19 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "ZCPlatformModel.h"
+#import "ZCPlatformDataJsonModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
 @protocol PlatformRowViewDelegate <NSObject>
 
-- (void)platformRowViewButtonClick:(ZCPlatformModel *)selectModel;
+- (void)platformRowViewButtonClick:(ZCPlatformDataJsonModel *)selectModel;
 
 @end
 
 @interface PlatformRowView : NSTableRowView
 
-@property (nonatomic, strong) ZCPlatformModel *model;
+@property (nonatomic, strong) ZCPlatformDataJsonModel *model;
 @property (nonatomic, weak) id<PlatformRowViewDelegate> delegate;
 
 @end

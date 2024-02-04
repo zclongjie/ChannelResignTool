@@ -29,6 +29,10 @@
 		A8A278282B6CD296005EB8C8 /* ZCTemp.Bundle in Resources */ = {isa = PBXBuildFile; fileRef = A8A278272B6CD296005EB8C8 /* ZCTemp.Bundle */; };
 		A8A2782C2B6DD302005EB8C8 /* NSView+ZCUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = A8A2782B2B6DD302005EB8C8 /* NSView+ZCUtil.m */; };
 		A8A2782F2B6DD66C005EB8C8 /* ZCMainView.m in Sources */ = {isa = PBXBuildFile; fileRef = A8A2782E2B6DD66C005EB8C8 /* ZCMainView.m */; };
+		A8A278332B6E4200005EB8C8 /* ZCNetworkingViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A8A278322B6E4200005EB8C8 /* ZCNetworkingViewModel.m */; };
+		A8A278382B6E9019005EB8C8 /* ZCChannelDataJsonModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A8A278372B6E9019005EB8C8 /* ZCChannelDataJsonModel.m */; };
+		A8A2783B2B6F2DFB005EB8C8 /* ZCNetworkManager.m in Sources */ = {isa = PBXBuildFile; fileRef = A8A2783A2B6F2DFB005EB8C8 /* ZCNetworkManager.m */; };
+		A8BFB3A02B6F42B100439938 /* ZCPlatformDataJsonModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A8BFB39F2B6F42B100439938 /* ZCPlatformDataJsonModel.m */; };
 		E271572E63ED81F94933C5B3 /* libPods-ChannelResignTool.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 306058E42C335E3CFB25C154 /* libPods-ChannelResignTool.a */; };
 /* End PBXBuildFile section */
 
@@ -74,6 +78,15 @@
 		A8A2782B2B6DD302005EB8C8 /* NSView+ZCUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSView+ZCUtil.m"; sourceTree = "<group>"; };
 		A8A2782D2B6DD66C005EB8C8 /* ZCMainView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCMainView.h; sourceTree = "<group>"; };
 		A8A2782E2B6DD66C005EB8C8 /* ZCMainView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCMainView.m; sourceTree = "<group>"; };
+		A8A278312B6E4200005EB8C8 /* ZCNetworkingViewModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCNetworkingViewModel.h; sourceTree = "<group>"; };
+		A8A278322B6E4200005EB8C8 /* ZCNetworkingViewModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCNetworkingViewModel.m; sourceTree = "<group>"; };
+		A8A278342B6E42B8005EB8C8 /* ZCHttpConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCHttpConfig.h; sourceTree = "<group>"; };
+		A8A278362B6E9019005EB8C8 /* ZCChannelDataJsonModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCChannelDataJsonModel.h; sourceTree = "<group>"; };
+		A8A278372B6E9019005EB8C8 /* ZCChannelDataJsonModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCChannelDataJsonModel.m; sourceTree = "<group>"; };
+		A8A278392B6F2DFB005EB8C8 /* ZCNetworkManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZCNetworkManager.h; sourceTree = "<group>"; };
+		A8A2783A2B6F2DFB005EB8C8 /* ZCNetworkManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZCNetworkManager.m; sourceTree = "<group>"; };
+		A8BFB39E2B6F42B100439938 /* ZCPlatformDataJsonModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZCPlatformDataJsonModel.h; sourceTree = "<group>"; };
+		A8BFB39F2B6F42B100439938 /* ZCPlatformDataJsonModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZCPlatformDataJsonModel.m; sourceTree = "<group>"; };
 		AAC1D8F0AFF9DB3AE2FC8C82 /* Pods-ChannelResignTool.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChannelResignTool.release.xcconfig"; path = "Target Support Files/Pods-ChannelResignTool/Pods-ChannelResignTool.release.xcconfig"; sourceTree = "<group>"; };
 		C73809A0133C20B527560E97 /* Pods-ChannelResignTool.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChannelResignTool.debug.xcconfig"; path = "Target Support Files/Pods-ChannelResignTool/Pods-ChannelResignTool.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -143,6 +156,7 @@
 		A87F65D32B3147C900CF380B /* ChannelResignTool */ = {
 			isa = PBXGroup;
 			children = (
+				A8A278302B6E3D38005EB8C8 /* Networking */,
 				A8629D4A2B3A6A65008AD376 /* UI */,
 				A8629D3A2B36A87B008AD376 /* Factory */,
 				A87F65F42B357F4D00CF380B /* Entity */,
@@ -183,6 +197,8 @@
 			children = (
 				A87F65F62B357F9500CF380B /* ZCProvisioningProfile.h */,
 				A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */,
+				A8BFB39E2B6F42B100439938 /* ZCPlatformDataJsonModel.h */,
+				A8BFB39F2B6F42B100439938 /* ZCPlatformDataJsonModel.m */,
 				A898F9F62B43E39B00942F69 /* ZCPlatformModel.h */,
 				A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */,
 				A898FA042B46DBC100942F69 /* ZCLocalData.plist */,
@@ -190,8 +206,22 @@
 				A8691B542B4B940F0051CF5C /* ZCAppIconModel.m */,
 				A8691B572B4B9AEF0051CF5C /* BaseModel.h */,
 				A8691B562B4B9AEF0051CF5C /* BaseModel.m */,
+				A8A278362B6E9019005EB8C8 /* ZCChannelDataJsonModel.h */,
+				A8A278372B6E9019005EB8C8 /* ZCChannelDataJsonModel.m */,
 			);
 			path = Entity;
+			sourceTree = "<group>";
+		};
+		A8A278302B6E3D38005EB8C8 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				A8A278342B6E42B8005EB8C8 /* ZCHttpConfig.h */,
+				A8A278312B6E4200005EB8C8 /* ZCNetworkingViewModel.h */,
+				A8A278322B6E4200005EB8C8 /* ZCNetworkingViewModel.m */,
+				A8A278392B6F2DFB005EB8C8 /* ZCNetworkManager.h */,
+				A8A2783A2B6F2DFB005EB8C8 /* ZCNetworkManager.m */,
+			);
+			path = Networking;
 			sourceTree = "<group>";
 		};
 		AE7701AEB5BFC9A5C1CF8DF5 /* Pods */ = {
@@ -302,7 +332,11 @@
 			files = (
 				A80266762B5F95CA00A34D3A /* NSImage+ZCUtil.m in Sources */,
 				A8629D432B36E137008AD376 /* ZCManuaQueue.m in Sources */,
+				A8A278382B6E9019005EB8C8 /* ZCChannelDataJsonModel.m in Sources */,
+				A8A2783B2B6F2DFB005EB8C8 /* ZCNetworkManager.m in Sources */,
+				A8A278332B6E4200005EB8C8 /* ZCNetworkingViewModel.m in Sources */,
 				A87F65F82B357F9500CF380B /* ZCProvisioningProfile.m in Sources */,
+				A8BFB3A02B6F42B100439938 /* ZCPlatformDataJsonModel.m in Sources */,
 				A8A2782F2B6DD66C005EB8C8 /* ZCMainView.m in Sources */,
 				A8629D4D2B3A86B1008AD376 /* ZCDataUtil.m in Sources */,
 				A87F65D92B3147C900CF380B /* ViewController.m in Sources */,
