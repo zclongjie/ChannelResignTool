@@ -272,9 +272,7 @@
             if (type == BlockType_PlatformAllEnd) {
                 [self enableControls];
                 //打包完成移除解压文件
-                if (self.package.workPath) {
-                    [self->manager removeItemAtPath:[self.package.workPath stringByDeletingLastPathComponent] error:nil];
-                }
+                [self->manager removeItemAtPath:self.package.temp_workPath error:nil];
                 [self addLog:@"-----------------------" withColor:[NSColor labelColor]];
             }
 
@@ -324,7 +322,6 @@
     if ([self->manager fileExistsAtPath:self.launchImagePathField.stringValue]) {
         launchImagePath = self.launchImagePathField.stringValue;
     }
-    [self addLog:@"解压..." withColor:[NSColor systemGreenColor]];
     self.package = [[ZCAppPackageHandler alloc] initWithPackagePath:self.ipaPathField.stringValue];
     [self addLog:[NSString stringWithFormat:@"文件解压到:%@", self.package.temp_workPath] withColor:[NSColor systemGreenColor]];
     
@@ -353,11 +350,6 @@
             if (type == BlockType_PlatformAllEnd) {
                 [self enableControls];
                 [self showResigningPlatform:message];
-                //打包完成移除解压文件
-                if (self.package.workPath) {
-                    [self->manager removeItemAtPath:[self.package.workPath stringByDeletingLastPathComponent] error:nil];
-                }
-                [self addLog:@"-----------------------" withColor:[NSColor labelColor]];
             }
         }];
     }];
@@ -544,8 +536,8 @@
     self.bundleIdField.stringValue = @"";
     self.logField.string = @"";
     
-    [manager removeItemAtPath:[ZCFileHelper sharedInstance].GameTemp error:nil];
-    self.package = nil;
+//    [manager removeItemAtPath:[ZCFileHelper sharedInstance].GameTemp error:nil];
+//    self.package = nil;
     
     NSButton *btn = [self.view viewWithTag:200];
     [self cleanButtonAction:btn];

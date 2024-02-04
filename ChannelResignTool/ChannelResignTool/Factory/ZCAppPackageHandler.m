@@ -101,9 +101,6 @@
 }
 - (void)temp_workPathToWorkPath {
         
-    if ([manager fileExistsAtPath:self.workPath]) {
-        [manager removeItemAtPath:self.workPath error:nil];
-    }
     //创建新目录
     self.workPath = [[ZCFileHelper sharedInstance].GameTemp stringByAppendingPathComponent:@(_gameId).stringValue];
     [manager createDirectoryAtPath:self.workPath withIntermediateDirectories:YES attributes:nil error:nil];
@@ -259,10 +256,6 @@
 #pragma mark - Entitlements
 - (void)createEntitlementsWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
-    if (logBlock) {
-        logBlock(BlockType_Entitlements, @"创建Entitlements……");
-    }
-    
     //先检查是否存在entitlements，存在先删掉
     NSString *entitlementsPath = [self.workPath stringByAppendingPathComponent:kEntitlementsPlistFileName];
     if (entitlementsPath && [manager fileExistsAtPath:entitlementsPath]) {
@@ -373,10 +366,6 @@
 
 - (void)platformeditInfoPlistWithArgument:(NSDictionary *)argument channelId:(NSInteger)channelId log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
-    if (logBlock) {
-        logBlock(BlockType_InfoPlist, @"修改info.plist……");
-    }
-    
     NSString *ios_package = [argument objectForKey:@"ios_package"];
     NSString *screen_type = [argument objectForKey:@"screen_type"];//2为竖屏
     NSString *plat_game_name = [argument objectForKey:@"plat_game_name"];
@@ -402,7 +391,6 @@
             [plist setObject:@"LaunchLandscape" forKey:kUILaunchStoryboardNameipad];
             [plist setObject:@"LaunchLandscape" forKey:kUILaunchStoryboardNameiphone];
         }
-        
         
         NSString *localData_plist = [[NSBundle mainBundle] pathForResource:@"ZCLocalData" ofType:@"plist"];
         NSMutableDictionary *data = [[NSMutableDictionary alloc] initWithContentsOfFile:localData_plist];
@@ -436,9 +424,8 @@
             [plist setObject:@{@"CFBundlePrimaryIcon": CFBundlePrimaryIcon} forKey:@"CFBundleIcons"];
         }
         
-        
         //添加渠道info.plist信息
-        //1.获取渠道json文件（实际为网络下载）
+        //1.获取渠道json文件
         NSString *platformJsonPath = [[[ZCFileHelper sharedInstance].PlatformSDKJson stringByAppendingPathComponent:@(channelId).stringValue] stringByAppendingPathExtension:@"json"];
         NSMutableDictionary *platformJsonPlist = [[ZCDataUtil shareInstance] readJsonFile:platformJsonPath];
         //替换参数值 如{package}
@@ -472,7 +459,7 @@
             }
         } else {
             if (errorBlock) {
-                errorBlock(BlockType_InfoPlist, @"Info.plist写入失败");
+                errorBlock(BlockType_InfoPlist, @"Info.plist修改失败");
             }
         }
     } else {
@@ -588,9 +575,9 @@
 ///渠道文件注入
 - (void)platformEditFilesPlatformModel:(ZCPlatformDataJsonModel *)platformModel argument:(NSDictionary *)argument launchImagePath:(NSString *)launchImagePath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
-    if (logBlock) {
-        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"复制渠道%@SDK", platformModel.name]);
-    }
+//    if (logBlock) {
+//        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"复制渠道%@SDK", platformModel.name]);
+//    }
     
     NSString *platformPath = [[ZCFileHelper sharedInstance].PlatformSDKUnzip stringByAppendingPathComponent:platformModel.alias];
     //渠道文件
@@ -625,15 +612,15 @@
             }
             NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:plat_plistDict format:NSPropertyListXMLFormat_v1_0 options:kCFPropertyListImmutable error:nil];
             if ([xmlData writeToFile:plat_plistPath atomically:YES]) {
-                if (logBlock) {
-                    logBlock(BlockType_PlatformEditFiles, @"plat_plist修改完成");
-                }
+//                if (logBlock) {
+//                    logBlock(BlockType_PlatformEditFiles, @"plat_plist修改完成");
+//                }
                 NSLog(@"complete task 1");
                 // 无论请求成功或失败都发送信号量(+1)
                 dispatch_semaphore_signal(semaphore);
             } else {
-                if (logBlock) {
-                    logBlock(BlockType_PlatformEditFiles, @"plat_plist写入失败");
+                if (errorBlock) {
+                    errorBlock(BlockType_PlatformEditFiles, @"plat_plist写入失败");
                 }
                 NSLog(@"complete task 1");
                 // 无论请求成功或失败都发送信号量(+1)
@@ -891,10 +878,6 @@
 #pragma mark - EnbeddedProvision
 - (void)editEmbeddedProvision:(ZCProvisioningProfile *)provisoiningProfile  log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
-    if (logBlock) {
-        logBlock(BlockType_EmbeddedProvision, @"生成Embedded.mobileprovision...");
-    }
-    
     NSString *payloadPtah = [self.workPath stringByAppendingPathComponent:kPayloadDirName];
     NSArray *payloadContents = [manager contentsOfDirectoryAtPath:payloadPtah error:nil];
     //删除 embedded privisioning
@@ -937,10 +920,6 @@
 #pragma mark - Codesign
 - (void)doCodesignCertificateName:(NSString *)certificateName log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
-    if (logBlock) {
-        logBlock(BlockType_DoCodesign, @"签名中...");
-    }
-    
     if ([manager fileExistsAtPath:self.appPath]) {
         NSMutableArray *waitSignPathArray = @[].mutableCopy;
         NSArray *subpaths = [manager subpathsOfDirectoryAtPath:self.appPath error:nil];
@@ -972,7 +951,7 @@
                 [NSThread detachNewThreadSelector:@selector(watchCodesigning:) toTarget:self withObject:handle];
                 
                 if (logBlock) {
-                    logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"开始签名文件：%@", [signPath lastPathComponent]]);
+//                    logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"开始签名文件：%@", [signPath lastPathComponent]]);
                 }
                 
                 ZCRunLoop *runloop = [[ZCRunLoop alloc] init];
@@ -981,7 +960,7 @@
                         [runloop stop:^{
                             //验证签名
                             if (logBlock) {
-                                logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"验证文件:%@", [signPath lastPathComponent]]);
+//                                logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"验证文件:%@", [signPath lastPathComponent]]);
                             }
                             [self verifySignature:signPath complete:^(NSString *error) {
                                 if (error) {
@@ -992,7 +971,7 @@
                                     [queue cancelAll];
                                 } else {
                                     if (logBlock) {
-                                        logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"文件%@ 签名完成", [signPath lastPathComponent]]);
+//                                        logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"文件%@ 签名完成", [signPath lastPathComponent]]);
                                     }
                                     [queue next];
                                 }
@@ -1144,12 +1123,13 @@
                 logBlock(BlockType_PlatformShow, platformModel.name);
             }
             
-            //开始前清除之前的游戏解压路径
-            
             //copy到workPath
             [self temp_workPathToWorkPath];
             
             //1.渠道sdk下载
+            if (logBlock) {
+                logBlock(BlockType_PlatformSDKDownload, [NSString stringWithFormat:@"%@[%ld]渠道sdk下载", platformModel.name, (long)platformModel.id_]);
+            }
             [[ZCFileHelper sharedInstance] downloadPlatformSDKByGameId:self->_gameId ByPlatformModel:platformModel log:^(NSString * _Nonnull logString) {
                 if (logBlock) {
                     logBlock(BlockType_PlatformSDKDownload, logString);
@@ -1170,6 +1150,9 @@
                 NSDictionary *game_channel_argument = (NSDictionary *)message;
                 
                 //2.渠道sdk解压
+                if (logBlock) {
+                    logBlock(BlockType_PlatformUnzipFiles, [NSString stringWithFormat:@"%@[%ld]渠道sdk解压", platformModel.name, (long)platformModel.id_]);
+                }
                 [self platformSDKUnzipPlatformModel:platformModel launchImagePath:launchImagePath log:^(BlockType type, NSString * _Nonnull logString) {
                     if (logBlock) {
                         logBlock(BlockType_PlatformUnzipFiles, logString);
@@ -1188,6 +1171,9 @@
                     }
                     
                     //2.生成AppIcon
+                    if (logBlock) {
+                        logBlock(BlockType_PlatformAppIcon, [NSString stringWithFormat:@"开始生成AppIcon"]);
+                    }
                     //获取角标
                     NSString *platformPath = [[ZCFileHelper sharedInstance].PlatformSDKUnzip stringByAppendingPathComponent:platformModel.alias];
                     NSString *corner_Path = [platformPath stringByAppendingPathComponent:@"corner"];
@@ -1222,13 +1208,16 @@
                         }
                         
                         //3.创建新的entitlements
+                        if (logBlock) {
+                            logBlock(BlockType_Entitlements, [NSString stringWithFormat:@"开始创建新的entitlements"]);
+                        }
                         [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
                             if (logBlock) {
                                 logBlock(BlockType_Entitlements, logString);
                             }
                         } error:^(BlockType type, NSString * _Nonnull errorString) {
                             if (errorBlock) {
-                                errorBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
+                                errorBlock(BlockType_Entitlements, [NSString stringWithFormat:@"%@", errorString]);
                             }
                             [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                             // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
@@ -1240,13 +1229,16 @@
                             }
                             
                             //4.修改info.plist
+                            if (logBlock) {
+                                logBlock(BlockType_InfoPlist, [NSString stringWithFormat:@"修改info.plist"]);
+                            }
                             [self platformeditInfoPlistWithArgument:game_channel_argument channelId:platformModel.id_ log:^(BlockType type, NSString * _Nonnull logString) {
                                 if (logBlock) {
                                     logBlock(BlockType_InfoPlist, logString);
                                 }
                             } error:^(BlockType type, NSString * _Nonnull errorString) {
                                 if (errorBlock) {
-                                    errorBlock(BlockType_InfoPlist, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
+                                    errorBlock(BlockType_InfoPlist, [NSString stringWithFormat:@"%@", errorString]);
                                 }
                                 [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                                 // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
@@ -1258,13 +1250,16 @@
                                 }
                                 
                                 //5.渠道文件注入
+                                if (logBlock) {
+                                    logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"渠道文件注入"]);
+                                }
                                 [self platformEditFilesPlatformModel:platformModel argument:game_channel_argument launchImagePath:launchImagePath log:^(BlockType type, NSString * _Nonnull logString) {
                                     if (logBlock) {
                                         logBlock(BlockType_PlatformEditFiles, logString);
                                     }
                                 } error:^(BlockType type, NSString * _Nonnull errorString) {
                                     if (errorBlock) {
-                                        errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
+                                        errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@", errorString]);
                                     }
                                     [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                                     // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
@@ -1276,13 +1271,16 @@
                                     }
                                     
                                     //6.修改Embedded Provision
+                                    if (logBlock) {
+                                        logBlock(BlockType_EmbeddedProvision, [NSString stringWithFormat:@"修改Embedded Provision"]);
+                                    }
                                     [self editEmbeddedProvision:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
                                         if (logBlock) {
                                             logBlock(BlockType_EmbeddedProvision, logString);
                                         }
                                     } error:^(BlockType type, NSString * _Nonnull errorString) {
                                         if (errorBlock) {
-                                            errorBlock(BlockType_EmbeddedProvision, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
+                                            errorBlock(BlockType_EmbeddedProvision, [NSString stringWithFormat:@"%@", errorString]);
                                         }
                                         [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                                         // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
@@ -1294,13 +1292,16 @@
                                         }
                         
                                         //7.开始签名
+                                        if (logBlock) {
+                                            logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"开始签名"]);
+                                        }
                                         [self doCodesignCertificateName:certificateName log:^(BlockType type, NSString * _Nonnull logString) {
                                             if (logBlock) {
                                                 logBlock(BlockType_DoCodesign, logString);
                                             }
                                         } error:^(BlockType type, NSString * _Nonnull errorString) {
                                             if (errorBlock) {
-                                                errorBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
+                                                errorBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"%@", errorString]);
                                             }
                                             [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                                             // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
@@ -1312,13 +1313,16 @@
                                             }
                         
                                             //8.压缩文件
+                                            if (logBlock) {
+                                                logBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"压缩文件"]);
+                                            }
                                             [self zipPackageToDirPath:targetPath platformModel:platformModel argument:game_channel_argument log:^(BlockType type, NSString * _Nonnull logString) {
                                                 if (logBlock) {
                                                     logBlock(BlockType_ZipPackage, logString);
                                                 }
                                             } error:^(BlockType type, NSString * _Nonnull errorString) {
                                                 if (errorBlock) {
-                                                    errorBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@\n%@%ld打包失败", errorString, platformModel.name, (long)platformModel.id_]);
+                                                    errorBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@", errorString]);
                                                 }
                                                 [errorPlatforms addObject:[NSString stringWithFormat:@"%@(%@)", platformModel.name, errorString]];
                                                 // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
@@ -1326,9 +1330,13 @@
                                                 dispatch_semaphore_signal(sema);
                                             } success:^(BlockType type, id  _Nonnull message) {
                                                 if (successBlock) {
-                                                    successBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@\n%@%ld打包成功", message, platformModel.name, (long)platformModel.id_]);
+                                                    successBlock(BlockType_ZipPackage, message);
                                                 }
                                                 [successPlatforms addObject:platformModel.name];
+                                                
+                                                if ([self->manager fileExistsAtPath:self.workPath]) {
+                                                    [self->manager removeItemAtPath:self.workPath error:nil];
+                                                }
                                                 // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                                                 NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                                                 dispatch_semaphore_signal(sema);
@@ -1348,8 +1356,10 @@
             
             dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
         }
+        
         if (successBlock) {
-            
+            //打包完成移除解压文件
+            [self->manager removeItemAtPath:self.temp_workPath error:nil];
             //再次标记当前时间,计算耗时
             NSTimeInterval currentTime1 = [[NSDate date] timeIntervalSince1970];
             NSTimeInterval diffTime = currentTime1 - currentTime;
@@ -1375,8 +1385,8 @@
                 }
             }
             
-            NSString *successString = [successPlatforms componentsJoinedByString:@"、"];
-            NSString *errorString = [errorPlatforms componentsJoinedByString:@"、"];
+            NSString *successString = [successPlatforms componentsJoinedByString:@"，"];
+            NSString *errorString = [errorPlatforms componentsJoinedByString:@"，"];
             successBlock(BlockType_PlatformAllEnd, [NSString stringWithFormat:@"打包结束，耗时%@\n成功(%ld)：%@\n失败(%ld)：%@", diffTimeStr, successPlatforms.count, successString, errorPlatforms.count, errorString]);
         }
         

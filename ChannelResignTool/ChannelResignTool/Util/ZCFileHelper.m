@@ -134,7 +134,6 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
         }
     }
     if (currentModel == nil) {
-        NSLog(@"渠道不存在");
         errorBlock(@"渠道不存在");
         return;
     }
@@ -417,31 +416,65 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     
     //生成AppIcon.appiconset
     [self createAppIcon:sourcePath markerPath:markerPath toPath:AppIconPath log:^(NSString * _Nonnull logString) {
-        logBlock(logString);
+        if (logBlock) {
+            logBlock(logString);
+        }
     } error:^(NSString * _Nonnull errorString) {
-        errorBlock(errorString);
-    } success:^(id  _Nonnull message) {
-        
-        //解压ZCTemp
-        [self unzipZCTempError:^(NSString * _Nonnull errorString) {
+        if (errorBlock) {
             errorBlock(errorString);
-        } success:^(id  _Nonnull message) {
-            //复制图片到临时项目
-            [self copyAppIcon:AppIconPath log:^(NSString * _Nonnull logString) {
-                logBlock(logString);
-            } error:^(NSString * _Nonnull errorString) {
+        }
+    } success:^(id  _Nonnull message) {
+        if (logBlock) {
+            logBlock(message);
+        }
+        //解压ZCTemp
+        if (logBlock) {
+            logBlock(@"解压ZCTemp");
+        }
+        [self unzipZCTempError:^(NSString * _Nonnull errorString) {
+            if (errorBlock) {
                 errorBlock(errorString);
+            }
+        } success:^(id  _Nonnull message) {
+            if (logBlock) {
+                logBlock(message);
+            }
+            //复制图片到临时项目
+            if (logBlock) {
+                logBlock(@"复制图片到临时项目");
+            }
+            [self copyAppIcon:AppIconPath log:^(NSString * _Nonnull logString) {
+                if (logBlock) {
+                    logBlock(logString);
+                }
+            } error:^(NSString * _Nonnull errorString) {
+                if (errorBlock) {
+                    errorBlock(errorString);
+                }
             } success:^(id  _Nonnull message) {
                 logBlock(message);
+                //build ZCTemp
+                if (logBlock) {
+                    logBlock(@"build ZCTemp");
+                }
                 [self buildAppIconError:^(NSString * _Nonnull errorString) {
                     errorBlock(errorString);
                 } success:^(id  _Nonnull message) {
-                    logBlock(message);
+                    if (logBlock) {
+                        logBlock(message);
+                    }
                     //移动Assets到目标app
+                    if (logBlock) {
+                        logBlock(@"移动Assets到目标app");
+                    }
                     [self moveAssetsToPath:targetPath error:^(NSString * _Nonnull errorString) {
-                        errorBlock(errorString);
+                        if (errorBlock) {
+                            errorBlock(errorString);
+                        }
                     } success:^(id  _Nonnull message) {
-                        successBlock(message);
+                        if (successBlock) {
+                            successBlock(message);
+                        }
                     }];
                 }];
             }];
@@ -457,6 +490,9 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     NSString *outputImagePath = sourcePath;
     if (markerPath) {
         //合并角标
+        if (logBlock) {
+            logBlock(@"合并角标");
+        }
         // 合并后的图片保存路径
         outputImagePath = [self.GameTemp stringByAppendingPathComponent:@"mergedImage.png"];
 
@@ -483,6 +519,9 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
         NSLog(@"Error writing JSON data to file");
     }
     //创建AppIcon图片
+    if (logBlock) {
+        logBlock(@"创建AppIcon图片");
+    }
     for (ZCAppIconImageItem *iconImageItem in appIconModel.images) {
         NSArray *sizeArr = [iconImageItem.size componentsSeparatedByString:@"x"];
         NSArray *scaleArr = [iconImageItem.scale componentsSeparatedByString:@"x"];
@@ -510,7 +549,9 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
         }
     }
     
-    successBlock(@"appicon生成完成");
+    if (successBlock) {
+        successBlock(@"创建AppIcon图片完成");
+    }
     
 }
 
@@ -571,7 +612,7 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
             break;
         }
     }
-    successBlock(@"appicon复制到项目完成");
+    successBlock(@"appicon复制到临时项目完成");
 }
 
 - (void)buildAppIconError:(FileHelperErrorBlock)errorBlock success:(FileHelperSuccessBlock)successBlock {
