@@ -72,16 +72,19 @@
     } success:^{
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.platformTableView reloadData];
+            
+            [self.mainView tableReload];
         });
+        
     }];
     
     
-//    ZCMainView *mainView = [[ZCMainView alloc] init];
-//    [self.view addSubview:mainView];
-//    [mainView mas_makeConstraints:^(MASConstraintMaker *make) {
-//        make.edges.equalTo(self.view);
-//    }];
-//    self.mainView = mainView;
+    ZCMainView *mainView = [[ZCMainView alloc] init];
+    [self.view addSubview:mainView];
+    [mainView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(self.view);
+    }];
+    self.mainView = mainView;
     
     NSArray *lackSupportUtility = [[ZCFileHelper sharedInstance] lackSupportUtility];
     if (lackSupportUtility.count == 0) {

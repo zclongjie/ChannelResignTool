@@ -17,20 +17,23 @@ typedef NS_ENUM(NSInteger, ZCMainUIType)
     ZCMainUIType_ipaPathField = 3,
     ZCMainUIType_ipaSavePathField = 4,
     
-    ZCMainUIType_appNameField = 5,
-    ZCMainUIType_bundleID = 6,
+    ZCMainUIType_chongqian = 5,
+    ZCMainUIType_appNameField = 6,
+    ZCMainUIType_bundleID = 7,
     
-    ZCMainUIType_appIconPath = 7,
-    ZCMainUIType_launchImagePath = 8,
+    ZCMainUIType_appIconPath = 8,
+    ZCMainUIType_launchImagePath = 9,
     
-    ZCMainUIType_platformTable = 9,
-    ZCMainUIType_platformTextView = 10,
+    ZCMainUIType_platformTable = 10,
+    ZCMainUIType_platformTextView = 11,
 };
 
 @interface ZCMainView : NSView
 
 @property (nonatomic, strong) NSArray *certificatesArray;
 @property (nonatomic, strong) NSArray *provisioningArray;
+
+- (void)tableReload;
 
 @end
 
