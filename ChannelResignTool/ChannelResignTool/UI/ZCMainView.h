@@ -12,10 +12,10 @@ NS_ASSUME_NONNULL_BEGIN
 typedef NS_ENUM(NSInteger, ZCMainUIType)
 {
     ZCMainUIType_Custom = 0,
-    ZCMainUIType_certificateComboBox = 1,
-    ZCMainUIType_provisioningComboBox = 2,
-    ZCMainUIType_ipaPathField = 3,
-    ZCMainUIType_ipaSavePathField = 4,
+    ZCMainUIType_ipaPathField = 1,
+    ZCMainUIType_ipaSavePathField = 2,
+    ZCMainUIType_certificateComboBox = 3,
+    ZCMainUIType_provisioningComboBox = 4,
     
     ZCMainUIType_chongqian = 5,
     ZCMainUIType_appNameField = 6,
@@ -26,6 +26,8 @@ typedef NS_ENUM(NSInteger, ZCMainUIType)
     
     ZCMainUIType_platformTable = 10,
     ZCMainUIType_platformTextView = 11,
+    
+    ZCMainUIType_LogView = 12,
 };
 
 @interface ZCMainView : NSView

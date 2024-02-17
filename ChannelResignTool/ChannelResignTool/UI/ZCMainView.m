@@ -16,8 +16,33 @@
 
 @interface ZCMainView ()<NSComboBoxDataSource, NSComboBoxDelegate, NSTableViewDataSource, NSTableViewDelegate, PlatformRowViewDelegate>
 {
+    NSTextField *ipaPathField;
+    NSButton *browseIpaPathButton;
+    NSTextField *ipaSavePathField;
+    NSButton *browseIpaSavePathButton;
     NSComboBox *certificateComboBox;
     NSComboBox *provisioningComboBox;
+    
+    NSTextField *appNameField;
+    NSButton *radioButton;
+    NSTextField *bundleIdField;
+    NSButton *bundleIDButton;
+    NSButton *ipaResignButton;
+    
+    NSTextField *appIconPathField;
+    NSButton *browseAppIconPathButton;
+    NSTextField *launchImagePathField;
+    NSButton *browseLaunchImagePathButton;
+    
+    NSTableView *platformTableView;
+    NSTextView *showSelectedPlatformField;
+    NSButton *platformSignButton;
+    
+    NSTextView *logField;
+    
+    NSButton *cleanLogButton;
+    NSButton *cleanPlatformButton;
+    NSButton *cleanAllButton;
     
     NSString *showSelectedPlatformFieldString;
 }
@@ -47,7 +72,11 @@
 - (void)setupUI {
     NSView *customView = [self setupCustomUI];
     NSView *mubaoView = [self setupMubaoUI:customView];
-    [self setupPlatformUI:mubaoView];
+    NSView *platformView = [self setupPlatformUI:mubaoView];
+    NSView *logView = [self setupLogUI:platformView];
+    [self mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(logView);
+    }];
 }
 - (NSView *)setupCustomUI {
     NSView *view = [[NSView alloc] init];
@@ -94,15 +123,13 @@
     }];
     NSTextField *customLabel = [self setupTitleUIWithUIType:ZCMainUIType_Custom labelString:@"重签母包" forView:view];
     
-    NSView *rightButtonView = [self setupRightButtonUIWithUIType:ZCMainUIType_chongqian withPreView:view buttonTitle:@"重 签"];
+    NSView *rightButtonView = [self setupRightButtonUIWithUIType:ZCMainUIType_chongqian withPreView:view buttonTitle:@"重签母包"];
     
     NSView *appNameView = [self setupFieldUIWithUIType:ZCMainUIType_appNameField withPreView:customLabel withRightView:rightButtonView textFieldString:@"修改App显示名称（选填）"];
     NSView *bundleIDView = [self setupButtonAndButtonUIWithUIType:ZCMainUIType_bundleID withPreView:appNameView withRightView:rightButtonView textFieldString:@"修改BundleID, 不填则默认使用App中BundleID" buttonTitle:@"使用pro证书中的BundleID"];
     [view mas_updateConstraints:^(MASConstraintMaker *make) {
         make.bottom.equalTo(bundleIDView).offset(10);
     }];
-    
-    
     
     return view;
 }
@@ -128,11 +155,51 @@
     NSView *launchImagePathView = [self setupFieldAndButtonUIWithUIType:ZCMainUIType_launchImagePath withPreView:appIconPathView textFieldString:@"LaunchImage文件路径（选填）" buttonTitle:@"浏 览"];
     NSView *tableView = [self setupTableUIWithUIType:ZCMainUIType_platformTable withPreView:launchImagePathView];
     NSView *platformTextView = [self setupTextViewUIWithUIType:ZCMainUIType_platformTextView withPreView:tableView];
+    
+    NSButton *button = [[NSButton alloc] init];
+    button.bezelStyle = NSRegularSquareBezelStyle;
+    [view addSubview:button];
+    [button mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(platformTextView);
+        make.right.equalTo(view).offset(-30);
+        make.left.equalTo(platformTextView.mas_right).offset(20);
+        make.height.mas_equalTo(40);
+    }];
+    NSAttributedString *nameAttribute = [[NSAttributedString alloc] initWithString:@"渠道打包" attributes:@{NSForegroundColorAttributeName:[NSColor labelColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
+    [button setAttributedTitle:nameAttribute];
+    platformSignButton = button;
+    
     [view mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.bottom.equalTo(tableView).offset(20);
+        make.bottom.equalTo(platformTextView).offset(20);
     }];
     return view;
 }
+
+- (NSView *)setupLogUI:(NSView *)preView {
+    NSView *view = [[NSView alloc] init];
+    [self addSubview:view];
+    [view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.right.equalTo(self);
+        make.top.equalTo(preView.mas_bottom);
+    }];
+    NSView *lineView = [[NSView alloc] init];
+    lineView.wantsLayer = YES;
+    lineView.layer.borderColor = [NSColor labelColor].CGColor;
+    lineView.layer.borderWidth = 1;
+    lineView.layer.cornerRadius = 5;
+    [view addSubview:lineView];
+    [lineView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.left.top.equalTo(view).offset(10);
+        make.right.bottom.equalTo(view).offset(-10);
+    }];
+    NSView *logView = [self setupLogViewUIWithUIType:ZCMainUIType_LogView withPreView:view];
+    
+    [view mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(logView).offset(20);
+    }];
+    return view;
+}
+
 
 - (NSTextField *)setupTitleUIWithUIType:(ZCMainUIType)uiType labelString:(NSString *)labelString forView:(NSView *)view {
     NSTextField *label = [[NSTextField alloc] init];
@@ -150,7 +217,6 @@
 }
 - (NSView *)setupFieldAndButtonUIWithUIType:(ZCMainUIType)uiType withPreView:(NSView *)preView textFieldString:(NSString *)textFieldString buttonTitle:(NSString *)buttonTitle {
     NSView *view = [[NSView alloc] init];
-    view.customTag = uiType * 10;
     [self addSubview:view];
     [view mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.equalTo(self);
@@ -160,7 +226,6 @@
     
     NSTextField *textField = [[NSTextField alloc] init];
     textField.placeholderString = textFieldString;
-    textField.customTag = view.customTag + 1;
     [view addSubview:textField];
     [textField mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerY.equalTo(view);
@@ -169,7 +234,6 @@
     
     NSButton *button = [[NSButton alloc] init];
     button.bezelStyle = NSRoundedBezelStyle;
-    button.customTag = view.customTag + 2;
     [view addSubview:button];
     [button mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerY.equalTo(view);
@@ -179,11 +243,34 @@
     }];
     NSAttributedString *nameAttribute = [[NSAttributedString alloc] initWithString:buttonTitle attributes:@{NSForegroundColorAttributeName:[NSColor labelColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
     [button setAttributedTitle:nameAttribute];
+    if (uiType == ZCMainUIType_ipaPathField) {
+        ipaPathField = textField;
+    }
+    if (uiType == ZCMainUIType_ipaSavePathField) {
+        ipaSavePathField = textField;
+    }
+    if (uiType == ZCMainUIType_ipaPathField) {
+        browseIpaPathButton = button;
+    }
+    if (uiType == ZCMainUIType_ipaSavePathField) {
+        browseIpaSavePathButton = button;
+    }
+    if (uiType == ZCMainUIType_appIconPath) {
+        appIconPathField = textField;
+    }
+    if (uiType == ZCMainUIType_launchImagePath) {
+        launchImagePathField = textField;
+    }
+    if (uiType == ZCMainUIType_appIconPath) {
+        browseAppIconPathButton = button;
+    }
+    if (uiType == ZCMainUIType_launchImagePath) {
+        browseLaunchImagePathButton = button;
+    }
     return view;
 }
 - (NSView *)setupFieldUIWithUIType:(ZCMainUIType)uiType withPreView:(NSView *)preView withRightView:(NSView *)rightView textFieldString:(NSString *)textFieldString {
     NSView *view = [[NSView alloc] init];
-    view.customTag = uiType * 10;
     [self addSubview:view];
     [view mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self);
@@ -194,17 +281,18 @@
     
     NSTextField *textField = [[NSTextField alloc] init];
     textField.placeholderString = textFieldString;
-    textField.customTag = view.customTag + 1;
     [view addSubview:textField];
     [textField mas_makeConstraints:^(MASConstraintMaker *make) {
         make.center.equalTo(view);
         make.left.equalTo(view).offset(20);
     }];
+    if (uiType == ZCMainUIType_appNameField) {
+        appNameField = textField;
+    }
     return view;
 }
 - (NSView *)setupButtonAndButtonUIWithUIType:(ZCMainUIType)uiType withPreView:(NSView *)preView withRightView:(NSView *)rightView textFieldString:(NSString *)textFieldString buttonTitle:(NSString *)buttonTitle {
     NSView *view = [[NSView alloc] init];
-    view.customTag = uiType * 10;
     [self addSubview:view];
     [view mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self);
@@ -215,15 +303,14 @@
     NSButton *button0 = [[NSButton alloc] init];
     [button0 setButtonType:NSButtonTypeRadio];
     [button0 setTitle:@""];
-    button0.customTag = view.customTag + 1;
     [view addSubview:button0];
     [button0 mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerY.equalTo(view);
         make.left.equalTo(view).offset(20);
     }];
+    
     NSTextField *textField = [[NSTextField alloc] init];
     textField.placeholderString = textFieldString;
-    textField.customTag = view.customTag + 2;
     [view addSubview:textField];
     [textField mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerY.equalTo(view);
@@ -231,7 +318,6 @@
     }];
     NSButton *button = [[NSButton alloc] init];
     [button setButtonType:NSButtonTypeRadio];
-    button.customTag = view.customTag + 3;
     [view addSubview:button];
     [button mas_makeConstraints:^(MASConstraintMaker *make) {
         make.centerY.equalTo(view);
@@ -240,11 +326,16 @@
     }];
     NSAttributedString *nameAttribute = [[NSAttributedString alloc] initWithString:buttonTitle attributes:@{NSForegroundColorAttributeName:[NSColor labelColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
     [button setAttributedTitle:nameAttribute];
+    if (uiType == ZCMainUIType_bundleID) {
+        radioButton = button0;
+        bundleIdField = textField;
+        bundleIDButton = button;
+    }
+    
     return view;
 }
 - (NSView *)setupComboBoxUIWithUIType:(ZCMainUIType)uiType withPreView:(NSView *)preView {
     NSView *view = [[NSView alloc] init];
-    view.customTag = uiType * 10;
     [self addSubview:view];
     [view mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.right.equalTo(self);
@@ -253,7 +344,6 @@
     }];
     
     NSComboBox *comboBox = [[NSComboBox alloc] init];
-    comboBox.customTag = view.customTag + 1;
     [view addSubview:comboBox];
     [comboBox mas_makeConstraints:^(MASConstraintMaker *make) {
         make.center.equalTo(view);
@@ -273,7 +363,6 @@
 }
 - (NSView *)setupTableUIWithUIType:(ZCMainUIType)uiType withPreView:(NSView *)preView {
     NSView *view = [[NSView alloc] init];
-    view.customTag = uiType * 10;
     [self addSubview:view];
     [view mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(self);
@@ -281,6 +370,17 @@
     }];
     
     NSTextField *customLabel = [self setupTitleUIWithUIType:uiType labelString:@"渠道列表" forView:view];
+    
+    NSButton *button = [[NSButton alloc] init];
+    button.bezelStyle = NSRoundedBezelStyle;
+    [view addSubview:button];
+    [button mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(customLabel);
+        make.right.equalTo(view);
+        make.width.mas_equalTo(80);
+    }];
+    NSAttributedString *nameAttribute = [[NSAttributedString alloc] initWithString:@"清除列表" attributes:@{NSForegroundColorAttributeName:[NSColor labelColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
+    [button setAttributedTitle:nameAttribute];
     
     NSScrollView *tableContainerView = [[NSScrollView alloc] init];
     [tableContainerView setDrawsBackground:NO];//不画背景（背景默认画成白色）
@@ -296,7 +396,6 @@
     }];
     
     NSTableView *tableView = [[NSTableView alloc] init];
-    tableView.customTag = view.customTag + 1;
     tableView.headerView = nil;
     tableView.allowsColumnReordering = NO;
     tableView.allowsColumnResizing = NO;
@@ -324,11 +423,15 @@
         make.right.bottom.equalTo(tableContainerView);
     }];
     
+    if (uiType == ZCMainUIType_platformTable) {
+        platformTableView = tableView;
+        cleanPlatformButton = button;
+    }
+    
     return view;
 }
 - (NSView *)setupTextViewUIWithUIType:(ZCMainUIType)uiType withPreView:(NSView *)preView {
     NSView *view = [[NSView alloc] init];
-    view.customTag = uiType * 10;
     [self addSubview:view];
     [view mas_makeConstraints:^(MASConstraintMaker *make) {
         make.left.equalTo(preView.mas_right);
@@ -336,23 +439,106 @@
     }];
     
     NSTextField *customLabel = [self setupTitleUIWithUIType:uiType labelString:@"已选择渠道" forView:view];
-    NSTableView *textView = [[NSTableView alloc] init];
-    textView.customTag = view.customTag + 1;
+    
+    NSScrollView *textContainerView = [[NSScrollView alloc] init];
+    [textContainerView setDrawsBackground:NO];//不画背景（背景默认画成白色）
+    [textContainerView setHasVerticalScroller:YES];//有垂直滚动条
+    //[_textContainerView setHasHorizontalScroller:YES];//有水平滚动条
+//    textContainerView.autohidesScrollers = YES;//自动隐藏滚动条（滚动的时候出现）
+    [view addSubview:textContainerView];
+    [textContainerView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(customLabel.mas_bottom).offset(10);
+        make.left.equalTo(customLabel);
+        make.width.mas_equalTo(250);
+        make.height.mas_equalTo(250);
+    }];
+    
+    NSTextView *textView = [[NSTextView alloc] init];
+    [textView setAutoresizingMask:NSViewWidthSizable];
+    [textView setEditable:NO];
     [view addSubview:textView];
-    [textView mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.top.equalTo(customLabel.mas_bottom);
-        make.left.equalTo(view).offset(20);
-        make.width.mas_equalTo(200);
-        make.height.mas_equalTo(200);
+    [textContainerView setDocumentView:textView];
+    [textView sizeToFit];
+    NSView *lineView = [[NSView alloc] init];
+    lineView.wantsLayer = YES;
+    lineView.layer.borderColor = [NSColor labelColor].CGColor;
+    lineView.layer.borderWidth = 1;
+    lineView.layer.cornerRadius = 5;
+    [view addSubview:lineView];
+    [lineView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(textContainerView);
     }];
+    
     [view mas_updateConstraints:^(MASConstraintMaker *make) {
-        make.right.bottom.equalTo(textView);
+        make.right.bottom.equalTo(textContainerView);
     }];
+    
+    if (uiType == ZCMainUIType_platformTextView) {
+        showSelectedPlatformField = textView;
+    }
+    return view;
+}
+- (NSView *)setupLogViewUIWithUIType:(ZCMainUIType)uiType withPreView:(NSView *)preView {
+    NSView *view = [[NSView alloc] init];
+    [self addSubview:view];
+    [view mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.left.right.equalTo(preView);
+    }];
+    
+    NSTextField *customLabel = [self setupTitleUIWithUIType:uiType labelString:@"输出日志" forView:view];
+    
+    NSScrollView *textContainerView = [[NSScrollView alloc] init];
+    [textContainerView setDrawsBackground:NO];//不画背景（背景默认画成白色）
+    [textContainerView setHasVerticalScroller:YES];//有垂直滚动条
+    //[_textContainerView setHasHorizontalScroller:YES];//有水平滚动条
+//    textContainerView.autohidesScrollers = YES;//自动隐藏滚动条（滚动的时候出现）
+    [view addSubview:textContainerView];
+    [textContainerView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.top.equalTo(customLabel.mas_bottom).offset(10);
+        make.left.equalTo(customLabel);
+        make.right.equalTo(view).offset(-20);
+        make.height.mas_equalTo(100);
+    }];
+    
+    NSTextView *textView = [[NSTextView alloc] init];
+    [textView setAutoresizingMask:NSViewWidthSizable];
+    [textView setEditable:NO];
+    [view addSubview:textView];
+    [textContainerView setDocumentView:textView];
+    [textView sizeToFit];
+    NSView *lineView = [[NSView alloc] init];
+    lineView.wantsLayer = YES;
+    lineView.layer.borderColor = [NSColor labelColor].CGColor;
+    lineView.layer.borderWidth = 1;
+    lineView.layer.cornerRadius = 5;
+    [view addSubview:lineView];
+    [lineView mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.edges.equalTo(textContainerView);
+    }];
+    
+    NSButton *button = [[NSButton alloc] init];
+    button.bezelStyle = NSRoundedBezelStyle;
+    [view addSubview:button];
+    [button mas_makeConstraints:^(MASConstraintMaker *make) {
+        make.centerY.equalTo(customLabel);
+        make.right.equalTo(textContainerView);
+        make.width.mas_equalTo(80);
+    }];
+    NSAttributedString *nameAttribute = [[NSAttributedString alloc] initWithString:@"清除日志" attributes:@{NSForegroundColorAttributeName:[NSColor labelColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
+    [button setAttributedTitle:nameAttribute];
+    
+    [view mas_updateConstraints:^(MASConstraintMaker *make) {
+        make.bottom.equalTo(textContainerView);
+    }];
+    
+    if (uiType == ZCMainUIType_LogView) {
+        logField = textView;
+        cleanLogButton = button;
+    }
     return view;
 }
 - (NSView *)setupRightButtonUIWithUIType:(ZCMainUIType)uiType withPreView:(NSView *)preView buttonTitle:(NSString *)buttonTitle {
     NSView *view = [[NSView alloc] init];
-    view.customTag = uiType * 10;
     [self addSubview:view];
     [view mas_makeConstraints:^(MASConstraintMaker *make) {
         make.top.equalTo(preView).offset(20);
@@ -363,7 +549,6 @@
     
     NSButton *button = [[NSButton alloc] init];
     button.bezelStyle = NSRegularSquareBezelStyle;
-    button.customTag = view.customTag + 1;
     [view addSubview:button];
     [button mas_makeConstraints:^(MASConstraintMaker *make) {
         make.center.equalTo(view);
@@ -371,37 +556,14 @@
     }];
     NSAttributedString *nameAttribute = [[NSAttributedString alloc] initWithString:buttonTitle attributes:@{NSForegroundColorAttributeName:[NSColor labelColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
     [button setAttributedTitle:nameAttribute];
+    if (uiType == ZCMainUIType_chongqian) {
+        ipaResignButton = button;
+    }
     return view;
 }
 
 - (void)setupInit {
-    NSButton *button = (NSButton *)[self findSuitableView:ZCMainUIType_bundleID * 10 + 1];
-    button.state = NSControlStateValueOn;
-}
-- (id)findSuitableView:(NSInteger)customTag {
-    NSView *findView = nil;
-    for (NSView *view0 in self.subviews) {
-        findView = view0;
-        if (view0.customTag == customTag) {
-            return view0;
-        }
-        for (NSView *view1 in view0.subviews) {
-            if (view1.customTag == customTag) {
-                return view1;
-            }
-            for (NSView *view2 in view1.subviews) {
-                if (view2.customTag == customTag) {
-                    return view2;
-                }
-                for (NSView *view3 in view2.subviews) {
-                    if (view3.customTag == customTag) {
-                        return view3;
-                    }
-                }
-            }
-        }
-    }
-    return nil;
+    bundleIDButton.state = NSControlStateValueOn;
 }
 
 #pragma mark - NSComboBoxDataSource, NSComboBoxDelegate
@@ -476,32 +638,27 @@
 }
 - (void)showSelectedPlatform:(NSString *)platforms {
     showSelectedPlatformFieldString = platforms;
-    
-    NSTextView *textView = (NSTextView *)[self findSuitableView:ZCMainUIType_platformTextView * 10 + 1];
-    
+        
     dispatch_async(dispatch_get_main_queue(), ^{
         NSAttributedString *logAttributedString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@", platforms] attributes:@{NSForegroundColorAttributeName:[NSColor textColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
-        [[textView textStorage] setAttributedString:logAttributedString];
-        [textView scrollRangeToVisible:NSMakeRange([textView string].length, 0)];
+        [[self->showSelectedPlatformField textStorage] setAttributedString:logAttributedString];
+        [self->showSelectedPlatformField scrollRangeToVisible:NSMakeRange([self->showSelectedPlatformField string].length, 0)];
         
     });
 }
 - (void)showResigningPlatform:(NSString *)logString {
-    
-    NSTextView *textView = (NSTextView *)[self findSuitableView:ZCMainUIType_platformTextView * 10 + 1];
-    
+        
     dispatch_async(dispatch_get_main_queue(), ^{
         NSAttributedString *logAttributedString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%@\n%@", self->showSelectedPlatformFieldString, logString] attributes:@{NSForegroundColorAttributeName:[NSColor textColor], NSFontAttributeName:[NSFont systemFontOfSize:14]}];
-        [[textView textStorage] setAttributedString:logAttributedString];
-        [textView scrollRangeToVisible:NSMakeRange([textView string].length, 0)];
+        [[self->showSelectedPlatformField textStorage] setAttributedString:logAttributedString];
+        [self->showSelectedPlatformField scrollRangeToVisible:NSMakeRange([self->showSelectedPlatformField string].length, 0)];
         
     });
 }
 
 #pragma mark - tableReload
 - (void)tableReload {
-    NSTableView *tableView = (NSTableView *)[self findSuitableView:ZCMainUIType_platformTable * 10 + 1];
-    [tableView reloadData];
+    [platformTableView reloadData];
 }
 
 

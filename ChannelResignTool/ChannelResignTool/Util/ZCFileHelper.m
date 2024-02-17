@@ -66,6 +66,12 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     }
     if (![manager fileExistsAtPath:PlatformSDKJson]) {
         [manager createDirectoryAtPath:PlatformSDKJson withIntermediateDirectories:YES attributes:nil error:nil];
+    } else {
+        NSArray *contents = [self->manager contentsOfDirectoryAtPath:PlatformSDKJson error:nil];
+        for (NSString *file in contents) {
+            NSString *filePath = [PlatformSDKJson stringByAppendingPathComponent:file];
+            [manager removeItemAtPath:filePath error:nil];
+        }
     }
     if (![manager fileExistsAtPath:PlatformSDKUnzip]) {
         [manager createDirectoryAtPath:PlatformSDKUnzip withIntermediateDirectories:YES attributes:nil error:nil];

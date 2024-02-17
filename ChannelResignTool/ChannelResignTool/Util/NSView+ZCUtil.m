@@ -25,16 +25,16 @@
     return [NSColor colorWithCGColor:self.layer.backgroundColor];
 }
 
-static const char *kCustomTagKey = "CustomTagKey";
-
-@dynamic customTag;
-
-- (NSInteger)customTag {
-    return [objc_getAssociatedObject(self, kCustomTagKey) integerValue];
-}
-
-- (void)setCustomTag:(NSInteger)customTag {
-    objc_setAssociatedObject(self, kCustomTagKey, @(customTag), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
+//static const char *kCustomTagKey = "CustomTagKey";
+//
+//@dynamic customTag;
+//
+//- (NSInteger)customTag {
+//    return [objc_getAssociatedObject(self, kCustomTagKey) integerValue];
+//}
+//
+//- (void)setCustomTag:(NSInteger)customTag {
+//    objc_setAssociatedObject(self, kCustomTagKey, @(customTag), OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+//}
 
 @end

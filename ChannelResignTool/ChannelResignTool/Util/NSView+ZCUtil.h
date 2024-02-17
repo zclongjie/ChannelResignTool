@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface NSView (ZCUtil)
 
 @property (nonatomic, strong) NSColor *backgroundColor;
-@property (nonatomic, assign) NSInteger customTag;
+//@property (nonatomic, assign) NSInteger customTag;
 
 
 @end
