@@ -6,9 +6,10 @@
 //
 
 #import <Cocoa/Cocoa.h>
-#import "ZCPlatformDataJsonModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
+
+@class ZCPlatformDataJsonModel;
 
 @protocol PlatformRowViewDelegate <NSObject>
 

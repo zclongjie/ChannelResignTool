@@ -7,17 +7,6 @@
 //
 
 #import "ZCNetworkManager.h"
-//#import "QPConstHeader.h"
-//#import "QPPropsSDK.h"
-//#import "QPJHProgressView.h"
-
-//#import <CommonCrypto/CommonCryptor.h>
-//#import <Security/Security.h>
-//#import "QPGTMBase64.h"
-//
-//#define gkey            @"c5fcdac4fc05bb8bbe244862cb8e0b05"
-//
-//#define gIv             @"20220409"
 
 NSString *const ResponseErrorKey = @"com.alamofire.serialization.response.error.response";
 NSInteger const Interval = 10;
@@ -74,10 +63,7 @@ NSInteger const Interval = 10;
     NSString *pathStr = [urlString stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
     
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:pathStr]];
-    
     request.timeoutInterval = Interval;
-    
-    
 
     NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -129,11 +115,11 @@ NSInteger const Interval = 10;
         if (data) {
             //利用iOS自带原生JSON解析data数据 保存为Dictionary
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
-            NSString *msg = [NSString stringWithFormat:@"%@", dict[@"msg"]];
-            NSString *code = [NSString stringWithFormat:@"%@", dict[@"code"]];
-            if ([code isEqualToString:@"400"]) {
-                
-            }
+//            NSString *msg = [NSString stringWithFormat:@"%@", dict[@"msg"]];
+//            NSString *code = [NSString stringWithFormat:@"%@", dict[@"code"]];
+//            if ([code isEqualToString:@"400"]) {
+//
+//            }
              
             success(dict);
             

@@ -1,31 +1,38 @@
 //
-//  ZCAppPackageHandler.m
+//  ZCAppPackageHander.m
 //  ChannelResignTool
 //
 //  Created by 赵隆杰 on 2023/12/23.
 //
 
-#import "ZCAppPackageHandler.h"
+#import "ZCAppPackageHander.h"
 #import "ZCFileHelper.h"
-#import "ZCDateFormatterUtil.h"
 #import "ZCRunLoop.h"
 #import "ZCManuaQueue.h"
-#import "ZCDataUtil.h"
 #import "ZCAppIconModel.h"
+#import "ZCDataUtil.h"
+#import "ZCDateFormatterUtil.h"
+#import "ZCProvisioningProfile.h"
 
-@implementation ZCAppPackageHandler {
-    NSFileManager *manager;//全局文件管理
-    NSString *entitlementsResult;//创建entitlementss任务的结果
-    NSString *codesigningResult;//签名任务的结果
-    NSString *verificationResult;//验证签名任务的结果
-    
-    NSInteger _gameId;
-}
+@interface ZCAppPackageHander ()
+
+@property (nonatomic, copy) NSString *entitlementsResult;//创建entitlementss任务的结果
+@property (nonatomic, copy) NSString *codesigningResult;//签名任务的结果
+@property (nonatomic, copy) NSString *verificationResult;//验证签名任务的结果
+
+///包的路径
+@property (nonatomic, copy) NSString *packagePath;
+
+@end
+
+@implementation ZCAppPackageHander
+
+#pragma mark ----------通用实现----------
 
 - (instancetype)initWithPackagePath:(NSString *)path {
     self = [super init];
     if (self) {
-        manager = [NSFileManager defaultManager];
+        self.manager = [NSFileManager defaultManager];
         
         self.packagePath = path;
         
@@ -39,9 +46,9 @@
 
 - (BOOL)removeCodeSignatureDirectory {
     NSString *codeSignaturePath = [self.appPath stringByAppendingPathComponent:kCodeSignatureDirectory];
-    if (codeSignaturePath && [manager fileExistsAtPath:codeSignaturePath]) {
-        return [manager removeItemAtPath:codeSignaturePath error:nil];
-    } else if (![manager fileExistsAtPath:codeSignaturePath]) {
+    if (codeSignaturePath && [self.manager fileExistsAtPath:codeSignaturePath]) {
+        return [self.manager removeItemAtPath:codeSignaturePath error:nil];
+    } else if (![self.manager fileExistsAtPath:codeSignaturePath]) {
         return YES;
     }
     return NO;
@@ -52,17 +59,17 @@
     if ([self.packagePath.pathExtension.lowercaseString isEqualToString:@"ipa"]) {
         
         //移除之前的解压路径
-        if ([manager fileExistsAtPath:self.temp_workPath]) {
-            [manager removeItemAtPath:self.temp_workPath error:nil];
+        if ([self.manager fileExistsAtPath:self.temp_workPath]) {
+            [self.manager removeItemAtPath:self.temp_workPath error:nil];
         }
         //创建新目录
-        [manager createDirectoryAtPath:self.temp_workPath withIntermediateDirectories:YES attributes:nil error:nil];
+        [self.manager createDirectoryAtPath:self.temp_workPath withIntermediateDirectories:YES attributes:nil error:nil];
         
         //解压
         [[ZCFileHelper sharedInstance] unzip:self.packagePath toPath:self.temp_workPath complete:^(BOOL result) {
             if (result) {
                 
-                [self setGameId];
+                [self setupAppInfo];
                 if (successBlock) {
                     successBlock(BlockType_Unzip, @"文件解压完成");
                 }
@@ -74,17 +81,17 @@
     } else if ([self.packagePath.pathExtension.lowercaseString isEqualToString:@"app"]) {
         
         //移除之前的解压路径
-        if ([manager fileExistsAtPath:self.temp_workPath]) {
-            [manager removeItemAtPath:self.temp_workPath error:nil];
+        if ([self.manager fileExistsAtPath:self.temp_workPath]) {
+            [self.manager removeItemAtPath:self.temp_workPath error:nil];
         }
         //创建新目录
         NSString *temp_payloadPath = [self.temp_workPath stringByAppendingPathComponent:kPayloadDirName];
-        [manager createDirectoryAtPath:temp_payloadPath withIntermediateDirectories:YES attributes:nil error:nil];
+        [self.manager createDirectoryAtPath:temp_payloadPath withIntermediateDirectories:YES attributes:nil error:nil];
         NSString *targetPath = [temp_payloadPath stringByAppendingPathComponent:self.packagePath.lastPathComponent];
         
         [[ZCFileHelper sharedInstance] copyFile:self.packagePath toPath:targetPath complete:^(BOOL result) {
             if (result) {
-                [self setGameId];
+                [self setupAppInfo];
                 if (successBlock) {
                     successBlock(BlockType_Unzip, @"文件复制完成");
                 }
@@ -99,11 +106,47 @@
         }
     }
 }
+
+#pragma mark - App Info
+- (void)setupAppInfo {
+    //gameId
+    NSString *temp_payloadPath = [self.temp_workPath stringByAppendingPathComponent:kPayloadDirName];
+    NSArray *temp_payloadContents = [self.manager contentsOfDirectoryAtPath:temp_payloadPath error:nil];
+    [temp_payloadContents enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSString *file = (NSString *)obj;
+        if ([[[file pathExtension] lowercaseString] isEqualToString:@"app"]) {
+            NSString *tem_appPath = [[self.temp_workPath stringByAppendingPathComponent:kPayloadDirName] stringByAppendingPathComponent:file];
+            //QPJHPLIST.plist
+            NSString *QPJHPLISTFilePath = [tem_appPath stringByAppendingPathComponent:kQPJHPLISTFileName];
+            NSMutableDictionary *QPJHPlistDict = [[NSMutableDictionary alloc] initWithContentsOfFile:QPJHPLISTFilePath];
+            if ([QPJHPlistDict.allKeys containsObject:@"game_id"]) {
+                NSString *game_id = [QPJHPlistDict objectForKey:@"game_id"];
+                self.gameId = game_id.integerValue;
+            }
+
+            //Info.plist
+            NSString *infoPlistPath = [tem_appPath stringByAppendingPathComponent:kInfoPlistFileName];
+            NSMutableDictionary *infoPlistDict = [NSMutableDictionary dictionaryWithContentsOfFile:infoPlistPath];
+            if ([infoPlistDict.allKeys containsObject:kCFBundleIdentifier]) {
+                self.bundleIdentifier = infoPlistDict[kCFBundleIdentifier];
+            }
+            if ([infoPlistDict.allKeys containsObject:kCFBundleDisplayName]) {
+                self.bundleDisplayName = infoPlistDict[kCFBundleDisplayName];
+            }
+            if ([infoPlistDict.allKeys containsObject:kCFBundleName]) {
+                self.bundleName = infoPlistDict[kCFBundleName];
+            }
+            
+            *stop = YES;
+        }
+    }];
+}
+
 - (void)temp_workPathToWorkPath {
         
     //创建新目录
-    self.workPath = [[ZCFileHelper sharedInstance].GameTemp stringByAppendingPathComponent:@(_gameId).stringValue];
-    [manager createDirectoryAtPath:self.workPath withIntermediateDirectories:YES attributes:nil error:nil];
+    self.workPath = [[ZCFileHelper sharedInstance].GameTemp stringByAppendingPathComponent:@(self.gameId).stringValue];
+    [self.manager createDirectoryAtPath:self.workPath withIntermediateDirectories:YES attributes:nil error:nil];
     [[ZCFileHelper sharedInstance] copyFile:self.temp_workPath toPath:self.workPath complete:^(BOOL result) {
         if (result) {
             [self setAppPath];
@@ -111,25 +154,9 @@
     }];
 }
 
-#pragma mark - App Info
-- (void)setGameId {
-    NSString *temp_payloadPath = [self.temp_workPath stringByAppendingPathComponent:kPayloadDirName];
-    NSArray *temp_payloadContents = [manager contentsOfDirectoryAtPath:temp_payloadPath error:nil];
-    [temp_payloadContents enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        NSString *file = (NSString *)obj;
-        if ([[[file pathExtension] lowercaseString] isEqualToString:@"app"]) {
-            NSString *tem_appPath = [[self.temp_workPath stringByAppendingPathComponent:kPayloadDirName] stringByAppendingPathComponent:file];
-            NSString *QPJHPLISTFilePath = [tem_appPath stringByAppendingPathComponent:kQPJHPLISTFileName];
-            NSMutableDictionary *plist = [[NSMutableDictionary alloc] initWithContentsOfFile:QPJHPLISTFilePath];
-            NSString *gameId = [plist objectForKey:@"game_id"];
-            _gameId = gameId.integerValue;
-            *stop = YES;
-        }
-    }];
-}
 - (void)setAppPath {
     NSString *payloadPath = [self.workPath stringByAppendingPathComponent:kPayloadDirName];
-    NSArray *payloadContents = [manager contentsOfDirectoryAtPath:payloadPath error:nil];
+    NSArray *payloadContents = [self.manager contentsOfDirectoryAtPath:payloadPath error:nil];
     [payloadContents enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         NSString *file = (NSString *)obj;
         if ([[[file pathExtension] lowercaseString] isEqualToString:@"app"]) {
@@ -138,128 +165,15 @@
         }
     }];
 }
-- (NSString *)bundleDisplayName {
-    NSString *infoPlistPath = [self.appPath stringByAppendingPathComponent:kInfoPlistFileName];
-    if ([manager fileExistsAtPath:infoPlistPath]) {
-        NSMutableDictionary *infoPlistDict = [NSMutableDictionary dictionaryWithContentsOfFile:infoPlistPath];
-        NSString *displayName = infoPlistDict[kCFBundleDisplayName];
-        if (displayName) {
-            return displayName;
-        } else {
-            return @"info.plist文件中不存在 CFBundleDisplayName";
-        }
-    } else {
-        return @"info.plist文件不存在";
-    }
-}
-- (NSString *)bundleID {
-    NSString *infoPlistPath = [self.appPath stringByAppendingPathComponent:kInfoPlistFileName];
-    if ([manager fileExistsAtPath:infoPlistPath]) {
-        NSMutableDictionary *infoPlistDict = [NSMutableDictionary dictionaryWithContentsOfFile:infoPlistPath];
-        NSString *bundleIdentifier = infoPlistDict[kCFBundleIdentifier];
-        if (bundleIdentifier) {
-            return bundleIdentifier;
-        } else {
-            return @"info.plist文件中不存在 CFBundleIdentifier";
-        }
-    } else {
-        return @"info.plist文件不存在";
-    }
-}
 
-#pragma mark - Resign
-- (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certificateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
-    
-    /*
-     1.创建新的entitlements
-     2.修改info.plist
-     3.修改Embedded Provision
-     4.开始签名并验证
-     5.压缩文件
-     */
-    
-    //1.创建新的entitlements
-    [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
-        if (logBlock) {
-            logBlock(BlockType_Entitlements, logString);
-        }
-    } error:^(BlockType type, NSString * _Nonnull errorString) {
-        if (errorBlock) {
-            errorBlock(BlockType_Entitlements, errorString);
-        }
-    } success:^(BlockType type, id  _Nonnull message) {
-        if (successBlock) {
-            successBlock(BlockType_Entitlements, message);
-        }
-        
-        //2.修改info.plist
-        [self editInfoPlistWithIdentifier:bundleIdentifier displayName:displayName log:^(BlockType type, NSString * _Nonnull logString) {
-            if (logBlock) {
-                logBlock(BlockType_InfoPlist, logString);
-            }
-        } error:^(BlockType type, NSString * _Nonnull errorString) {
-            if (errorBlock) {
-                errorBlock(BlockType_InfoPlist, errorString);
-            }
-        } success:^(BlockType type, id  _Nonnull message) {
-            if (successBlock) {
-                successBlock(BlockType_InfoPlist, message);
-            }
-            
-            //3.修改Embedded Provision
-            [self editEmbeddedProvision:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
-                if (logBlock) {
-                    logBlock(BlockType_EmbeddedProvision, logString);
-                }
-            } error:^(BlockType type, NSString * _Nonnull errorString) {
-                if (errorBlock) {
-                    errorBlock(BlockType_EmbeddedProvision, errorString);
-                }
-            } success:^(BlockType type, id  _Nonnull message) {
-                if (successBlock) {
-                    successBlock(BlockType_EmbeddedProvision, message);
-                }
-                
-                //4.开始签名
-                [self doCodesignCertificateName:certificateName log:^(BlockType type, NSString * _Nonnull logString) {
-                    if (logBlock) {
-                        logBlock(BlockType_DoCodesign, logString);
-                    }
-                } error:^(BlockType type, NSString * _Nonnull errorString) {
-                    if (errorBlock) {
-                        errorBlock(BlockType_DoCodesign, errorString);
-                    }
-                } success:^(BlockType type, id  _Nonnull message) {
-                    if (successBlock) {
-                        successBlock(BlockType_DoCodesign, message);
-                    }
-                    
-                    //5.压缩文件
-                    [self zipPackageToDirPath:targetPath platformModel:nil argument:nil log:^(BlockType type, NSString * _Nonnull logString) {
-                        
-                    } error:^(BlockType type, NSString * _Nonnull errorString) {
-                        if (errorBlock) {
-                            errorBlock(BlockType_ZipPackage, errorString);
-                        }
-                    } success:^(BlockType type, id  _Nonnull message) {
-                        if (successBlock) {
-                            successBlock(BlockType_ZipPackage, message);
-                        }
-                    }];
-                    
-                }];
-            }];
-        }];
-    }];
-}
 
 #pragma mark - Entitlements
 - (void)createEntitlementsWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     //先检查是否存在entitlements，存在先删掉
     NSString *entitlementsPath = [self.workPath stringByAppendingPathComponent:kEntitlementsPlistFileName];
-    if (entitlementsPath && [manager fileExistsAtPath:entitlementsPath]) {
-        if (![manager removeItemAtPath:entitlementsPath error:nil]) {
+    if (entitlementsPath && [self.manager fileExistsAtPath:entitlementsPath]) {
+        if (![self.manager removeItemAtPath:entitlementsPath error:nil]) {
             if (errorBlock) {
                 errorBlock(BlockType_Entitlements, @"错误：删除旧Entitlements失败");
             }
@@ -268,7 +182,7 @@
     }
     
     //使用provisioningProfile作为新的Entitlements
-    if ([manager fileExistsAtPath:provisioningProfile.path]) {
+    if ([self.manager fileExistsAtPath:provisioningProfile.path]) {
         NSTask *task = [[NSTask alloc] init];
         [task setLaunchPath:@"/usr/bin/security"];
         [task setArguments:@[@"cms", @"-D", @"-i", provisioningProfile.path]];
@@ -285,12 +199,12 @@
             if (task.isRunning == 0) {
                 [runLoop stop:^{
                     if (task.terminationStatus == 0) {
-                        if ([self->entitlementsResult respondsToSelector:@selector(containsString:)] && [self->entitlementsResult containsString:@"SecPolicySetValue"]) {
-                            NSMutableArray *linesInOutput = [self->entitlementsResult componentsSeparatedByString:@"\n"].mutableCopy;
+                        if ([self.entitlementsResult respondsToSelector:@selector(containsString:)] && [self.entitlementsResult containsString:@"SecPolicySetValue"]) {
+                            NSMutableArray *linesInOutput = [self.entitlementsResult componentsSeparatedByString:@"\n"].mutableCopy;
                             [linesInOutput removeObjectAtIndex:0];
-                            self->entitlementsResult = [linesInOutput componentsJoinedByString:@"\n"];
+                            self.entitlementsResult = [linesInOutput componentsJoinedByString:@"\n"];
                         }
-                        NSMutableDictionary *entitlementsDict = [[NSMutableDictionary alloc] initWithDictionary:self->entitlementsResult.propertyList[@"Entitlements"]];
+                        NSMutableDictionary *entitlementsDict = [[NSMutableDictionary alloc] initWithDictionary:self.entitlementsResult.propertyList[@"Entitlements"]];
                         /*
                          {
                              "application-identifier" = "53V38J3HUU.com.*";
@@ -330,22 +244,190 @@
 }
 - (void)watchEntitlements:(NSFileHandle *)handle {
     @autoreleasepool {
-        entitlementsResult = [[NSString alloc] initWithData:[handle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
+        self.entitlementsResult = [[NSString alloc] initWithData:[handle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
     }
 }
 
+#pragma mark - EnbeddedProvision
+- (void)editEmbeddedProvision:(ZCProvisioningProfile *)provisoiningProfile  log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+    
+    NSString *payloadPtah = [self.workPath stringByAppendingPathComponent:kPayloadDirName];
+    NSArray *payloadContents = [self.manager contentsOfDirectoryAtPath:payloadPtah error:nil];
+    //删除 embedded privisioning
+    for (NSString *file in payloadContents) {
+        if ([[[file pathExtension] lowercaseString] isEqualToString:@"app"]) {
+            NSString *provisioningPath = [self getEmbeddedProvisioningProfilePath];
+            if (provisioningPath) {
+                [self.manager removeItemAtPath:provisioningPath error:nil];
+            }
+            break;
+        }
+    }
+    
+    NSString *targetPath = [[self.appPath stringByAppendingPathComponent:kEmbeddedProvisioningFileName] stringByAppendingPathExtension:@"mobileprovision"];
+    [[ZCFileHelper sharedInstance] copyFile:provisoiningProfile.path toPath:targetPath complete:^(BOOL result) {
+        if (result) {
+            if (successBlock) {
+                successBlock(BlockType_EmbeddedProvision, @"Embedded.mobileprovision创建成功");
+            }
+        } else {
+            if (errorBlock) {
+                errorBlock(BlockType_EmbeddedProvision, @"创建一个新的Embedded.mobileprovision失败");
+            }
+        }
+    }];
+}
+- (NSString *)getEmbeddedProvisioningProfilePath {
+    NSString *provisioningPtah = nil;
+    NSArray *provisioningProfiles = [self.manager contentsOfDirectoryAtPath:self.appPath error:nil];
+    provisioningProfiles = [provisioningProfiles filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"pathExtension IN %@", @[@"mobileprovision", @"provisionprofile"]]];
+    for (NSString *path in provisioningProfiles) {
+        BOOL isDirectory;
+        if ([self.manager fileExistsAtPath:[NSString stringWithFormat:@"%@/%@", self.appPath, path] isDirectory:&isDirectory]) {
+            provisioningPtah = [NSString stringWithFormat:@"%@/%@", self.appPath, path];
+        }
+    }
+    return provisioningPtah;
+}
+
+#pragma mark - Codesign
+- (void)doCodesignCertificateName:(NSString *)certificateName log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+    
+    if ([self.manager fileExistsAtPath:self.appPath]) {
+        NSMutableArray *waitSignPathArray = @[].mutableCopy;
+        NSArray *subpaths = [self.manager subpathsOfDirectoryAtPath:self.appPath error:nil];
+        for (NSString *subpath in subpaths) {
+            NSString *extension = [[subpath pathExtension] lowercaseString];
+            if ([extension isEqualTo:@"framework"] || [extension isEqualTo:@"dylib"]) {
+                [waitSignPathArray addObject:[self.appPath stringByAppendingPathComponent:subpath]];
+            }
+        }
+        
+        //最后对appPath也要签名
+        [waitSignPathArray addObject:self.appPath];
+        
+        ZCManuaQueue *queue = [[ZCManuaQueue alloc] init];
+        __block NSString *failurePath;
+        for (NSString *signPath in waitSignPathArray) {
+            NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
+                NSString *entitlementspath = [self.workPath stringByAppendingPathComponent:kEntitlementsPlistFileName];
+                
+                NSTask *task = [[NSTask alloc] init];
+                [task setLaunchPath:@"/usr/bin/codesign"];
+                [task setArguments:@[@"-vvv", @"-fs", certificateName, signPath, [NSString stringWithFormat:@"--entitlements=%@", entitlementspath]]];
+                
+                NSPipe *pipe = [NSPipe pipe];
+                [task setStandardOutput:pipe];
+                [task setStandardError:pipe];
+                NSFileHandle *handle = [pipe fileHandleForReading];
+                [task launch];
+                [NSThread detachNewThreadSelector:@selector(watchCodesigning:) toTarget:self withObject:handle];
+                
+                if (logBlock) {
+//                    logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"开始签名文件：%@", [signPath lastPathComponent]]);
+                }
+                
+                ZCRunLoop *runloop = [[ZCRunLoop alloc] init];
+                [runloop run:^{
+                    if ([task isRunning] == 0) {
+                        [runloop stop:^{
+                            //验证签名
+                            if (logBlock) {
+//                                logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"验证文件:%@", [signPath lastPathComponent]]);
+                            }
+                            [self verifySignature:signPath complete:^(NSString *error) {
+                                if (error) {
+                                    if (errorBlock) {
+                                        failurePath = signPath;
+                                        errorBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"签名失败 %@", error]);
+                                    }
+                                    [queue cancelAll];
+                                } else {
+                                    if (logBlock) {
+//                                        logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"文件%@ 签名完成", [signPath lastPathComponent]]);
+                                    }
+                                    [queue next];
+                                }
+                            }];
+                        }];
+                    }
+                }];
+            }];
+            [queue addOperation:operation];
+        }
+        [queue next];
+        queue.noOperationBlock = ^{
+            if (successBlock && failurePath == nil) {
+                successBlock(BlockType_DoCodesign, @"签名验证完成");
+            }
+        };
+    } else {
+        if (errorBlock) {
+            errorBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"没有找到文件夹 %@", self.appPath]);
+        }
+    }
+    
+    
+}
+//签名验证
+- (void)verifySignature:(NSString *)filePath complete:(void(^)(NSString *error))complete {
+    if (self.appPath) {
+        
+        //验证
+        NSTask *task = [[NSTask alloc] init];
+        [task setLaunchPath:@"/usr/bin/codesign"];
+        [task setArguments:@[@"-v", filePath]];
+        NSPipe *pipe = [NSPipe pipe];
+        [task setStandardOutput:pipe];
+        [task setStandardError:pipe];
+        NSFileHandle *handle = [pipe fileHandleForReading];
+        [task launch];
+        [NSThread detachNewThreadSelector:@selector(watchVerificationProcess:) toTarget:self withObject:handle];
+        
+        ZCRunLoop *runloop = [[ZCRunLoop alloc] init];
+        [runloop run:^{
+            if ([task isRunning] == 0) {
+                [runloop stop:^{
+                    if (complete) {
+                        if ([self.verificationResult length] == 0) {
+                            complete(nil);
+                        } else {
+                            NSString *error = [[self.codesigningResult stringByAppendingFormat:@"\n\n"] stringByAppendingFormat:@"%@", self.verificationResult];
+                            complete(error);
+                        }
+                    }
+                    
+                }];
+            }
+        }];
+    }
+}
+- (void)watchCodesigning:(NSFileHandle *)handle {
+    @autoreleasepool {
+        self.codesigningResult = [[NSString alloc] initWithData:[handle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
+    }
+}
+- (void)watchVerificationProcess:(NSFileHandle *)handle {
+    @autoreleasepool {
+        self.verificationResult = [[NSString alloc] initWithData:[handle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
+    }
+}
+
+#pragma mark ----------母包签名实现----------
 #pragma mark - Info.plist
 - (void)editInfoPlistWithIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
-    if (logBlock) {
-        logBlock(BlockType_InfoPlist, @"修改info.plist……");
-    }
-    
     NSString *infoPlistPath = [self.appPath stringByAppendingPathComponent:kInfoPlistFileName];
-    if ([manager fileExistsAtPath:infoPlistPath]) {
+    if ([self.manager fileExistsAtPath:infoPlistPath]) {
         NSMutableDictionary *plist = [[NSMutableDictionary alloc] initWithContentsOfFile:infoPlistPath];
-        [plist setObject:bundleIdentifier forKey:kCFBundleIdentifier];
-        [plist setObject:displayName forKey:kCFBundleDisplayName];
+        if (bundleIdentifier) {
+            [plist setObject:bundleIdentifier forKey:kCFBundleIdentifier];
+            self.bundleIdentifier = bundleIdentifier;
+        }
+        if (displayName) {
+            [plist setObject:displayName forKey:kCFBundleDisplayName];
+            self.bundleDisplayName = displayName;
+        }
         
         NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:plist format:NSPropertyListXMLFormat_v1_0 options:kCFPropertyListImmutable error:nil];
         if ([xmlData writeToFile:infoPlistPath atomically:YES]) {
@@ -364,6 +446,216 @@
     }
 }
 
+#pragma mark - ZipPackage
+- (void)zipPackageToDirPath:(NSString *)zipDirPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+    
+    NSString *zipIpaName = @(self.gameId).stringValue;
+    if (self.bundleDisplayName) {
+        zipIpaName = self.bundleDisplayName;
+    } else if (self.bundleName) {
+        zipIpaName = self.bundleName;
+    } else if (self.bundleIdentifier) {
+        zipIpaName = self.bundleIdentifier;
+    }
+
+    NSString *zipIpaPath = [[zipDirPath stringByAppendingPathComponent:zipIpaName] stringByAppendingPathExtension:@"ipa"];
+    
+    if (logBlock) {
+        logBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@ 开始压缩", zipIpaPath]);
+    }
+    
+    [self.manager createDirectoryAtPath:zipDirPath withIntermediateDirectories:YES attributes:nil error:nil];
+    
+    //先检查是否存在entitlements，存在先删掉
+    NSString *entitlementsPath = [self.workPath stringByAppendingPathComponent:kEntitlementsPlistFileName];
+    if (entitlementsPath && [self.manager fileExistsAtPath:entitlementsPath]) {
+        if (![self.manager removeItemAtPath:entitlementsPath error:nil]) {
+            if (errorBlock) {
+                errorBlock(BlockType_Entitlements, @"错误：删除旧Entitlements失败");
+            }
+            return;
+        }
+    }
+    
+    [[ZCFileHelper sharedInstance] zip:self.workPath toPath:zipIpaPath complete:^(BOOL result) {
+        if (result) {
+            if (successBlock) {
+                successBlock(BlockType_ZipPackage, @"文件压缩成功");
+            }
+        } else {
+            if (errorBlock) {
+                errorBlock(BlockType_ZipPackage, @"文件压缩失败");
+            }
+        }
+    }];
+}
+
+#pragma mark - Resign
+- (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certificateName:(NSString *)certificateName useMobileprovisionBundleID:(BOOL)useMobileprovisionBundleID bundleIdField_str:(NSString *)bundleIdField_str appNameField_str:(NSString *)appNameField_str targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
+    
+    //标记当前时间
+    NSTimeInterval currentTime = [[NSDate date] timeIntervalSince1970];
+    
+    if (logBlock) {
+        logBlock(BlockType_Unzip, [NSString stringWithFormat:@"开始重签"]);
+    }
+    
+    //copy到workPath
+    [self temp_workPathToWorkPath];
+    
+    NSString *bundleIdentifier = @"";
+    if (useMobileprovisionBundleID) {
+        bundleIdentifier = provisioningProfile.bundleIdentifier;
+    } else {
+        if ([bundleIdField_str length] == 0) {
+            bundleIdentifier = self.bundleIdentifier;
+        } else {
+            bundleIdentifier = bundleIdField_str;
+        }
+    }
+    NSString *displayName = @"";
+    if ([appNameField_str length] == 0) {
+        displayName = self.bundleDisplayName;
+    } else {
+        displayName = appNameField_str;
+    }
+    [self removeCodeSignatureDirectory];
+    
+    /*
+     1.创建新的entitlements
+     2.修改info.plist
+     3.修改Embedded Provision
+     4.开始签名并验证
+     5.压缩文件
+     */
+    
+    //1.创建新的entitlements
+    if (logBlock) {
+        logBlock(BlockType_Entitlements, [NSString stringWithFormat:@"开始创建新的entitlements"]);
+    }
+    [self createEntitlementsWithProvisioningProfile:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
+        if (logBlock) {
+            logBlock(BlockType_Entitlements, logString);
+        }
+    } error:^(BlockType type, NSString * _Nonnull errorString) {
+        if (errorBlock) {
+            errorBlock(BlockType_Entitlements, errorString);
+        }
+    } success:^(BlockType type, id  _Nonnull message) {
+        if (successBlock) {
+            successBlock(BlockType_Entitlements, message);
+        }
+        
+        //2.修改info.plist
+        if (logBlock) {
+            logBlock(BlockType_InfoPlist, [NSString stringWithFormat:@"修改info.plist"]);
+        }
+        [self editInfoPlistWithIdentifier:bundleIdentifier displayName:displayName log:^(BlockType type, NSString * _Nonnull logString) {
+            if (logBlock) {
+                logBlock(BlockType_InfoPlist, logString);
+            }
+        } error:^(BlockType type, NSString * _Nonnull errorString) {
+            if (errorBlock) {
+                errorBlock(BlockType_InfoPlist, errorString);
+            }
+        } success:^(BlockType type, id  _Nonnull message) {
+            if (successBlock) {
+                successBlock(BlockType_InfoPlist, message);
+            }
+            
+            //3.修改Embedded Provision
+            if (logBlock) {
+                logBlock(BlockType_EmbeddedProvision, [NSString stringWithFormat:@"修改Embedded Provision"]);
+            }
+            [self editEmbeddedProvision:provisioningProfile log:^(BlockType type, NSString * _Nonnull logString) {
+                if (logBlock) {
+                    logBlock(BlockType_EmbeddedProvision, logString);
+                }
+            } error:^(BlockType type, NSString * _Nonnull errorString) {
+                if (errorBlock) {
+                    errorBlock(BlockType_EmbeddedProvision, errorString);
+                }
+            } success:^(BlockType type, id  _Nonnull message) {
+                if (successBlock) {
+                    successBlock(BlockType_EmbeddedProvision, message);
+                }
+                
+                //4.开始签名
+                if (logBlock) {
+                    logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"开始签名"]);
+                }
+                [self doCodesignCertificateName:certificateName log:^(BlockType type, NSString * _Nonnull logString) {
+                    if (logBlock) {
+                        logBlock(BlockType_DoCodesign, logString);
+                    }
+                } error:^(BlockType type, NSString * _Nonnull errorString) {
+                    if (errorBlock) {
+                        errorBlock(BlockType_DoCodesign, errorString);
+                    }
+                } success:^(BlockType type, id  _Nonnull message) {
+                    if (successBlock) {
+                        successBlock(BlockType_DoCodesign, message);
+                    }
+                    
+                    //5.压缩文件
+                    if (logBlock) {
+                        logBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"压缩文件"]);
+                    }
+                    [self zipPackageToDirPath:targetPath log:^(BlockType type, NSString * _Nonnull logString) {
+                        if (logBlock) {
+                            logBlock(BlockType_DoCodesign, logString);
+                        }
+                    } error:^(BlockType type, NSString * _Nonnull errorString) {
+                        if (errorBlock) {
+                            errorBlock(BlockType_ZipPackage, errorString);
+                        }
+                    } success:^(BlockType type, id  _Nonnull message) {
+                        if (successBlock) {
+                            successBlock(BlockType_ZipPackage, message);
+                            //打包完成移除解压文件
+                            if ([self.manager fileExistsAtPath:self.workPath]) {
+                                [self.manager removeItemAtPath:self.workPath error:nil];
+                            }
+                            //再次标记当前时间,计算耗时
+                            NSTimeInterval currentTime1 = [[NSDate date] timeIntervalSince1970];
+                            NSTimeInterval diffTime = currentTime1 - currentTime;
+                            NSString *diffTimeStr = @"";
+                            long timeHour = 0;
+                            long timeMinutes = 0;
+                            long timeSeconds = 0;
+                            timeHour = diffTime / (60 * 60);
+                            timeMinutes = (diffTime - timeHour * 60 * 60) / 60;
+                            timeSeconds = diffTime - timeHour * 60 * 60 - timeMinutes * 60;
+                            if (timeHour > 24) {
+                                //时间大于1天，不精确计算
+                                diffTimeStr = @"大于24小时";
+                            } else {
+                                if (timeHour > 1) {
+                                    diffTimeStr = [NSString stringWithFormat:@"%ld小时", timeHour];
+                                }
+                                diffTimeStr = [NSString stringWithFormat:@"%@%ld分", diffTimeStr, timeMinutes];
+                                if (timeHour || timeMinutes) {
+                                    diffTimeStr = [NSString stringWithFormat:@"%@%ld秒", diffTimeStr, timeSeconds];
+                                } else {
+                                    diffTimeStr = [NSString stringWithFormat:@"%ld秒", timeSeconds];
+                                }
+                            }
+                            
+                            successBlock(BlockType_PlatformAllEnd, [NSString stringWithFormat:@"重签成功，耗时%@", diffTimeStr]);
+                        }
+                        
+                        
+                    }];
+                    
+                }];
+            }];
+        }];
+    }];
+}
+
+
+#pragma mark ----------渠道出包实现----------
+#pragma mark - Info.plist
 - (void)platformeditInfoPlistWithArgument:(NSDictionary *)argument channelId:(NSInteger)channelId log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
     NSString *ios_package = [argument objectForKey:@"ios_package"];
@@ -371,7 +663,7 @@
     NSString *plat_game_name = [argument objectForKey:@"plat_game_name"];
         
     NSString *infoPlistPath = [self.appPath stringByAppendingPathComponent:kInfoPlistFileName];
-    if ([manager fileExistsAtPath:infoPlistPath]) {
+    if ([self.manager fileExistsAtPath:infoPlistPath]) {
         NSMutableDictionary *plist = [[NSMutableDictionary alloc] initWithContentsOfFile:infoPlistPath];
         if (ios_package) {
             [plist setObject:ios_package forKey:kCFBundleIdentifier];
@@ -522,7 +814,7 @@
 - (void)platformSDKUnzipPlatformModel:(ZCPlatformDataJsonModel *)platformModel launchImagePath:(NSString *)launchImagePath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     //判断PlatformSDKUnzip是否存在，存在则不需要解压
     NSString *PlatformSDKUnzip = [ZCFileHelper sharedInstance].PlatformSDKUnzip;
-    NSArray *PlatformSDKUnzipContents = [self->manager contentsOfDirectoryAtPath:PlatformSDKUnzip error:nil];
+    NSArray *PlatformSDKUnzipContents = [self.manager contentsOfDirectoryAtPath:PlatformSDKUnzip error:nil];
     NSString *location_channel_unzip = nil;
     if (PlatformSDKUnzipContents.count) {
         for (NSString *file in PlatformSDKUnzipContents) {
@@ -539,7 +831,7 @@
     } else {
         //1.获取渠道文件
         NSString *PlatformSDKDownloadZip = [ZCFileHelper sharedInstance].PlatformSDKDownloadZip;
-        NSArray *PlatformSDKDownloadZipContents = [self->manager contentsOfDirectoryAtPath:PlatformSDKDownloadZip error:nil];
+        NSArray *PlatformSDKDownloadZipContents = [self.manager contentsOfDirectoryAtPath:PlatformSDKDownloadZip error:nil];
         NSString *location_channel_zip = nil;
         if (PlatformSDKDownloadZipContents.count) {
             for (NSString *file in PlatformSDKDownloadZipContents) {
@@ -568,8 +860,6 @@
             }];
         }
     }
-    
-    
         
 }
 ///渠道文件注入
@@ -590,7 +880,7 @@
     NSString *platformJsonPath = [[[ZCFileHelper sharedInstance].PlatformSDKJson stringByAppendingPathComponent:@(platformModel.id_).stringValue] stringByAppendingPathExtension:@"json"];
     NSMutableDictionary *platformJsonPlist = [[ZCDataUtil shareInstance] readJsonFile:platformJsonPath];
     NSString *plat_plist = platformJsonPlist[@"plat_plist"];
-    NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:resourcePath error:nil];
+    NSArray *sourceContents = [self.manager contentsOfDirectoryAtPath:resourcePath error:nil];
     NSString *plat_plistPath;
     for (NSString *file in sourceContents) {
         if ([file isEqualToString:plat_plist]) {
@@ -661,8 +951,8 @@
     
     //任务3
     NSString *dylibs = [platformPath stringByAppendingPathComponent:@"dylibs"];
-    if ([self->manager fileExistsAtPath:dylibs]) {
-        NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:dylibs error:nil];
+    if ([self.manager fileExistsAtPath:dylibs]) {
+        NSArray *sourceContents = [self.manager contentsOfDirectoryAtPath:dylibs error:nil];
         if (sourceContents.count) {
             for (NSString *file in sourceContents) {
                 dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -703,8 +993,8 @@
     }
     
     NSString *launchimage_Path = [platformPath stringByAppendingPathComponent:launchimage_];
-    if ([self->manager fileExistsAtPath:launchimage_Path]) {
-        NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:launchimage_Path error:nil];
+    if ([self.manager fileExistsAtPath:launchimage_Path]) {
+        NSArray *sourceContents = [self.manager contentsOfDirectoryAtPath:launchimage_Path error:nil];
         if (sourceContents.count) {
             for (NSString *file in sourceContents) {
                 dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -767,7 +1057,7 @@
     //任务5
     //替换QPJHLightSDK
     NSString *libs = [platformPath stringByAppendingPathComponent:@"libs"];
-    NSArray *libsContents = [self->manager contentsOfDirectoryAtPath:libs error:nil];
+    NSArray *libsContents = [self.manager contentsOfDirectoryAtPath:libs error:nil];
     NSString *QPJHLightSDKPath;
     NSString *targetQPJHLightSDKPath;
     for (NSString *file in libsContents) {
@@ -801,7 +1091,7 @@
     //任务6
     NSString *AssetsPath = [[ZCFileHelper sharedInstance].GameTemp stringByAppendingPathComponent:@"Assets.xcassets"];
     NSString *appIconSourcePath = [AssetsPath stringByAppendingPathComponent:@"AppIcon.appiconset"];
-    NSArray *AppIconsPathContents = [self->manager contentsOfDirectoryAtPath:appIconSourcePath error:nil];
+    NSArray *AppIconsPathContents = [self.manager contentsOfDirectoryAtPath:appIconSourcePath error:nil];
 
     for (NSString *file in AppIconsPathContents) {
         dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -870,186 +1160,18 @@
             }
         });
     });
-    
-    
-}
-
-
-#pragma mark - EnbeddedProvision
-- (void)editEmbeddedProvision:(ZCProvisioningProfile *)provisoiningProfile  log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
-    
-    NSString *payloadPtah = [self.workPath stringByAppendingPathComponent:kPayloadDirName];
-    NSArray *payloadContents = [manager contentsOfDirectoryAtPath:payloadPtah error:nil];
-    //删除 embedded privisioning
-    for (NSString *file in payloadContents) {
-        if ([[[file pathExtension] lowercaseString] isEqualToString:@"app"]) {
-            NSString *provisioningPath = [self getEmbeddedProvisioningProfilePath];
-            if (provisioningPath) {
-                [manager removeItemAtPath:provisioningPath error:nil];
-            }
-            break;
-        }
-    }
-    
-    NSString *targetPath = [[self.appPath stringByAppendingPathComponent:kEmbeddedProvisioningFileName] stringByAppendingPathExtension:@"mobileprovision"];
-    [[ZCFileHelper sharedInstance] copyFile:provisoiningProfile.path toPath:targetPath complete:^(BOOL result) {
-        if (result) {
-            if (successBlock) {
-                successBlock(BlockType_EmbeddedProvision, @"Embedded.mobileprovision创建成功");
-            }
-        } else {
-            if (errorBlock) {
-                errorBlock(BlockType_EmbeddedProvision, @"创建一个新的Embedded.mobileprovision失败");
-            }
-        }
-    }];
-}
-- (NSString *)getEmbeddedProvisioningProfilePath {
-    NSString *provisioningPtah = nil;
-    NSArray *provisioningProfiles = [manager contentsOfDirectoryAtPath:self.appPath error:nil];
-    provisioningProfiles = [provisioningProfiles filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"pathExtension IN %@", @[@"mobileprovision", @"provisionprofile"]]];
-    for (NSString *path in provisioningProfiles) {
-        BOOL isDirectory;
-        if ([manager fileExistsAtPath:[NSString stringWithFormat:@"%@/%@", self.appPath, path] isDirectory:&isDirectory]) {
-            provisioningPtah = [NSString stringWithFormat:@"%@/%@", self.appPath, path];
-        }
-    }
-    return provisioningPtah;
-}
-
-#pragma mark - Codesign
-- (void)doCodesignCertificateName:(NSString *)certificateName log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
-    
-    if ([manager fileExistsAtPath:self.appPath]) {
-        NSMutableArray *waitSignPathArray = @[].mutableCopy;
-        NSArray *subpaths = [manager subpathsOfDirectoryAtPath:self.appPath error:nil];
-        for (NSString *subpath in subpaths) {
-            NSString *extension = [[subpath pathExtension] lowercaseString];
-            if ([extension isEqualTo:@"framework"] || [extension isEqualTo:@"dylib"]) {
-                [waitSignPathArray addObject:[self.appPath stringByAppendingPathComponent:subpath]];
-            }
-        }
-        
-        //最后对appPath也要签名
-        [waitSignPathArray addObject:self.appPath];
-        
-        ZCManuaQueue *queue = [[ZCManuaQueue alloc] init];
-        __block NSString *failurePath;
-        for (NSString *signPath in waitSignPathArray) {
-            NSBlockOperation *operation = [NSBlockOperation blockOperationWithBlock:^{
-                NSString *entitlementspath = [self.workPath stringByAppendingPathComponent:kEntitlementsPlistFileName];
-                
-                NSTask *task = [[NSTask alloc] init];
-                [task setLaunchPath:@"/usr/bin/codesign"];
-                [task setArguments:@[@"-vvv", @"-fs", certificateName, signPath, [NSString stringWithFormat:@"--entitlements=%@", entitlementspath]]];
-                
-                NSPipe *pipe = [NSPipe pipe];
-                [task setStandardOutput:pipe];
-                [task setStandardError:pipe];
-                NSFileHandle *handle = [pipe fileHandleForReading];
-                [task launch];
-                [NSThread detachNewThreadSelector:@selector(watchCodesigning:) toTarget:self withObject:handle];
-                
-                if (logBlock) {
-//                    logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"开始签名文件：%@", [signPath lastPathComponent]]);
-                }
-                
-                ZCRunLoop *runloop = [[ZCRunLoop alloc] init];
-                [runloop run:^{
-                    if ([task isRunning] == 0) {
-                        [runloop stop:^{
-                            //验证签名
-                            if (logBlock) {
-//                                logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"验证文件:%@", [signPath lastPathComponent]]);
-                            }
-                            [self verifySignature:signPath complete:^(NSString *error) {
-                                if (error) {
-                                    if (errorBlock) {
-                                        failurePath = signPath;
-                                        errorBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"签名失败 %@", error]);
-                                    }
-                                    [queue cancelAll];
-                                } else {
-                                    if (logBlock) {
-//                                        logBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"文件%@ 签名完成", [signPath lastPathComponent]]);
-                                    }
-                                    [queue next];
-                                }
-                            }];
-                        }];
-                    }
-                }];
-            }];
-            [queue addOperation:operation];
-        }
-        [queue next];
-        queue.noOperationBlock = ^{
-            if (successBlock && failurePath == nil) {
-                successBlock(BlockType_DoCodesign, @"签名验证完成");
-            }
-        };
-    } else {
-        if (errorBlock) {
-            errorBlock(BlockType_DoCodesign, [NSString stringWithFormat:@"没有找到文件夹 %@", self.appPath]);
-        }
-    }
-    
-    
-}
-//签名验证
-- (void)verifySignature:(NSString *)filePath complete:(void(^)(NSString *error))complete {
-    if (self.appPath) {
-        
-        //验证
-        NSTask *task = [[NSTask alloc] init];
-        [task setLaunchPath:@"/usr/bin/codesign"];
-        [task setArguments:@[@"-v", filePath]];
-        NSPipe *pipe = [NSPipe pipe];
-        [task setStandardOutput:pipe];
-        [task setStandardError:pipe];
-        NSFileHandle *handle = [pipe fileHandleForReading];
-        [task launch];
-        [NSThread detachNewThreadSelector:@selector(watchVerificationProcess:) toTarget:self withObject:handle];
-        
-        ZCRunLoop *runloop = [[ZCRunLoop alloc] init];
-        [runloop run:^{
-            if ([task isRunning] == 0) {
-                [runloop stop:^{
-                    if (complete) {
-                        if ([self->verificationResult length] == 0) {
-                            complete(nil);
-                        } else {
-                            NSString *error = [[self->codesigningResult stringByAppendingFormat:@"\n\n"] stringByAppendingFormat:@"%@", self->verificationResult];
-                            complete(error);
-                        }
-                    }
-                    
-                }];
-            }
-        }];
-    }
-}
-- (void)watchCodesigning:(NSFileHandle *)handle {
-    @autoreleasepool {
-        codesigningResult = [[NSString alloc] initWithData:[handle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
-    }
-}
-- (void)watchVerificationProcess:(NSFileHandle *)handle {
-    @autoreleasepool {
-        verificationResult = [[NSString alloc] initWithData:[handle readDataToEndOfFile] encoding:NSASCIIStringEncoding];
-    }
 }
 
 #pragma mark - ZipPackage
 - (void)zipPackageToDirPath:(NSString *)zipDirPath platformModel:(ZCPlatformDataJsonModel *)platformModel argument:(NSDictionary *)argument log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
-    NSString *zipIpaName = self.bundleDisplayName;//ipa重签
+    NSString *zipIpaName = @"";//ipa重签
     if (argument) {
         NSString *plat_game_name = [argument objectForKey:@"plat_game_name"];
         if (!plat_game_name) {
             plat_game_name = zipIpaName;
         }
-        zipIpaName = [NSString stringWithFormat:@"%ld%@_%@_%@", (long)_gameId, plat_game_name, platformModel.alias, [[ZCDateFormatterUtil sharedFormatter] nowForDateFormat:@"yyyyMMddHHmm"]];
+        zipIpaName = [NSString stringWithFormat:@"%ld%@_%@_%@", (long)self.gameId, plat_game_name, platformModel.alias, [[ZCDateFormatterUtil sharedFormatter] nowForDateFormat:@"yyyyMMddHHmm"]];
     }
 
     NSString *zipIpaPath = [[zipDirPath stringByAppendingPathComponent:zipIpaName] stringByAppendingPathExtension:@"ipa"];
@@ -1058,12 +1180,12 @@
         logBlock(BlockType_ZipPackage, [NSString stringWithFormat:@"%@ 开始压缩", zipIpaPath]);
     }
     
-    [manager createDirectoryAtPath:zipDirPath withIntermediateDirectories:YES attributes:nil error:nil];
+    [self.manager createDirectoryAtPath:zipDirPath withIntermediateDirectories:YES attributes:nil error:nil];
     
     //先检查是否存在entitlements，存在先删掉
     NSString *entitlementsPath = [self.workPath stringByAppendingPathComponent:kEntitlementsPlistFileName];
-    if (entitlementsPath && [manager fileExistsAtPath:entitlementsPath]) {
-        if (![manager removeItemAtPath:entitlementsPath error:nil]) {
+    if (entitlementsPath && [self.manager fileExistsAtPath:entitlementsPath]) {
+        if (![self.manager removeItemAtPath:entitlementsPath error:nil]) {
             if (errorBlock) {
                 errorBlock(BlockType_Entitlements, @"错误：删除旧Entitlements失败");
             }
@@ -1130,7 +1252,7 @@
             if (logBlock) {
                 logBlock(BlockType_PlatformSDKDownload, [NSString stringWithFormat:@"%@[%ld]渠道sdk下载", platformModel.name, (long)platformModel.id_]);
             }
-            [[ZCFileHelper sharedInstance] downloadPlatformSDKByGameId:self->_gameId ByPlatformModel:platformModel log:^(NSString * _Nonnull logString) {
+            [[ZCFileHelper sharedInstance] downloadPlatformSDKByGameId:self.gameId ByPlatformModel:platformModel log:^(NSString * _Nonnull logString) {
                 if (logBlock) {
                     logBlock(BlockType_PlatformSDKDownload, logString);
                 }
@@ -1178,8 +1300,8 @@
                     NSString *platformPath = [[ZCFileHelper sharedInstance].PlatformSDKUnzip stringByAppendingPathComponent:platformModel.alias];
                     NSString *corner_Path = [platformPath stringByAppendingPathComponent:@"corner"];
                     NSString *marker_path = nil;
-                    if ([self->manager fileExistsAtPath:corner_Path]) {
-                        NSArray *sourceContents = [self->manager contentsOfDirectoryAtPath:corner_Path error:nil];
+                    if ([self.manager fileExistsAtPath:corner_Path]) {
+                        NSArray *sourceContents = [self.manager contentsOfDirectoryAtPath:corner_Path error:nil];
                         if (sourceContents.count) {
                             for (NSString *file in sourceContents) {
                                 if ([[[file pathExtension] lowercaseString] isEqualToString:@"png"]) {
@@ -1334,9 +1456,6 @@
                                                 }
                                                 [successPlatforms addObject:platformModel.name];
                                                 
-                                                if ([self->manager fileExistsAtPath:self.workPath]) {
-                                                    [self->manager removeItemAtPath:self.workPath error:nil];
-                                                }
                                                 // 本次for循环的异步任务执行完毕，这时候要发一个信号，若不发，下次操作将永远不会触发
                                                 NSLog(@"本次耗时操作完成，信号量+1 %@\n",[NSThread currentThread]);
                                                 dispatch_semaphore_signal(sema);
@@ -1353,13 +1472,14 @@
                 
             }];
             
-            
             dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
         }
         
         if (successBlock) {
             //打包完成移除解压文件
-            [self->manager removeItemAtPath:self.temp_workPath error:nil];
+            if ([self.manager fileExistsAtPath:self.workPath]) {
+                [self.manager removeItemAtPath:self.workPath error:nil];
+            }
             //再次标记当前时间,计算耗时
             NSTimeInterval currentTime1 = [[NSDate date] timeIntervalSince1970];
             NSTimeInterval diffTime = currentTime1 - currentTime;

@@ -1,13 +1,11 @@
 //
-//  ZCAppPackageHandler.h
+//  ZCAppPackageHander.h
 //  ChannelResignTool
 //
 //  Created by 赵隆杰 on 2023/12/23.
 //
 
 #import <Foundation/Foundation.h>
-#import "ZCProvisioningProfile.h"
-#import "ZCPlatformDataJsonModel.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -15,6 +13,7 @@ static NSString *kQPJHPLISTFileName = @"QPJHPLIST.plist";
 static NSString *kPayloadDirName = @"Payload";
 static NSString *kInfoPlistFileName = @"Info.plist";
 static NSString *kCFBundleDisplayName = @"CFBundleDisplayName";
+static NSString *kCFBundleName = @"CFBundleName";
 static NSString *kCFBundleIdentifier = @"CFBundleIdentifier";
 static NSString *kCodeSignatureDirectory = @"_CodeSignature";
 static NSString *kEntitlementsPlistFileName = @"Entitlements.plist";
@@ -45,32 +44,42 @@ typedef void(^SuccessBlock)(BlockType type, id message);
 typedef void(^ErrorBlock)(BlockType type, NSString *errorString);
 typedef void(^LogBlock)(BlockType type, NSString *logString);
 
-@interface ZCAppPackageHandler : NSObject
+@class ZCProvisioningProfile;
 
-@property (strong, readonly) NSString *bundleDisplayName;
-@property (strong, readonly) NSString *bundleID;
+@interface ZCAppPackageHander : NSObject
 
-///包的路径
-@property (nonatomic, copy) NSString *packagePath;
+@property (nonatomic, strong) NSFileManager *manager;//全局文件管理
+
+@property (nonatomic, assign) NSInteger gameId;
+
+@property (nonatomic, copy) NSString *bundleDisplayName;
+@property (nonatomic, copy) NSString *bundleName;
+@property (nonatomic, copy) NSString *bundleIdentifier;
+
 ///包解压的路径
 @property (nonatomic, copy) NSString *temp_workPath;//先放临时路径，为下个渠道直接使用
+
 @property (nonatomic, copy) NSString *workPath;//从临时路径copy
 ///xxx.app的路径
 @property (nonatomic, copy) NSString *appPath;
 
-- (instancetype)initWithPackagePath:(NSString *)path;
-
 ///解压包
 - (void)unzipIpaLog:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
 
+- (instancetype)initWithPackagePath:(NSString *)path;
+
 - (BOOL)removeCodeSignatureDirectory;
 
-///签名
-- (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certificateName:(NSString *)certificateName bundleIdentifier:(NSString *)bundleIdentifier displayName:(NSString *)displayName targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
+- (void)temp_workPathToWorkPath;
 
+- (void)createEntitlementsWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
+- (void)editEmbeddedProvision:(ZCProvisioningProfile *)provisoiningProfile  log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
+- (void)doCodesignCertificateName:(NSString *)certificateName log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
+
+///母包签名
+- (void)resignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certificateName:(NSString *)certificateName useMobileprovisionBundleID:(BOOL)useMobileprovisionBundleID bundleIdField_str:(NSString *)bundleIdField_str appNameField_str:(NSString *)appNameField_str targetPath:(NSString *)targetPath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
 ///渠道出包
 - (void)platformbuildresignWithProvisioningProfile:(ZCProvisioningProfile *)provisioningProfile certificateName:(NSString *)certificateName platformModels:(NSArray *)platformModels appIconPath:(NSString *)appIconPath launchImagePath:(NSString *)launchImagePath targetPath:(NSString *)targetPath log:(LogBlock)logBlock  error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock;
-
 @end
 
 NS_ASSUME_NONNULL_END

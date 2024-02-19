@@ -19,7 +19,4 @@ typedef void (^FailureBlock)(NSString *error);
 
 + (void)PostWithURL:(NSString *)url Params:(NSDictionary *)params success:(SuccessBlock)success failure:(FailureBlock)failure;
 
-//+ (void)cryptPostWithURL:(NSString *)url Params:(NSDictionary *)params success:(SuccessBlock)success failure:(FailureBlock)failure;
-//
-//+ (NSString *)doEncryptStr:(NSString *)originalStr;
 @end

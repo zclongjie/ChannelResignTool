@@ -10,7 +10,6 @@
 #import "ZCRunLoop.h"
 #import "ZCManuaQueue.h"
 #import "ZCAppIconModel.h"
-#import "ZCPlatformModel.h"
 #import "NSImage+ZCUtil.h"
 #import "ZCNetworkingViewModel.h"
 #import "ZCHttpConfig.h"
@@ -234,7 +233,11 @@ static const NSString *kMobileprovisionDirName = @"Library/MobileDevice/Provisio
     dispatch_group_notify(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         dispatch_async(dispatch_get_main_queue(), ^{
             if (game_channel_argument) {
-                successBlock(game_channel_argument);
+                if (![[game_channel_argument allKeys] containsObject:@"ios_package"] || ![[game_channel_argument allKeys] containsObject:@"screen_type"] || ![[game_channel_argument allKeys] containsObject:@"plat_game_name"]) {
+                    errorBlock(@"参数未配置");
+                } else {
+                    successBlock(game_channel_argument);
+                }
             } else {
                 errorBlock(@"参数未配置");
             }

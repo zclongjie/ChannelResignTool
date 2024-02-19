@@ -17,6 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSDictionary *down_info;
 
 @property (nonatomic, assign) BOOL isSelect;
+@property (nonatomic, assign) BOOL isDisenable;
 
 @end
 

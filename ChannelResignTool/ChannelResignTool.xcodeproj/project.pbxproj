@@ -28,12 +28,11 @@
 		A82E07CF2B6FE02100862609 /* MASConstraint.m in Sources */ = {isa = PBXBuildFile; fileRef = A82E07BA2B6FE02100862609 /* MASConstraint.m */; };
 		A82E07D02B6FE02100862609 /* MASViewConstraint.m in Sources */ = {isa = PBXBuildFile; fileRef = A82E07BC2B6FE02100862609 /* MASViewConstraint.m */; };
 		A82E07D12B6FE02100862609 /* MASViewAttribute.m in Sources */ = {isa = PBXBuildFile; fileRef = A82E07BD2B6FE02100862609 /* MASViewAttribute.m */; };
+		A83DDD7D2B822B1400A4D0BE /* ZCAppPackageHander.m in Sources */ = {isa = PBXBuildFile; fileRef = A83DDD7C2B822B1400A4D0BE /* ZCAppPackageHander.m */; };
 		A8629D392B367360008AD376 /* ZCDateFormatterUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D382B367360008AD376 /* ZCDateFormatterUtil.m */; };
-		A8629D3D2B36A8AA008AD376 /* ZCAppPackageHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D3C2B36A8AA008AD376 /* ZCAppPackageHandler.m */; };
 		A8629D402B36BA76008AD376 /* ZCRunLoop.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D3F2B36BA76008AD376 /* ZCRunLoop.m */; };
 		A8629D432B36E137008AD376 /* ZCManuaQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D422B36E137008AD376 /* ZCManuaQueue.m */; };
 		A8629D462B39A4B5008AD376 /* PlatformRowView.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D452B39A4B5008AD376 /* PlatformRowView.m */; };
-		A8629D482B39A7BE008AD376 /* PlatformRowView.xib in Resources */ = {isa = PBXBuildFile; fileRef = A8629D472B39A7BE008AD376 /* PlatformRowView.xib */; };
 		A8629D4D2B3A86B1008AD376 /* ZCDataUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = A8629D4C2B3A86B1008AD376 /* ZCDataUtil.m */; };
 		A8691B552B4B940F0051CF5C /* ZCAppIconModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A8691B542B4B940F0051CF5C /* ZCAppIconModel.m */; };
 		A8691B582B4B9AEF0051CF5C /* BaseModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A8691B562B4B9AEF0051CF5C /* BaseModel.m */; };
@@ -44,13 +43,11 @@
 		A87F65E02B3147CA00CF380B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65DF2B3147CA00CF380B /* main.m */; };
 		A87F65F22B356DB900CF380B /* ZCFileHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65F12B356DB900CF380B /* ZCFileHelper.m */; };
 		A87F65F82B357F9500CF380B /* ZCProvisioningProfile.m in Sources */ = {isa = PBXBuildFile; fileRef = A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */; };
-		A898F9F82B43E39B00942F69 /* ZCPlatformModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */; };
 		A898FA052B46DBC100942F69 /* ZCLocalData.plist in Resources */ = {isa = PBXBuildFile; fileRef = A898FA042B46DBC100942F69 /* ZCLocalData.plist */; };
 		A8A278282B6CD296005EB8C8 /* ZCTemp.Bundle in Resources */ = {isa = PBXBuildFile; fileRef = A8A278272B6CD296005EB8C8 /* ZCTemp.Bundle */; };
 		A8A2782C2B6DD302005EB8C8 /* NSView+ZCUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = A8A2782B2B6DD302005EB8C8 /* NSView+ZCUtil.m */; };
 		A8A2782F2B6DD66C005EB8C8 /* ZCMainView.m in Sources */ = {isa = PBXBuildFile; fileRef = A8A2782E2B6DD66C005EB8C8 /* ZCMainView.m */; };
 		A8A278332B6E4200005EB8C8 /* ZCNetworkingViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A8A278322B6E4200005EB8C8 /* ZCNetworkingViewModel.m */; };
-		A8A278382B6E9019005EB8C8 /* ZCChannelDataJsonModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A8A278372B6E9019005EB8C8 /* ZCChannelDataJsonModel.m */; };
 		A8A2783B2B6F2DFB005EB8C8 /* ZCNetworkManager.m in Sources */ = {isa = PBXBuildFile; fileRef = A8A2783A2B6F2DFB005EB8C8 /* ZCNetworkManager.m */; };
 		A8BFB3A02B6F42B100439938 /* ZCPlatformDataJsonModel.m in Sources */ = {isa = PBXBuildFile; fileRef = A8BFB39F2B6F42B100439938 /* ZCPlatformDataJsonModel.m */; };
 /* End PBXBuildFile section */
@@ -104,17 +101,16 @@
 		A82E07BB2B6FE02100862609 /* ViewController+MASAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ViewController+MASAdditions.h"; sourceTree = "<group>"; };
 		A82E07BC2B6FE02100862609 /* MASViewConstraint.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MASViewConstraint.m; sourceTree = "<group>"; };
 		A82E07BD2B6FE02100862609 /* MASViewAttribute.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MASViewAttribute.m; sourceTree = "<group>"; };
+		A83DDD7B2B822B1400A4D0BE /* ZCAppPackageHander.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCAppPackageHander.h; sourceTree = "<group>"; };
+		A83DDD7C2B822B1400A4D0BE /* ZCAppPackageHander.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCAppPackageHander.m; sourceTree = "<group>"; };
 		A8629D372B367360008AD376 /* ZCDateFormatterUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCDateFormatterUtil.h; sourceTree = "<group>"; };
 		A8629D382B367360008AD376 /* ZCDateFormatterUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCDateFormatterUtil.m; sourceTree = "<group>"; };
-		A8629D3B2B36A8AA008AD376 /* ZCAppPackageHandler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCAppPackageHandler.h; sourceTree = "<group>"; };
-		A8629D3C2B36A8AA008AD376 /* ZCAppPackageHandler.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCAppPackageHandler.m; sourceTree = "<group>"; };
 		A8629D3E2B36BA76008AD376 /* ZCRunLoop.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCRunLoop.h; sourceTree = "<group>"; };
 		A8629D3F2B36BA76008AD376 /* ZCRunLoop.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCRunLoop.m; sourceTree = "<group>"; };
 		A8629D412B36E137008AD376 /* ZCManuaQueue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCManuaQueue.h; sourceTree = "<group>"; };
 		A8629D422B36E137008AD376 /* ZCManuaQueue.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCManuaQueue.m; sourceTree = "<group>"; };
 		A8629D442B39A4B5008AD376 /* PlatformRowView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlatformRowView.h; sourceTree = "<group>"; };
 		A8629D452B39A4B5008AD376 /* PlatformRowView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PlatformRowView.m; sourceTree = "<group>"; };
-		A8629D472B39A7BE008AD376 /* PlatformRowView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PlatformRowView.xib; sourceTree = "<group>"; };
 		A8629D4B2B3A86B1008AD376 /* ZCDataUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCDataUtil.h; sourceTree = "<group>"; };
 		A8629D4C2B3A86B1008AD376 /* ZCDataUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCDataUtil.m; sourceTree = "<group>"; };
 		A8691B532B4B940F0051CF5C /* ZCAppIconModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCAppIconModel.h; sourceTree = "<group>"; };
@@ -134,8 +130,6 @@
 		A87F65F12B356DB900CF380B /* ZCFileHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCFileHelper.m; sourceTree = "<group>"; };
 		A87F65F62B357F9500CF380B /* ZCProvisioningProfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCProvisioningProfile.h; sourceTree = "<group>"; };
 		A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCProvisioningProfile.m; sourceTree = "<group>"; };
-		A898F9F62B43E39B00942F69 /* ZCPlatformModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCPlatformModel.h; sourceTree = "<group>"; };
-		A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCPlatformModel.m; sourceTree = "<group>"; };
 		A898FA042B46DBC100942F69 /* ZCLocalData.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = ZCLocalData.plist; sourceTree = "<group>"; };
 		A8A278272B6CD296005EB8C8 /* ZCTemp.Bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = ZCTemp.Bundle; sourceTree = "<group>"; };
 		A8A2782A2B6DD302005EB8C8 /* NSView+ZCUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSView+ZCUtil.h"; sourceTree = "<group>"; };
@@ -145,8 +139,6 @@
 		A8A278312B6E4200005EB8C8 /* ZCNetworkingViewModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCNetworkingViewModel.h; sourceTree = "<group>"; };
 		A8A278322B6E4200005EB8C8 /* ZCNetworkingViewModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCNetworkingViewModel.m; sourceTree = "<group>"; };
 		A8A278342B6E42B8005EB8C8 /* ZCHttpConfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCHttpConfig.h; sourceTree = "<group>"; };
-		A8A278362B6E9019005EB8C8 /* ZCChannelDataJsonModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ZCChannelDataJsonModel.h; sourceTree = "<group>"; };
-		A8A278372B6E9019005EB8C8 /* ZCChannelDataJsonModel.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ZCChannelDataJsonModel.m; sourceTree = "<group>"; };
 		A8A278392B6F2DFB005EB8C8 /* ZCNetworkManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZCNetworkManager.h; sourceTree = "<group>"; };
 		A8A2783A2B6F2DFB005EB8C8 /* ZCNetworkManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZCNetworkManager.m; sourceTree = "<group>"; };
 		A8BFB39E2B6F42B100439938 /* ZCPlatformDataJsonModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZCPlatformDataJsonModel.h; sourceTree = "<group>"; };
@@ -243,8 +235,8 @@
 		A8629D3A2B36A87B008AD376 /* Factory */ = {
 			isa = PBXGroup;
 			children = (
-				A8629D3B2B36A8AA008AD376 /* ZCAppPackageHandler.h */,
-				A8629D3C2B36A8AA008AD376 /* ZCAppPackageHandler.m */,
+				A83DDD7B2B822B1400A4D0BE /* ZCAppPackageHander.h */,
+				A83DDD7C2B822B1400A4D0BE /* ZCAppPackageHander.m */,
 			);
 			path = Factory;
 			sourceTree = "<group>";
@@ -257,7 +249,6 @@
 				A87F65D82B3147C900CF380B /* ViewController.m */,
 				A8629D442B39A4B5008AD376 /* PlatformRowView.h */,
 				A8629D452B39A4B5008AD376 /* PlatformRowView.m */,
-				A8629D472B39A7BE008AD376 /* PlatformRowView.xib */,
 				A8A2782D2B6DD66C005EB8C8 /* ZCMainView.h */,
 				A8A2782E2B6DD66C005EB8C8 /* ZCMainView.m */,
 			);
@@ -328,15 +319,11 @@
 				A87F65F72B357F9500CF380B /* ZCProvisioningProfile.m */,
 				A8BFB39E2B6F42B100439938 /* ZCPlatformDataJsonModel.h */,
 				A8BFB39F2B6F42B100439938 /* ZCPlatformDataJsonModel.m */,
-				A898F9F62B43E39B00942F69 /* ZCPlatformModel.h */,
-				A898F9F72B43E39B00942F69 /* ZCPlatformModel.m */,
 				A898FA042B46DBC100942F69 /* ZCLocalData.plist */,
 				A8691B532B4B940F0051CF5C /* ZCAppIconModel.h */,
 				A8691B542B4B940F0051CF5C /* ZCAppIconModel.m */,
 				A8691B572B4B9AEF0051CF5C /* BaseModel.h */,
 				A8691B562B4B9AEF0051CF5C /* BaseModel.m */,
-				A8A278362B6E9019005EB8C8 /* ZCChannelDataJsonModel.h */,
-				A8A278372B6E9019005EB8C8 /* ZCChannelDataJsonModel.m */,
 			);
 			path = Entity;
 			sourceTree = "<group>";
@@ -412,7 +399,6 @@
 				A8A278282B6CD296005EB8C8 /* ZCTemp.Bundle in Resources */,
 				A87F65DB2B3147CA00CF380B /* Assets.xcassets in Resources */,
 				A898FA052B46DBC100942F69 /* ZCLocalData.plist in Resources */,
-				A8629D482B39A7BE008AD376 /* PlatformRowView.xib in Resources */,
 				A87F65DE2B3147CA00CF380B /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -428,7 +414,6 @@
 				A80266762B5F95CA00A34D3A /* NSImage+ZCUtil.m in Sources */,
 				A82E07BF2B6FE02100862609 /* NSObject+MJKeyValue.m in Sources */,
 				A8629D432B36E137008AD376 /* ZCManuaQueue.m in Sources */,
-				A8A278382B6E9019005EB8C8 /* ZCChannelDataJsonModel.m in Sources */,
 				A82E07CD2B6FE02100862609 /* NSArray+MASAdditions.m in Sources */,
 				A8A2783B2B6F2DFB005EB8C8 /* ZCNetworkManager.m in Sources */,
 				A82E07C92B6FE02100862609 /* ViewController+MASAdditions.m in Sources */,
@@ -448,12 +433,12 @@
 				A82E07C72B6FE02100862609 /* MJFoundation.m in Sources */,
 				A8629D402B36BA76008AD376 /* ZCRunLoop.m in Sources */,
 				A82E07C22B6FE02100862609 /* MJExtensionConst.m in Sources */,
+				A83DDD7D2B822B1400A4D0BE /* ZCAppPackageHander.m in Sources */,
 				A82E07C52B6FE02100862609 /* NSString+MJExtension.m in Sources */,
 				A82E07D12B6FE02100862609 /* MASViewAttribute.m in Sources */,
 				A82E07CB2B6FE02100862609 /* MASConstraintMaker.m in Sources */,
 				A82E07C12B6FE02100862609 /* NSObject+MJCoding.m in Sources */,
 				A8629D462B39A4B5008AD376 /* PlatformRowView.m in Sources */,
-				A898F9F82B43E39B00942F69 /* ZCPlatformModel.m in Sources */,
 				A87F65E02B3147CA00CF380B /* main.m in Sources */,
 				A82E07C82B6FE02100862609 /* NSLayoutConstraint+MASDebugAdditions.m in Sources */,
 				A82E07C32B6FE02100862609 /* NSObject+MJProperty.m in Sources */,
@@ -463,7 +448,6 @@
 				A8A2782C2B6DD302005EB8C8 /* NSView+ZCUtil.m in Sources */,
 				A87F65F22B356DB900CF380B /* ZCFileHelper.m in Sources */,
 				A87F65D62B3147C900CF380B /* AppDelegate.m in Sources */,
-				A8629D3D2B36A8AA008AD376 /* ZCAppPackageHandler.m in Sources */,
 				A82E07CF2B6FE02100862609 /* MASConstraint.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
