@@ -163,6 +163,7 @@
         [openPanel setCanChooseDirectories:YES];
         [openPanel setAllowsMultipleSelection:NO];
         [openPanel setAllowsOtherFileTypes:NO];
+        [openPanel setCanCreateDirectories:YES];
         
         if ([openPanel runModal] == NSModalResponseOK) {
             NSString *fileNameOpened = [[[openPanel URLs] objectAtIndex:0] path];
@@ -238,7 +239,7 @@
         [self.mainView addLog:[NSString stringWithFormat:@"请选择ipa文件生成目录"] withColor:[NSColor systemRedColor]];
         return;
     }
-    [self.mainView addLog:@"-----------------------" withColor:[NSColor labelColor]];    
+    [self.mainView addLog:@"-----------------------" withColor:[NSColor systemBlueColor]];
     [self.mainView disenableControls];
     
     ZCProvisioningProfile *provisioningProfile = [self.mainView.provisioningArray objectAtIndex:self.mainView.provisioningComboBox_.indexOfSelectedItem];
@@ -302,7 +303,7 @@
     }
     
     [self.mainView disenableControls];
-    [self.mainView addLog:@"-----------------------" withColor:[NSColor labelColor]];
+    [self.mainView addLog:@"-----------------------" withColor:[NSColor systemBlueColor]];
     ZCProvisioningProfile *provisioningProfile = [self.mainView.provisioningArray objectAtIndex:self.mainView.provisioningComboBox_.indexOfSelectedItem];
     
     [self.mainView addLog:@"开始渠道打包" withColor:[NSColor systemGreenColor]];

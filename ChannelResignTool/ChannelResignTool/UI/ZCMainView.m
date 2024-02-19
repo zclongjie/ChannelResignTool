@@ -60,7 +60,7 @@
     }];
     NSView *lineView = [[NSView alloc] init];
     lineView.wantsLayer = YES;
-    lineView.layer.borderColor = [NSColor labelColor].CGColor;
+    lineView.layer.borderColor = [NSColor systemGrayColor].CGColor;
     lineView.layer.borderWidth = 1;
     lineView.layer.cornerRadius = 5;
     [view addSubview:lineView];
@@ -89,7 +89,7 @@
     }];
     NSView *lineView = [[NSView alloc] init];
     lineView.wantsLayer = YES;
-    lineView.layer.borderColor = [NSColor labelColor].CGColor;
+    lineView.layer.borderColor = [NSColor systemGrayColor].CGColor;
     lineView.layer.borderWidth = 1;
     lineView.layer.cornerRadius = 5;
     [view addSubview:lineView];
@@ -134,7 +134,7 @@
     }];
     NSView *lineView = [[NSView alloc] init];
     lineView.wantsLayer = YES;
-    lineView.layer.borderColor = [NSColor labelColor].CGColor;
+    lineView.layer.borderColor = [NSColor systemGrayColor].CGColor;
     lineView.layer.borderWidth = 1;
     lineView.layer.cornerRadius = 5;
     [view addSubview:lineView];
@@ -182,7 +182,7 @@
     }];
     NSView *lineView = [[NSView alloc] init];
     lineView.wantsLayer = YES;
-    lineView.layer.borderColor = [NSColor labelColor].CGColor;
+    lineView.layer.borderColor = [NSColor systemGrayColor].CGColor;
     lineView.layer.borderWidth = 1;
     lineView.layer.cornerRadius = 5;
     [view addSubview:lineView];
@@ -409,7 +409,7 @@
 
     NSView *lineView = [[NSView alloc] init];
     lineView.wantsLayer = YES;
-    lineView.layer.borderColor = [NSColor labelColor].CGColor;
+    lineView.layer.borderColor = [NSColor systemGrayColor].CGColor;
     lineView.layer.borderWidth = 1;
     lineView.layer.cornerRadius = 5;
     [view addSubview:lineView];
@@ -457,7 +457,7 @@
     [textView sizeToFit];
     NSView *lineView = [[NSView alloc] init];
     lineView.wantsLayer = YES;
-    lineView.layer.borderColor = [NSColor labelColor].CGColor;
+    lineView.layer.borderColor = [NSColor systemGrayColor].CGColor;
     lineView.layer.borderWidth = 1;
     lineView.layer.cornerRadius = 5;
     [view addSubview:lineView];
@@ -502,7 +502,7 @@
     [textView sizeToFit];
     NSView *lineView = [[NSView alloc] init];
     lineView.wantsLayer = YES;
-    lineView.layer.borderColor = [NSColor labelColor].CGColor;
+    lineView.layer.borderColor = [NSColor systemGrayColor].CGColor;
     lineView.layer.borderWidth = 1;
     lineView.layer.cornerRadius = 5;
     [view addSubview:lineView];
@@ -593,7 +593,6 @@
         ZCPlatformDataJsonModel *model = (ZCPlatformDataJsonModel *)obj;
         if (model.isSelect) {
             [selectPlatformNameArray addObject:model.name];
-            *stop = YES;
         }
     }];
     [self showSelectPlatformView:selectPlatformNameArray];
