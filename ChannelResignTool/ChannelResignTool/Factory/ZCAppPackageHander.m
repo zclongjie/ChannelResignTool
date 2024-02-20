@@ -865,35 +865,43 @@
 ///渠道文件注入
 - (void)platformEditFilesPlatformModel:(ZCPlatformDataJsonModel *)platformModel argument:(NSDictionary *)argument launchImagePath:(NSString *)launchImagePath log:(LogBlock)logBlock error:(ErrorBlock)errorBlock success:(SuccessBlock)successBlock {
     
-//    if (logBlock) {
-//        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"复制渠道%@SDK", platformModel.name]);
-//    }
-    
     NSString *platformPath = [[ZCFileHelper sharedInstance].PlatformSDKUnzip stringByAppendingPathComponent:platformModel.alias];
-    //渠道文件
-    NSString *resourcePath = [platformPath stringByAppendingPathComponent:@"resource"];
-    
+    //渠道资源文件
+    NSString *resource_Path = [platformPath stringByAppendingPathComponent:@"resource"];
+    //渠道动态库文件
+    NSString *dylibs_Path = [platformPath stringByAppendingPathComponent:@"dylibs"];
+    //渠道闪屏文件
+    NSString *launchimage_ = @"launchimage-";
+    NSString *screen_type = [argument objectForKey:@"screen_type"];//2为竖屏
+    if (!screen_type) {
+        launchimage_ = @"launchimage-portrait";
+    }
+    if ([screen_type isEqualToString:@"2"]) {
+        launchimage_ = @"launchimage-portrait";
+    } else {
+        launchimage_ = @"launchimage-landscape";
+    }
+    NSString *launchimage_Path = [platformPath stringByAppendingPathComponent:launchimage_];
+    //奇葩动态库文件
+    NSString *libs_Path = [platformPath stringByAppendingPathComponent:@"libs"];
+
     // 创建队列组，可以使两个网络请求异步执行，执行完之后再进行操作
     dispatch_group_t group = dispatch_group_create();
     
-    //任务1
-    NSString *platformJsonPath = [[[ZCFileHelper sharedInstance].PlatformSDKJson stringByAppendingPathComponent:@(platformModel.id_).stringValue] stringByAppendingPathExtension:@"json"];
-    NSMutableDictionary *platformJsonPlist = [[ZCDataUtil shareInstance] readJsonFile:platformJsonPath];
-    NSString *plat_plist = platformJsonPlist[@"plat_plist"];
-    NSArray *sourceContents = [self.manager contentsOfDirectoryAtPath:resourcePath error:nil];
-    NSString *plat_plistPath;
-    for (NSString *file in sourceContents) {
-        if ([file isEqualToString:plat_plist]) {
-            plat_plistPath = [resourcePath stringByAppendingPathComponent:file];
-            break;
+    //任务1 渠道plist文件参数修改和resource复制
+    if ([self.manager fileExistsAtPath:resource_Path]) {
+        NSString *platformJsonPath = [[[ZCFileHelper sharedInstance].PlatformSDKJson stringByAppendingPathComponent:@(platformModel.id_).stringValue] stringByAppendingPathExtension:@"json"];
+        NSMutableDictionary *platformJsonPlist = [[ZCDataUtil shareInstance] readJsonFile:platformJsonPath];
+        NSString *plat_plist = platformJsonPlist[@"plat_plist"];
+        NSArray *sourceContents = [self.manager contentsOfDirectoryAtPath:resource_Path error:nil];
+        NSString *plat_plistPath;
+        for (NSString *file in sourceContents) {
+            if ([file isEqualToString:plat_plist]) {
+                plat_plistPath = [resource_Path stringByAppendingPathComponent:file];
+                break;
+            }
         }
-    }
-    if (plat_plistPath) {
-        dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            // 创建信号量
-            dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-            NSLog(@"run task 1");
-            
+        if (plat_plistPath) {
             NSMutableDictionary *plat_plistDict = [[NSMutableDictionary alloc] initWithContentsOfFile:plat_plistPath];
             for (NSString *key in argument.allKeys) {
                 if ([plat_plistDict.allKeys containsObject:key]) {
@@ -902,68 +910,50 @@
             }
             NSData *xmlData = [NSPropertyListSerialization dataWithPropertyList:plat_plistDict format:NSPropertyListXMLFormat_v1_0 options:kCFPropertyListImmutable error:nil];
             if ([xmlData writeToFile:plat_plistPath atomically:YES]) {
-//                if (logBlock) {
-//                    logBlock(BlockType_PlatformEditFiles, @"plat_plist修改完成");
-//                }
-                NSLog(@"complete task 1");
-                // 无论请求成功或失败都发送信号量(+1)
-                dispatch_semaphore_signal(semaphore);
+                //plat_plist写入成功
+                for (NSString *file in sourceContents) {
+                    dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                        // 创建信号量
+                        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+                        NSLog(@"%@", [NSString stringWithFormat:@"run task 2 %@", file]);
+                        NSString *sourcefilePath = [resource_Path stringByAppendingPathComponent:file];
+                        NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:file];
+                        [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
+                            if (result) {
+                                logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"resource", file]);
+                            } else {
+                                errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", @"resource", file]);
+                            }
+                            NSLog(@"%@", [NSString stringWithFormat:@"complete task 2 %@", file]);
+                            // 无论请求成功或失败都发送信号量(+1)
+                            dispatch_semaphore_signal(semaphore);
+                        }];
+                        // 在请求成功之前等待信号量(-1)
+                        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+                    });
+                }
             } else {
                 if (errorBlock) {
                     errorBlock(BlockType_PlatformEditFiles, @"plat_plist写入失败");
                 }
-                NSLog(@"complete task 1");
-                // 无论请求成功或失败都发送信号量(+1)
-                dispatch_semaphore_signal(semaphore);
             }
-            // 在请求成功之前等待信号量(-1)
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-            
-        });
-        
-    }
-    
-    //任务2
-    if (sourceContents.count) {
-        for (NSString *file in sourceContents) {
-            dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-                // 创建信号量
-                dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-                NSLog(@"%@", [NSString stringWithFormat:@"run task 2 %@", file]);
-                NSString *sourcefilePath = [resourcePath stringByAppendingPathComponent:file];
-                NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:file];
-                [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
-                    if (result) {
-//                        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"resource", file]);
-                    } else {
-                        errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", @"resource", file]);
-                    }
-                    NSLog(@"%@", [NSString stringWithFormat:@"complete task 2 %@", file]);
-                    // 无论请求成功或失败都发送信号量(+1)
-                    dispatch_semaphore_signal(semaphore);
-                }];
-                // 在请求成功之前等待信号量(-1)
-                dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-            });
-            
         }
     }
     
-    //任务3
-    NSString *dylibs = [platformPath stringByAppendingPathComponent:@"dylibs"];
-    if ([self.manager fileExistsAtPath:dylibs]) {
-        NSArray *sourceContents = [self.manager contentsOfDirectoryAtPath:dylibs error:nil];
-        if (sourceContents.count) {
-            for (NSString *file in sourceContents) {
+    //任务2 dylibs复制
+    if ([self.manager fileExistsAtPath:dylibs_Path]) {
+        NSArray *dylibsContents = [self.manager contentsOfDirectoryAtPath:dylibs_Path error:nil];
+        if (dylibsContents.count) {
+            for (NSString *file in dylibsContents) {
                 dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                     // 创建信号量
                     dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
                     NSLog(@"%@", [NSString stringWithFormat:@"run task 3 %@", file]);
-                    NSString *sourcefilePath = [dylibs stringByAppendingPathComponent:file];
+                    NSString *sourcefilePath = [dylibs_Path stringByAppendingPathComponent:file];
                     NSString *targetfilePath = [[self.appPath stringByAppendingPathComponent:@"Frameworks"] stringByAppendingPathComponent:file];
                     [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
                         if (result) {
-//                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"dylibs", file]);
+                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", @"dylibs", file]);
                         } else {
                             errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", @"dylibs", file]);
                         }
@@ -980,23 +970,11 @@
         }
     }
     
-    //任务4
-    NSString *launchimage_ = @"launchimage-";
-    NSString *screen_type = [argument objectForKey:@"screen_type"];//2为竖屏
-    if (!screen_type) {
-        launchimage_ = @"launchimage-portrait";
-    }
-    if ([screen_type isEqualToString:@"2"]) {
-        launchimage_ = @"launchimage-portrait";
-    } else {
-        launchimage_ = @"launchimage-landscape";
-    }
-    
-    NSString *launchimage_Path = [platformPath stringByAppendingPathComponent:launchimage_];
+    //任务3 launchimage复制
     if ([self.manager fileExistsAtPath:launchimage_Path]) {
-        NSArray *sourceContents = [self.manager contentsOfDirectoryAtPath:launchimage_Path error:nil];
-        if (sourceContents.count) {
-            for (NSString *file in sourceContents) {
+        NSArray *launchimageContents = [self.manager contentsOfDirectoryAtPath:launchimage_Path error:nil];
+        if (launchimageContents.count) {
+            for (NSString *file in launchimageContents) {
                 dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                     // 创建信号量
                     dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
@@ -1021,7 +999,7 @@
             
             //健康公告闪屏
             NSString *platform_bg = nil;
-            for (NSString *file in sourceContents) {
+            for (NSString *file in launchimageContents) {
                 if ([[[file pathExtension] lowercaseString] isEqualToString:@"png"]) {
                     platform_bg = file;
                     break;
@@ -1037,7 +1015,7 @@
                     NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:@"bg.png"];
                     [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
                         if (result) {
-//                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", launchimage_, launchImagePath]);
+                            logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制成功", launchimage_, launchImagePath]);
                         } else {
                             errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@-%@复制失败", launchimage_, launchImagePath]);
                         }
@@ -1054,103 +1032,106 @@
         
     }
     
-    //任务5
-    //替换QPJHLightSDK
-    NSString *libs = [platformPath stringByAppendingPathComponent:@"libs"];
-    NSArray *libsContents = [self.manager contentsOfDirectoryAtPath:libs error:nil];
-    NSString *QPJHLightSDKPath;
-    NSString *targetQPJHLightSDKPath;
-    for (NSString *file in libsContents) {
-        if ([[file lastPathComponent] isEqualToString:@"QPJHLightSDK"]) {
-            QPJHLightSDKPath = [libs stringByAppendingPathComponent:file];
-            targetQPJHLightSDKPath = [[[self.appPath stringByAppendingPathComponent:@"Frameworks"] stringByAppendingPathComponent:@"QPJHLightSDK.framework"] stringByAppendingPathComponent:file];
-            break;
-        }
-    }
-    if (QPJHLightSDKPath && targetQPJHLightSDKPath) {
-        dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            // 创建信号量
-            dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-            NSLog(@"run task 5");
-            [[ZCFileHelper sharedInstance] copyFile:QPJHLightSDKPath toPath:targetQPJHLightSDKPath complete:^(BOOL result) {
-                if (result) {
-//                    logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制成功", @"QPJHLightSDK"]);
-                } else {
-                    errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制失败", @"QPJHLightSDK"]);
-                }
-                
-                NSLog(@"complete task 5");
-                // 无论请求成功或失败都发送信号量(+1)
-                dispatch_semaphore_signal(semaphore);
-            }];
-            // 在请求成功之前等待信号量(-1)
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        });
-    }
-    
-    //任务6
-    NSString *AssetsPath = [[ZCFileHelper sharedInstance].GameTemp stringByAppendingPathComponent:@"Assets.xcassets"];
-    NSString *appIconSourcePath = [AssetsPath stringByAppendingPathComponent:@"AppIcon.appiconset"];
-    NSArray *AppIconsPathContents = [self.manager contentsOfDirectoryAtPath:appIconSourcePath error:nil];
-
-    for (NSString *file in AppIconsPathContents) {
-        dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-            // 创建信号量
-            dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-            NSLog(@"%@", [NSString stringWithFormat:@"run task 6 %@", file]);
-            NSString *sourcefilePath = [appIconSourcePath stringByAppendingPathComponent:file];
-            
-            NSString *localData_plist = [[NSBundle mainBundle] pathForResource:@"ZCLocalData" ofType:@"plist"];
-            NSMutableDictionary *data = [[NSMutableDictionary alloc] initWithContentsOfFile:localData_plist];
-            ZCAppIconModel *appIconModel = [ZCAppIconModel mj_objectWithKeyValues:data[@"appicon"]];
-            NSString *newFile = nil;
-            for (ZCAppIconImageItem *iconImageItem in appIconModel.images) {
-                if ([iconImageItem.filename isEqualToString:file]) {
-                    NSString *CFBundleIconFilesName = [NSString stringWithFormat:@"AppIcon%@", iconImageItem.size];
-                    if ([iconImageItem.idiom isEqualToString:@"iphone"]) {
-                        if ([iconImageItem.scale isEqualToString:@"1x"]) {
-                            newFile = [NSString stringWithFormat:@"%@", CFBundleIconFilesName];
-                        } else if ([iconImageItem.scale isEqualToString:@"2x"]) {
-                            newFile = [NSString stringWithFormat:@"%@@2x", CFBundleIconFilesName];
-                        } else if ([iconImageItem.scale isEqualToString:@"3x"]) {
-                            newFile = [NSString stringWithFormat:@"%@@3x", CFBundleIconFilesName];
-                        }
-                    }
-                    if ([iconImageItem.idiom isEqualToString:@"ipad"]) {
-                        if ([iconImageItem.scale isEqualToString:@"1x"]) {
-                            newFile = [NSString stringWithFormat:@"%@~ipad", CFBundleIconFilesName];
-                        } else if ([iconImageItem.scale isEqualToString:@"2x"]) {
-                            newFile = [NSString stringWithFormat:@"%@@2x~ipad", CFBundleIconFilesName];
-                        } else if ([iconImageItem.scale isEqualToString:@"3x"]) {
-                            newFile = [NSString stringWithFormat:@"%@@3x~ipad", CFBundleIconFilesName];
-                        }
-                    }
-                    break;
-                }
+    //任务4 替换QPJHLightSDK
+    if ([self.manager fileExistsAtPath:libs_Path]) {
+        NSArray *libsContents = [self.manager contentsOfDirectoryAtPath:libs_Path error:nil];
+        NSString *QPJHLightSDKPath;
+        NSString *targetQPJHLightSDKPath;
+        for (NSString *file in libsContents) {
+            if ([[file lastPathComponent] isEqualToString:@"QPJHLightSDK"]) {
+                QPJHLightSDKPath = [libs_Path stringByAppendingPathComponent:file];
+                targetQPJHLightSDKPath = [[[self.appPath stringByAppendingPathComponent:@"Frameworks"] stringByAppendingPathComponent:@"QPJHLightSDK.framework"] stringByAppendingPathComponent:file];
+                break;
             }
-            if (newFile) {
-                NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:[newFile stringByAppendingPathExtension:@"png"]];
-                [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
+        }
+        if (QPJHLightSDKPath && targetQPJHLightSDKPath) {
+            dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                // 创建信号量
+                dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+                NSLog(@"run task 5");
+                [[ZCFileHelper sharedInstance] copyFile:QPJHLightSDKPath toPath:targetQPJHLightSDKPath complete:^(BOOL result) {
                     if (result) {
-//                        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制成功", newFile]);
+                        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制成功", @"QPJHLightSDK"]);
                     } else {
-                        errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制失败", newFile]);
+                        errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制失败", @"QPJHLightSDK"]);
                     }
-                    NSLog(@"%@", [NSString stringWithFormat:@"complete task 6 %@", file]);
+                    
+                    NSLog(@"complete task 5");
                     // 无论请求成功或失败都发送信号量(+1)
                     dispatch_semaphore_signal(semaphore);
                 }];
-            } else {
-                NSLog(@"%@", [NSString stringWithFormat:@"complete task 6 %@", file]);
-                // 无论请求成功或失败都发送信号量(+1)
-                dispatch_semaphore_signal(semaphore);
-            }
-            
-            // 在请求成功之前等待信号量(-1)
-            dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-        });
-
+                // 在请求成功之前等待信号量(-1)
+                dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+            });
+        }
     }
+    
+    //任务5
+    NSString *AssetsPath = [[ZCFileHelper sharedInstance].GameTemp stringByAppendingPathComponent:@"Assets.xcassets"];
+    NSString *appIconSourcePath = [AssetsPath stringByAppendingPathComponent:@"AppIcon.appiconset"];
+    if ([self.manager fileExistsAtPath:appIconSourcePath]) {
+        NSArray *AppIconsPathContents = [self.manager contentsOfDirectoryAtPath:appIconSourcePath error:nil];
+
+        for (NSString *file in AppIconsPathContents) {
+            dispatch_group_async(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                // 创建信号量
+                dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+                NSLog(@"%@", [NSString stringWithFormat:@"run task 6 %@", file]);
+                NSString *sourcefilePath = [appIconSourcePath stringByAppendingPathComponent:file];
+                
+                NSString *localData_plist = [[NSBundle mainBundle] pathForResource:@"ZCLocalData" ofType:@"plist"];
+                NSMutableDictionary *data = [[NSMutableDictionary alloc] initWithContentsOfFile:localData_plist];
+                ZCAppIconModel *appIconModel = [ZCAppIconModel mj_objectWithKeyValues:data[@"appicon"]];
+                NSString *newFile = nil;
+                for (ZCAppIconImageItem *iconImageItem in appIconModel.images) {
+                    if ([iconImageItem.filename isEqualToString:file]) {
+                        NSString *CFBundleIconFilesName = [NSString stringWithFormat:@"AppIcon%@", iconImageItem.size];
+                        if ([iconImageItem.idiom isEqualToString:@"iphone"]) {
+                            if ([iconImageItem.scale isEqualToString:@"1x"]) {
+                                newFile = [NSString stringWithFormat:@"%@", CFBundleIconFilesName];
+                            } else if ([iconImageItem.scale isEqualToString:@"2x"]) {
+                                newFile = [NSString stringWithFormat:@"%@@2x", CFBundleIconFilesName];
+                            } else if ([iconImageItem.scale isEqualToString:@"3x"]) {
+                                newFile = [NSString stringWithFormat:@"%@@3x", CFBundleIconFilesName];
+                            }
+                        }
+                        if ([iconImageItem.idiom isEqualToString:@"ipad"]) {
+                            if ([iconImageItem.scale isEqualToString:@"1x"]) {
+                                newFile = [NSString stringWithFormat:@"%@~ipad", CFBundleIconFilesName];
+                            } else if ([iconImageItem.scale isEqualToString:@"2x"]) {
+                                newFile = [NSString stringWithFormat:@"%@@2x~ipad", CFBundleIconFilesName];
+                            } else if ([iconImageItem.scale isEqualToString:@"3x"]) {
+                                newFile = [NSString stringWithFormat:@"%@@3x~ipad", CFBundleIconFilesName];
+                            }
+                        }
+                        break;
+                    }
+                }
+                if (newFile) {
+                    NSString *targetfilePath = [self.appPath stringByAppendingPathComponent:[newFile stringByAppendingPathExtension:@"png"]];
+                    [[ZCFileHelper sharedInstance] copyFile:sourcefilePath toPath:targetfilePath complete:^(BOOL result) {
+                        if (result) {
+    //                        logBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制成功", newFile]);
+                        } else {
+                            errorBlock(BlockType_PlatformEditFiles, [NSString stringWithFormat:@"%@复制失败", newFile]);
+                        }
+                        NSLog(@"%@", [NSString stringWithFormat:@"complete task 6 %@", file]);
+                        // 无论请求成功或失败都发送信号量(+1)
+                        dispatch_semaphore_signal(semaphore);
+                    }];
+                } else {
+                    NSLog(@"%@", [NSString stringWithFormat:@"complete task 6 %@", file]);
+                    // 无论请求成功或失败都发送信号量(+1)
+                    dispatch_semaphore_signal(semaphore);
+                }
+                
+                // 在请求成功之前等待信号量(-1)
+                dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+            });
+
+        }
+    }
+    
     
     // 请求完成之后
     dispatch_group_notify(group, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -1241,7 +1222,7 @@
             
             printf("信号量等待中\n");
             if (logBlock) {
-                logBlock(BlockType_Unzip, [NSString stringWithFormat:@"%@%ld开始打包", platformModel.name, (long)platformModel.id_]);
+                logBlock(BlockType_Unzip, [NSString stringWithFormat:@"%@[%ld]开始打包", platformModel.name, (long)platformModel.id_]);
                 logBlock(BlockType_PlatformShow, platformModel.name);
             }
             
