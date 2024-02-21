@@ -764,8 +764,12 @@
     NSMutableDictionary *game_plist = platformJsonPlist[@"game_plist"];
     NSMutableDictionary *replace = platformJsonPlist[@"replace"];
     for (NSString *replacekey in replace.allKeys) {
-        NSString *replacevalue = argument[replace[replacekey]];
-        if (replacevalue) {
+        NSString *argumentkey = replace[replacekey];//去匹配渠道参数
+        if ([argumentkey isEqualToString:@"package"]) {
+            argumentkey = @"ios_package";
+        }
+        if ([argument.allKeys containsObject:argumentkey]) {
+            NSString *replacevalue = argument[argumentkey];
             for (NSString *key in game_plist.allKeys) {
                 id value = game_plist[key];
                 if ([value isKindOfClass:[NSArray class]]) {
