@@ -764,12 +764,13 @@
     NSMutableDictionary *game_plist = platformJsonPlist[@"game_plist"];
     NSMutableDictionary *replace = platformJsonPlist[@"replace"];
     for (NSString *replacekey in replace.allKeys) {
-        NSString *argumentkey = replace[replacekey];//去匹配渠道参数
-        if ([argumentkey isEqualToString:@"package"]) {
-            argumentkey = @"ios_package";
+        NSString *replacevalue = nil;
+        if ([replace[replacekey] isEqualToString:@"package"]) {
+            replacevalue = [argument objectForKey:@"ios_package"];
+        } else {
+            replacevalue = [argument objectForKey:replace[replacekey]];
         }
-        if ([argument.allKeys containsObject:argumentkey]) {
-            NSString *replacevalue = argument[argumentkey];
+        if (replacevalue) {
             for (NSString *key in game_plist.allKeys) {
                 id value = game_plist[key];
                 if ([value isKindOfClass:[NSArray class]]) {
@@ -783,12 +784,12 @@
                 }
             }
         }
-        
     }
 }
 - (void)replaceDict:(NSMutableDictionary *)dict replacekey:(NSString *)replacekey replacevalue:(NSString *)replacevalue {
-    for (NSString *key in dict.allKeys) {
-        id valueDictId = dict[key];
+    NSMutableDictionary *tempDict = [dict mutableCopy];
+    for (NSString *key in tempDict.allKeys) {
+        id valueDictId = tempDict[key];
         if ([valueDictId isKindOfClass:[NSArray class]]) {
             [self replaceArray:valueDictId replacekey:replacekey replacevalue:replacevalue];
         } else if ([valueDictId isKindOfClass:[NSDictionary class]]) {
@@ -801,14 +802,15 @@
     }
 }
 - (void)replaceArray:(NSMutableArray *)array replacekey:(NSString *)replacekey replacevalue:(NSString *)replacevalue {
-    for (id valueArrayId in array) {
+    NSMutableArray *tempArray = [array mutableCopy];
+    for (id valueArrayId in tempArray) {
         if ([valueArrayId isKindOfClass:[NSArray class]]) {
             [self replaceArray:valueArrayId replacekey:replacekey replacevalue:replacevalue];
         } else if ([valueArrayId isKindOfClass:[NSDictionary class]]) {
             [self replaceDict:valueArrayId replacekey:replacekey replacevalue:replacevalue];
         } else if ([valueArrayId isKindOfClass:[NSString class]]) {
             if ([valueArrayId containsString:replacekey]) {
-                [array replaceObjectAtIndex:0 withObject:[valueArrayId stringByReplacingOccurrencesOfString:replacekey withString:replacevalue]];
+                [array replaceObjectAtIndex:[tempArray indexOfObject:valueArrayId] withObject:[valueArrayId stringByReplacingOccurrencesOfString:replacekey withString:replacevalue]];
             }
         }
     }
